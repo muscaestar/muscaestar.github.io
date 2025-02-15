@@ -7,7 +7,6 @@
     "startSite":"02/15/2025",
     "bottomText":"~欢迎转载，请注明出处~",
     "allHead":"<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekVercount.js'></script>",
-    "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekTOC.js'></script><script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>",
-    "indexScript":"<script>document.addEventListener('DOMContentLoaded', function() {var metaTag = document.createElement('meta');metaTag.name = 'google-site-verification';metaTag.content = 'sF8juvYBVRdRvU7NsGDmAXFNinBrXUb1FNznJPMZqgA';document.head.insertBefore(metaTag, document.head.firstChild);});</script>"
+    "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekTOC.js'></script><script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>"
 
 }
