@@ -1,6 +1,7 @@
 {
     "title":"Musca's Blog",
-    "subTitle":"            一个碳基智能体的Internal Thinking<br><br>👨🏻‍💻<br><br>",
+    "subTitle":"            🧠一个碳基智能体的Internal Thinking🧠<br><br> <br><br>",
+    "homeUrl":"http://muscaestar.xyz",
     "avatarUrl":"https://github.com/muscaestar/muscaestar.github.io/raw/cbe527c003b8e1c35121c899e43b647f477f9eda/static/musca_avatar_0.jpg",
     "GMEEK_VERSION":"last",
     "startSite":"02/15/2025",
@@ -8,4 +9,5 @@
     "allHead":"<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekVercount.js'></script>",
     "script":"<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekTOC.js'></script><script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>",
     "indexScript":"<script>document.addEventListener('DOMContentLoaded', function() {var metaTag = document.createElement('meta');metaTag.name = 'google-site-verification';metaTag.content = 'sF8juvYBVRdRvU7NsGDmAXFNinBrXUb1FNznJPMZqgA';document.head.insertBefore(metaTag, document.head.firstChild);});</script>"
+
 }
