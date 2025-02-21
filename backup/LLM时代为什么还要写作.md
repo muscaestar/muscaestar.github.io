@@ -13,7 +13,7 @@ I believe one must clarify the purpose and nature of their blog writing to susta
 
 
 ## 如何看待写作作品被拿去喂LLM这件事  Perspectives on Having Writing Works Used to Train LLMs  
-我倾向于乐观积极的心态，所以我这么认为：LLM时代，思维认知需要有所改变。事实是：整个互联网的文字最终都会被拿去训练LLM，人类知识的浓缩最终体现成为千万个参数。  
+我倾向于乐观积极的心态，所以我这么认为：LLM时代，思维认知需要有所改变。事实是：整个互联网的文字最终都会被拿去训练LLM，人类知识的浓缩最终体现成为亿万个参数。  
 I lean toward an optimistic mindset. Here's my view: In the LLM era, our cognitive frameworks need to evolve. The reality is: all text on the internet will eventually be used to train LLMs, with the essence of human knowledge ultimately distilled into millions of parameters.
 
 我作为人类，我的思维创造的产物被爬取，进入训练集，在无数次epoch中，它变成了LLM参数集的一部分。基于LLM的工具，帮助我，帮助人类共同体，一次次进行着正向循环♾️。  
@@ -32,7 +32,7 @@ Absolutely. The core remains my own creative thinking—I record ideas through d
 我的写作目的：以记录操作方法和经验的笔记性写作，以自我提升为目的总结归纳式写作。  
 My writing purposes: note-based writing to document methods and experiences, and summary-oriented writing for self-improvement.
 
-LLM是千万级参数的静态模型，而人脑是更强大的亿万级参数甚至更大量级的碳基模型，并且是动态的自我演进的。以我粗浅的对神经学的认识和模型训练的知识，我是这么类比的：自我创作的过程是对自己的大脑模型的训练，有点类似于自生成数据做自监督训练，通过不停迭代自己来优化大脑的参数，朝更优秀的大脑前进。  
+LLM是百亿级参数的静态模型，而人脑是更强大的万亿级参数甚至更大量级的碳基模型，并且是动态的自我演进的。以我粗浅的对神经学的认识和模型训练的知识，我是这么类比的：自我创作的过程是对自己的大脑模型的训练，有点类似于自生成数据做自监督训练，通过不停迭代自己来优化大脑的参数，朝更优秀的大脑前进。  
 LLMs are static models with millions of parameters, while the human brain is a far more powerful carbon-based model with billions or even greater magnitudes of parameters, dynamically self-evolving. With my rudimentary understanding of neuroscience and model training, I analogize it this way: The process of self-authored creation trains our brain model, somewhat like self-supervised learning with self-generated data. Through continuous iteration, we optimize our brain's parameters, progressing toward a superior mind.
 
 
