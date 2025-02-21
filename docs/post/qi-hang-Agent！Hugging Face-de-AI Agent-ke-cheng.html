@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    <script src='https://blog.meekdai.com/Gmeek/plugins/GmeekVercount.js'></script>
+    <link rel="icon" href="https://github.com/muscaestar/muscaestar.github.io/raw/cbe527c003b8e1c35121c899e43b647f477f9eda/static/musca_avatar_0.jpg"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="## 我想这个课程是个很好的上手材料
+https://huggingface.co/agents-course
+
+![huggingface-agent-course](https://muscaestar.xyz/huggingface-agent-course.png)
+
+## 碳基大脑的启发 **Inspiration from Carbon-Based Brains**
+
+
+LLM的base模型可以理解为一个静态数学模型，擅长文本预测。">
+<meta property="og:title" content="起航Agent！Hugging Face的AI Agent课程">
+<meta property="og:description" content="## 我想这个课程是个很好的上手材料
+https://huggingface.co/agents-course
+
+![huggingface-agent-course](https://muscaestar.xyz/huggingface-agent-course.png)
+
+## 碳基大脑的启发 **Inspiration from Carbon-Based Brains**
+
+
+LLM的base模型可以理解为一个静态数学模型，擅长文本预测。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://muscaestar.xyz/post/qi-hang-Agent%EF%BC%81Hugging%20Face-de-AI%20Agent-ke-cheng.html">
+<meta property="og:image" content="https://github.com/muscaestar/muscaestar.github.io/raw/cbe527c003b8e1c35121c899e43b647f477f9eda/static/musca_avatar_0.jpg">
+<title>起航Agent！Hugging Face的AI Agent课程</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">起航Agent！Hugging Face的AI Agent课程</h1>
+<div class="title-right">
+    <a href="https://muscaestar.xyz" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/muscaestar/muscaestar.github.io/issues/4" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h2>我想这个课程是个很好的上手材料</h2>
+<p><a href="https://huggingface.co/agents-course" rel="nofollow">https://huggingface.co/agents-course</a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/704fa6b31fc3b224cb24291e873c1da88fe49b92aa52f0482f1412984ef97cca/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67"><img src="https://camo.githubusercontent.com/704fa6b31fc3b224cb24291e873c1da88fe49b92aa52f0482f1412984ef97cca/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67" alt="huggingface-agent-course" data-canonical-src="https://muscaestar.xyz/huggingface-agent-course.png" style="max-width: 100%;"></a></p>
+<h2>碳基大脑的启发 <strong>Inspiration from Carbon-Based Brains</strong></h2>
+<p>LLM的base模型可以理解为一个静态数学模型，擅长文本预测。<br>
+The base model of LLM can be understood as a static mathematical model, excelling at text prediction.</p>
+<p>如何超越它的局限？Agent是一种答案。<br>
+How to transcend its limitations? Agents provide one answer.</p>
+<p>Agent要有<strong>Tool</strong>才能执行<strong>Action</strong>。这个抽象模型敲定后，实际如何实现呢？如何让LLM高效且合理地执行Function就是Agent的核心。<br>
+An Agent requires <strong>Tools</strong> to execute <strong>Actions</strong>. Once this abstract model is established, how do we implement it in practice? The core challenge lies in enabling LLMs to efficiently and rationally execute Functions.</p>
+<p>T.A.O.  (Think, Act, Observe) 就像冯诺依曼架构一样，初看平平无奇，细想下来，很是精妙，让人感叹大道至简的同时，不禁反思：单从结果看，这些设计似乎我也能创造出来，但实际为什么没有？<br>
+The T.A.O. framework (Think, Act, Observe), much like the von Neumann architecture, appears deceptively simple at first glance. Yet upon closer examination, its elegance becomes apparent. While marveling at how profound truths manifest through simplicity, one can't help but wonder: "Judging solely by the outcome, these designs seem achievable by anyone — so why didn't I create them?"</p>
+<p>LLM只能被动基于prompt来做出回应，缺乏主动性，但基于LLM的Agent，可以通过T.A.O.循环模式来获得自主性，比如我用两个Agent就可以无限对话，单个Agent也可以永远T.A.O.循环下去。Observe是核心驱动力。甚至人类可以被封装为一个Agent，成为众多Agent对话中的一环。<br>
+LLMs can only passively respond to prompts, but LLM-based Agents gain autonomy through the T.A.O. cycle. For instance, two Agents can engage in infinite dialogue, while a single Agent can sustain continuous T.A.O. cycles. The Observe phase serves as the core driving force. Remarkably, even humans can be encapsulated as Agents within conversational chains.</p>
+<p>以人类来类比，人类可以被看做碳基智能体，行为模式也遵循T.A.O.，那么是什么推动人类不停处于T.A.O. Cycling中？<br>
+能推动人类持续T.A.O.循环的因素，同样适用于驱动Agent。<br>
+By analogy, humans can be viewed as carbon-based intelligent agents whose behavioral patterns similarly adhere to the T.A.O. framework. What then drives humans to perpetually engage in T.A.O. Cycling?<br>
+The factors that drive humans to maintain T.A.O. cycles are equally applicable to powering Agents.</p>
+<p>T.A.O.是结合逻辑学与人工智能科学的理论成果，是一种构造AI Agent的设计模式，起源于这篇论文：<br>
+The T.A.O. framework, a theoretical achievement combining logic and artificial intelligence science, originates from this seminal paper:</p>
+<p><strong>ReAct: SYNERGIZING REASONING AND ACTING IN LANGUAGE MODELS</strong></p>
+<p>ReAct在2023年就提出来了，但是我猜在token成本昂贵的大环境下，它并不易推广，好消息是今年DeepSeek大幅降低了token成本，估计正是这个契机促使Hugging Face推出本课程。<br>
+Proposed in 2023, ReAct faced adoption challenges during the era of high token costs. The good news is that DeepSeek's significant cost reduction this year — it is likely this breakthrough that motivated Hugging Face to launch this course.</p>
+<p>有一种感觉，不恰当类比一下，以前编程是在对世界建模，而这种T.A.O.的思想，是在对人类建模。<br>
+There's an intuition — admittedly an imperfect analogy — that traditional programming focused on modeling the world, while the T.A.O. framework (Think, Act, Observe) represents a philosophical shift toward modeling human cognition.</p>
+<p>从对人建模的思路出发，我应该可以把日常用到的工具归纳起来，提供给Agent，使他成为我理想中的智能体。<br>
+Building upon this human-centric modeling approach, I should be able to systematically organize the tools I use daily and integrate them into an Agent, ultimately shaping it into the ideal intelligent entity I envision.</p>
+<h2>Unit1完结</h2>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/6fa85b71ad8135a84ae53d1e39f007474061a17a66243668957b3856c2221eba/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567"><img src="https://camo.githubusercontent.com/6fa85b71ad8135a84ae53d1e39f007474061a17a66243668957b3856c2221eba/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567" alt="hugging-face-cert-unit1" data-canonical-src="https://muscaestar.xyz/hugging-face-cert-unit1.jpeg" style="max-width: 100%;"></a></p>
+<h2>附录</h2>
+<p>以下是遵循ReAct范式的中文版system prompt（代码和变量部分保持原样）：</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-c1">SYSTEM_PROMPT</span> <span class="pl-c1">=</span> <span class="pl-s">"""尽你所能回答以下问题。你可以使用以下工具：</span>
+<span class="pl-s"></span>
+<span class="pl-s">get_weather: 获取指定地区的当前天气</span>
+<span class="pl-s"></span>
+<span class="pl-s">使用工具的方式是通过指定一个json blob。</span>
+<span class="pl-s">具体来说，这个json应该包含`action`键（工具名称）和`action_input`键（工具输入参数）。</span>
+<span class="pl-s"></span>
+<span class="pl-s">"action"字段允许的值只有：</span>
+<span class="pl-s">get_weather: 获取指定地区的当前天气，参数: {"location": {"type": "string"}}</span>
+<span class="pl-s">使用示例：</span>
+<span class="pl-s">{{</span>
+<span class="pl-s">  "action": "get_weather",</span>
+<span class="pl-s">  "action_input": {"location": "New York"}</span>
+<span class="pl-s">}}</span>
+<span class="pl-s"></span>
+<span class="pl-s">请始终使用以下格式：</span>
+<span class="pl-s"></span>
+<span class="pl-s">Question: 需要回答的输入问题</span>
+<span class="pl-s">Thought: 你应该始终逐步思考，每次只能执行一个动作。格式如下：</span>
+<span class="pl-s">Action:</span>
+<span class="pl-s">\`\`\`</span>
+<span class="pl-s">$JSON_BLOB</span>
+<span class="pl-s">\`\`\`</span>
+<span class="pl-s">Observation: 动作执行结果（该观察结果是唯一且完整的事实来源）</span>
+<span class="pl-s">...（这个Thought/Action/Observation可以重复N次，需要时请执行多步操作。$JSON_BLOB必须使用markdown格式，且每次只能执行一个动作）</span>
+<span class="pl-s"></span>
+<span class="pl-s">你必须在最终输出时使用以下格式结尾：</span>
+<span class="pl-s"></span>
+<span class="pl-s">Thought: 我现在知道最终答案</span>
+<span class="pl-s">Final Answer: 对原始问题的最终回答</span>
+<span class="pl-s"></span>
+<span class="pl-s">现在开始！请始终记住：当给出最终答案时，必须使用精确字符`Final Answer:`。"""</span></pre></div></div>
+<div style="font-size:small;margin-top:8px;float:right;">~欢迎转载，请注明出处~</div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://muscaestar.xyz">Musca's Blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if("02/15/2025"!=""){
+    var startSite=new Date("02/15/2025");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","muscaestar/muscaestar.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+<script src='https://blog.meekdai.com/Gmeek/plugins/GmeekTOC.js'></script><script src='https://blog.meekdai.com/Gmeek/plugins/lightbox.js'></script>
+
+</html>
