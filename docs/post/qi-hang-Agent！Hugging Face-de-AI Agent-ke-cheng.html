@@ -101,7 +101,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
     <div id="content">
 <div class="markdown-body" id="postBody"><h2>我想这个课程是个很好的上手材料</h2>
 <p><a href="https://huggingface.co/agents-course" rel="nofollow">https://huggingface.co/agents-course</a></p>
-<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/704fa6b31fc3b224cb24291e873c1da88fe49b92aa52f0482f1412984ef97cca/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67"><img src="https://camo.githubusercontent.com/704fa6b31fc3b224cb24291e873c1da88fe49b92aa52f0482f1412984ef97cca/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67" alt="huggingface-agent-course" data-canonical-src="https://muscaestar.xyz/huggingface-agent-course.png" style="max-width: 100%;"></a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/41fbad5b50c3b272d238ef3e854a9b4bc6ec02e7d20a8e188afef280bb51c870/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67"><img src="https://camo.githubusercontent.com/41fbad5b50c3b272d238ef3e854a9b4bc6ec02e7d20a8e188afef280bb51c870/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e67666163652d6167656e742d636f757273652e706e67" alt="huggingface-agent-course" data-canonical-src="https://muscaestar.xyz/huggingface-agent-course.png" style="max-width: 100%;"></a></p>
 <h2>碳基大脑的启发 <strong>Inspiration from Carbon-Based Brains</strong></h2>
 <p>LLM的base模型可以理解为一个静态数学模型，擅长文本预测。<br>
 The base model of LLM can be understood as a static mathematical model, excelling at text prediction.</p>
@@ -127,7 +127,7 @@ There's an intuition — admittedly an imperfect analogy — that traditional pr
 <p>从对人建模的思路出发，我应该可以把日常用到的工具归纳起来，提供给Agent，使他成为我理想中的智能体。<br>
 Building upon this human-centric modeling approach, I should be able to systematically organize the tools I use daily and integrate them into an Agent, ultimately shaping it into the ideal intelligent entity I envision.</p>
 <h2>Unit1完结</h2>
-<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/6fa85b71ad8135a84ae53d1e39f007474061a17a66243668957b3856c2221eba/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567"><img src="https://camo.githubusercontent.com/6fa85b71ad8135a84ae53d1e39f007474061a17a66243668957b3856c2221eba/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567" alt="hugging-face-cert-unit1" data-canonical-src="https://muscaestar.xyz/hugging-face-cert-unit1.jpeg" style="max-width: 100%;"></a></p>
+<p><a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/57f32800a1cafb4f5831efb76875cffaa5ab2c3b20abe14ea29017478ffc53a6/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567"><img src="https://camo.githubusercontent.com/57f32800a1cafb4f5831efb76875cffaa5ab2c3b20abe14ea29017478ffc53a6/68747470733a2f2f6d7573636165737461722e78797a2f68756767696e672d666163652d636572742d756e6974312e6a706567" alt="hugging-face-cert-unit1" data-canonical-src="https://muscaestar.xyz/hugging-face-cert-unit1.jpeg" style="max-width: 100%;"></a></p>
 <h2>附录</h2>
 <p>以下是遵循ReAct范式的中文版system prompt（代码和变量部分保持原样）：</p>
 <div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-c1">SYSTEM_PROMPT</span> <span class="pl-c1">=</span> <span class="pl-s">"""尽你所能回答以下问题。你可以使用以下工具：</span>
@@ -181,7 +181,7 @@ if("02/15/2025"!=""){
     var startSite=new Date("02/15/2025");
     var diff=now.getTime()-startSite.getTime();
     var diffDay=Math.floor(diff/(1000*60*60*24));
-    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+    document.getElementById("runday").innerHTML="网站运行 "+diffDay+" 天"+" • ";
 }
 </script></div>
 </body>
@@ -226,6 +226,7 @@ document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
 function openComments(){
     cm=document.getElementById("comments");
     cmButton=document.getElementById("cmButton");
+    cmButton.disabled=true;
     cmButton.innerHTML="loading";
     span=document.createElement("span");
     span.setAttribute("class","AnimatedEllipsis");
