@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 场景图速查</title>
+<style>
+/* 3D 学习工作区 — 共享样式表
+   为手机小屏优化，深色主题，Tufte 风格的简洁排版 */
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b27;
+  --bg-code: #0a0e14;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #3fb950;
+  --accent3: #d29922;
+  --border: #30363d;
+  --red: #f85149;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 1.2rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 标题 --- */
+h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 2rem 0 0.6rem;
+}
+h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.4rem 0 0.4rem;
+}
+p { margin: 0.5rem 0; }
+
+/* --- 导航 --- */
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+}
+.lesson-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+
+/* --- 概念卡片 --- */
+.concept {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+}
+.concept .term {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.concept .term .en {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-left: 0.5rem;
+}
+.concept p { font-size: 0.92rem; }
+
+/* --- 代码块 --- */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0.8rem 0;
+  font-family: "SF Mono", Menlo, monospace;
+  -webkit-overflow-scrolling: touch;
+}
+code {
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(88,166,255,.12);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre code { background: none; padding: 0; }
+
+/* --- 测验 --- */
+.quiz {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+.quiz .q-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+.quiz .q-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.7rem;
+}
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct {
+  border-color: var(--accent2);
+  background: rgba(63,185,80,.12);
+  color: var(--accent2);
+}
+.quiz .opt.wrong {
+  border-color: var(--red);
+  background: rgba(248,81,73,.12);
+  color: var(--red);
+}
+.quiz .feedback {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: none;
+}
+.quiz .feedback.show { display: block; }
+
+/* --- 互动演示 --- */
+.demo-frame {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.demo-frame iframe {
+  width: 100%;
+  height: 280px;
+  border: none;
+  display: block;
+}
+.demo-caption {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 0.5rem 0.8rem;
+  background: var(--bg-card);
+}
+
+/* --- 对照表 --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+th, td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+td { color: var(--text); }
+
+/* --- 提示框 --- */
+.tip {
+  background: rgba(88,166,255,.08);
+  border: 1px solid rgba(88,166,255,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.tip::before {
+  content: "💡 ";
+}
+.tip strong { color: var(--accent); }
+
+.warn {
+  background: rgba(210,153,34,.08);
+  border: 1px solid rgba(210,153,34,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.warn::before {
+  content: "⚠️ ";
+}
+.warn strong { color: var(--accent3); }
+
+/* --- 资源链接 --- */
+.resources {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.resources h3 { margin-top: 0; }
+.resources ul {
+  list-style: none;
+  padding: 0;
+}
+.resources li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+
+/* --- 底部 --- */
+.lesson-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+</style>
+</head>
+<body>
+
+<h1>📖 场景图速查卡</h1>
+
+<h2>核心术语</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td>Scene</td><td>SceneTree</td><td>3D 世界容器</td></tr>
+  <tr><td>Object3D</td><td>Node3D</td><td>场景图中的节点</td></tr>
+  <tr><td>Group</td><td>Node3D</td><td>纯组织用空节点</td></tr>
+  <tr><td>Mesh</td><td>MeshInstance3D</td><td>可见的 3D 物体</td></tr>
+  <tr><td>.add(child)</td><td>.add_child(node)</td><td>添加子节点</td></tr>
+  <tr><td>.remove(child)</td><td>.remove_child(node)</td><td>移除子节点</td></tr>
+  <tr><td>.parent</td><td>.get_parent()</td><td>获取父节点</td></tr>
+  <tr><td>.children</td><td>.get_children()</td><td>获取子节点列表</td></tr>
+</table>
+
+<h2>关键规则</h2>
+
+<p><strong>子节点继承父节点的变换</strong>（位置、旋转、缩放）。父节点动 → 子孙全动。</p>
+
+<p><strong>最终位置 = 所有祖先变换的叠加</strong>。从根节点到当前节点，每一层的位置/旋转/缩放都会乘在一起。</p>
+
+<h2>常见模式</h2>
+
+<pre>// 太阳系模型
+sunGroup (自转 → 行星公转)
+├── earthGroup (自转 → 月球公转)
+│   ├── earth (Mesh)
+│   └── moon (Mesh)
+└── marsGroup (自转)
+    └── mars (Mesh)
+
+// 角色手持武器
+character (Node3D)
+├── body (Mesh)
+├── hand (Node3D) ← 挂点
+│   └── sword (Mesh) ← 跟随手移动
+└── camera (Node3D) ← 跟随角色视角</pre>
+
+<h2>常用操作</h2>
+
+<pre>// Three.js
+const group = new THREE.Group();
+scene.add(group);
+group.add(mesh1, mesh2);
+mesh1.position.set(1, 0, 0); // 相对于 group 的局部坐标
+
+// Godot (GDScript)
+var group = Node3D.new()
+add_child(group)
+group.add_child(mesh1)
+mesh1.position = Vector3(1, 0, 0) # 局部坐标</pre>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0001-scene-graph.html" style="color: var(--accent);">← 返回第 1 课</a></p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三渲二速查卡</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 1rem; max-width: 42rem; margin: 0 auto; font-size: 0.9rem;
+}
+h1 { font-size: 1.2rem; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin: 0.6rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.1em 0.3em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.back { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.back a { color: var(--accent); text-decoration: none; }
+.recipe { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; margin: 0.8rem 0; }
+.recipe .step { display: flex; gap: 0.5rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.recipe .num { 
+  width: 22px; height: 22px; border-radius: 50%; 
+  background: var(--accent); color: #fff; 
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<h1>🎨 三渲二速查卡</h1>
+
+<h2>完整配方</h2>
+
+<div class="recipe">
+  <div class="step">
+    <div class="num">1</div>
+    <div><strong>描边</strong>：Inverted Hull，2% 粗细，黑色背面</div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div><strong>色阶</strong>：3 级硬切，阴影色 #2a2a4a</div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div><strong>材质简化</strong>：平涂色，去 PBR 细节</div>
+  </div>
+  <div class="step">
+    <div class="num">4</div>
+    <div><strong>阴影</strong>：硬边（可选）</div>
+  </div>
+</div>
+
+<h2>Three.js 快速实现</h2>
+
+<pre>// 1. 材质：MeshToonMaterial（内置色阶）
+const mat = new THREE.MeshToonMaterial({ color: 0xff6b6b });
+
+// 2. 描边：Inverted Hull
+const outline = new THREE.Mesh(
+  geometry.clone(),
+  new THREE.MeshBasicMaterial({ 
+    color: 0x000000, 
+    side: THREE.BackSide 
+  })
+);
+outline.scale.multiplyScalar(1.02);</pre>
+
+<h2>Godot 快速实现</h2>
+
+<pre># 材质：StandardMaterial3D + Cel
+mat.shading_mode = SHADING_MODE_CEL
+mat.cel_levels = 3
+
+# 描边：Next Pass
+outline.cull_mode = CULL_FRONT
+outline.shading_mode = SHADING_MODE_UNSHADED
+mat.next_pass = outline</pre>
+
+<h2>风格变体</h2>
+
+<table>
+  <tr><th>风格</th><th>描边</th><th>色阶</th><th>阴影</th></tr>
+  <tr><td>经典赛璐璐</td><td>黑 2%</td><td>3 级硬切</td><td>硬边深蓝</td></tr>
+  <tr><td>水彩风</td><td>淡蓝 1%</td><td>4 级软过渡</td><td>无</td></tr>
+  <tr><td>漫画风</td><td>黑 3%</td><td>2 级硬切</td><td>纯黑硬边</td></tr>
+  <tr><td>吉卜力风</td><td>无</td><td>3 级软过渡</td><td>深棕软边</td></tr>
+</table>
+
+<h2>常见问题</h2>
+
+<table>
+  <tr><th>问题</th><th>解决</th></tr>
+  <tr><td>描边太粗/细</td><td>调 scale（1.01~1.05）或 outline_width</td></tr>
+  <tr><td>色阶过渡不自然</td><td>调 cel_threshold 或换软过渡</td></tr>
+  <tr><td>阴影太黑</td><td>阴影色改深蓝/深棕，不用纯黑</td></tr>
+  <tr><td>和写实场景不搭</td><td>场景也做简化，或加统一后处理</td></tr>
+</table>
+
+<div class="back">
+  <a href="../lessons/0011-toon-complete.html">← 返回第 11 课</a> | 
+  <a href="../lessons/index.html">📚 课程目录</a>
+</div>
+
+</body>
+</html>

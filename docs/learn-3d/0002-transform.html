@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>002 — 变换：位置、旋转、缩放</title>
+<style>
+/* 3D 学习工作区 — 共享样式表
+   为手机小屏优化，深色主题，Tufte 风格的简洁排版 */
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b27;
+  --bg-code: #0a0e14;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #3fb950;
+  --accent3: #d29922;
+  --border: #30363d;
+  --red: #f85149;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 1.2rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 标题 --- */
+h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 2rem 0 0.6rem;
+}
+h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.4rem 0 0.4rem;
+}
+p { margin: 0.5rem 0; }
+
+/* --- 导航 --- */
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+}
+.lesson-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+
+/* --- 概念卡片 --- */
+.concept {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+}
+.concept .term {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.concept .term .en {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-left: 0.5rem;
+}
+.concept p { font-size: 0.92rem; }
+
+/* --- 代码块 --- */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0.8rem 0;
+  font-family: "SF Mono", Menlo, monospace;
+  -webkit-overflow-scrolling: touch;
+}
+code {
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(88,166,255,.12);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre code { background: none; padding: 0; }
+
+/* --- 测验 --- */
+.quiz {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+.quiz .q-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+.quiz .q-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.7rem;
+}
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct {
+  border-color: var(--accent2);
+  background: rgba(63,185,80,.12);
+  color: var(--accent2);
+}
+.quiz .opt.wrong {
+  border-color: var(--red);
+  background: rgba(248,81,73,.12);
+  color: var(--red);
+}
+.quiz .feedback {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: none;
+}
+.quiz .feedback.show { display: block; }
+
+/* --- 互动演示 --- */
+.demo-frame {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.demo-frame iframe {
+  width: 100%;
+  height: 280px;
+  border: none;
+  display: block;
+}
+.demo-caption {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 0.5rem 0.8rem;
+  background: var(--bg-card);
+}
+
+/* --- 对照表 --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+th, td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+td { color: var(--text); }
+
+/* --- 提示框 --- */
+.tip {
+  background: rgba(88,166,255,.08);
+  border: 1px solid rgba(88,166,255,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.tip::before {
+  content: "💡 ";
+}
+.tip strong { color: var(--accent); }
+
+.warn {
+  background: rgba(210,153,34,.08);
+  border: 1px solid rgba(210,153,34,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.warn::before {
+  content: "⚠️ ";
+}
+.warn strong { color: var(--accent3); }
+
+/* --- 资源链接 --- */
+.resources {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.resources h3 { margin-top: 0; }
+.resources ul {
+  list-style: none;
+  padding: 0;
+}
+.resources li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+
+/* --- 底部 --- */
+.lesson-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0001-scene-graph.html">← 上一课</a>
+  <span>第 2 课</span>
+  <a href="./0003-mesh.html">下一课 →</a>
+</div>
+
+<h1><span class="num">002</span>变换：位置、旋转、缩放</h1>
+
+<p>第 1 课讲了场景图——节点怎么组织。这节课讲每个节点身上的三个属性：<strong>它在哪里、朝哪边、有多大</strong>。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">位置 <span class="en">Position / Translation</span></div>
+  <p>节点在 3D 空间中的坐标，用 (x, y, z) 表示。Three.js 里是 <code>position</code>，Godot 里也是 <code>position</code>。</p>
+</div>
+
+<div class="concept">
+  <div class="term">旋转 <span class="en">Rotation</span></div>
+  <p>节点的朝向，绕 x/y/z 三个轴的旋转角度。Three.js 用<strong>弧度</strong>（radians），Godot 默认也用弧度但编辑器里显示角度（degrees）。</p>
+</div>
+
+<div class="concept">
+  <div class="term">缩放 <span class="en">Scale</span></div>
+  <p>节点的大小倍数，(1, 1, 1) 是原始大小，(2, 2, 2) 放大一倍，(0.5, 0.5, 0.5) 缩小一半。三个轴可以不同（非均匀缩放）。</p>
+</div>
+
+<div class="concept">
+  <div class="term">局部坐标 <span class="en">Local Space</span></div>
+  <p>相对于<strong>父节点</strong>的坐标。你在旋转地球 demo 里写的 <code>earthGroup.rotation.z = -23.4°</code> 就是局部旋转——它影响 Group 内所有子节点。</p>
+</div>
+
+<div class="concept">
+  <div class="term">世界坐标 <span class="en">World Space</span></div>
+  <p>相对于<strong>场景原点</strong>的绝对坐标。最终显示位置 = 从根到当前节点所有局部变换的叠加。</p>
+</div>
+
+<h2>坐标系：哪个轴朝哪？</h2>
+
+<p>Three.js 和 Godot 都用<strong>右手坐标系</strong>：</p>
+
+<table>
+  <tr><th>轴</th><th>方向</th><th>类比</th></tr>
+  <tr><td><strong>X</strong></td><td>右（正）/ 左（负）</td><td>左右移动</td></tr>
+  <tr><td><strong>Y</strong></td><td>上（正）/ 下（负）</td><td>上下移动</td></tr>
+  <tr><td><strong>Z</strong></td><td>朝观察者（正）/ 远离（负）</td><td>前后移动</td></tr>
+</table>
+
+<div class="tip">
+  <strong>记忆法</strong>：伸出右手，拇指=X（右）、食指=Y（上）、中指=Z（朝向自己）。这就是"右手坐标系"的由来。
+</div>
+
+<h2>你已经用过的变换</h2>
+
+<p>旋转地球 demo 里到处都是变换：</p>
+
+<pre>// 位置：把相机放到 (0, 0, 3.8)
+camera.position.set(0, 0, 3.8);
+
+// 旋转：地轴倾斜 -23.4°（转弧度）
+earthGroup.rotation.z = THREE.MathUtils.degToRad(-23.4);
+
+// 旋转：自转动画，每帧绕 Y 轴转一点
+earthGroup.rotation.y += dt * speed;
+
+// 缩放：云层球体比地球略大
+new THREE.SphereGeometry(1.012, 64, 64)  // 通过几何体大小
+// 等价于
+clouds.scale.set(1.012, 1.012, 1.012)   // 通过缩放</pre>
+
+<h2>弧度 vs 角度</h2>
+
+<p>这是个容易踩的坑：</p>
+
+<pre>// Three.js — 必须用弧度
+mesh.rotation.x = Math.PI / 2;        // 90°
+mesh.rotation.x = Math.PI;            // 180°
+mesh.rotation.x = Math.PI * 2;        // 360°
+
+// 换算
+const deg = 90;
+const rad = deg * Math.PI / 180;      // 角度 → 弧度
+const rad2 = THREE.MathUtils.degToRad(deg); // 用工具函数
+
+// Godot — 代码里也是弧度，但编辑器显示角度
+node.rotation.x = deg_to_rad(90)</pre>
+
+<div class="warn">
+  <strong>常见错误</strong>：写 <code>rotation.x = 90</code> 以为是 90°，实际是 90 弧度 ≈ 5157°。物体疯狂旋转。始终记得用 <code>degToRad()</code> 转换。
+</div>
+
+<h2>局部 vs 世界：一个例子</h2>
+
+<pre>场景
+└── carGroup (position: 10, 0, 0)   ← 世界坐标 (10, 0, 0)
+    └── wheel (position: 1, 0.5, 0) ← 局部坐标 (1, 0.5, 0)
+                                      世界坐标 = (11, 0.5, 0)</pre>
+
+<p>轮子的 <code>position</code> 是 (1, 0.5, 0)——这是<strong>相对于车身</strong>的位置。车移动到 (20, 0, 0)，轮子的世界坐标自动变成 (21, 0.5, 0)，不需要手动更新。</p>
+
+<p>这就是第 1 课说的"子节点继承父节点变换"的具体含义。</p>
+
+<h2>Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td><code>obj.position.set(x,y,z)</code></td><td><code>obj.position = Vector3(x,y,z)</code></td><td>局部位置</td></tr>
+  <tr><td><code>obj.rotation.x = rad</code></td><td><code>obj.rotation.x = rad</code></td><td>绕 X 轴旋转</td></tr>
+  <tr><td><code>obj.scale.set(s,s,s)</code></td><td><code>obj.scale = Vector3(s,s,s)</code></td><td>缩放</td></tr>
+  <tr><td><code>obj.getWorldPosition()</code></td><td><code>obj.global_position</code></td><td>世界坐标</td></tr>
+  <tr><td><code>obj.translateX(d)</code></td><td><code>obj.translate_object_local()</code></td><td>沿自身轴移动</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">在 Godot 中，你想让一个物体旋转 90 度，代码里应该写什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">obj.rotation.x = 90</button>
+    <button class="opt" data-correct="true">obj.rotation.x = deg_to_rad(90)</button>
+    <button class="opt" data-correct="false">obj.rotation.x = 90 * PI</button>
+    <button class="opt" data-correct="false">obj.rotation.x = rad(90)</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Godot 和 Three.js 代码里都用弧度。deg_to_rad(90) 把 90° 转成 π/2 弧度。"
+    data-wrong="代码里用弧度不用角度。90° 需要写成 deg_to_rad(90)，即 π/2 ≈ 1.5708。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">一个 Group 在 position (5, 0, 0)，它的子节点 position 是 (0, 3, 0)。子节点的世界坐标是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">(0, 3, 0) — 子节点只用自己的坐标</button>
+    <button class="opt" data-correct="false">(5, 0, 0) — 子节点继承父节点坐标</button>
+    <button class="opt" data-correct="true">(5, 3, 0) — 父节点 + 子节点坐标叠加</button>
+    <button class="opt" data-correct="false">(5, 3, 0) × scale — 还要乘以缩放</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！世界坐标 = 父节点位置 + 子节点局部位置 = (5, 0, 0) + (0, 3, 0) = (5, 3, 0)。这就是局部坐标继承。"
+    data-wrong="世界坐标 = 父节点位置 + 子节点局部位置。(5, 0, 0) + (0, 3, 0) = (5, 3, 0)。子节点的 position 始终是相对于父节点的。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想对 agent 说"把角色放大一倍"，用 Three.js 术语应该怎么说？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">把 position 设为 (2, 2, 2)</button>
+    <button class="opt" data-correct="false">把 rotation 设为 (2, 2, 2)</button>
+    <button class="opt" data-correct="true">把 scale 设为 (2, 2, 2)</button>
+    <button class="opt" data-correct="false">把 size 设为 (2, 2, 2)</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！scale 控制大小倍数。(2, 2, 2) 表示三个轴都放大一倍。"
+    data-wrong="控制大小用 scale，不是 position（位置）或 rotation（旋转）。Three.js/Godot 里也没有 size 属性。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个旋转木马场景，怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"场景中心有一个 Group 作为旋转木马的底座，position 在原点 (0, 0, 0)。底座上面有四匹马，每匹马是一个 Group，position 分别在 (2, 0, 0)、(0, 0, 2)、(-2, 0, 0)、(0, 0, -2)——相对于底座的局部坐标。每匹马有一个上下浮动的动画（position.y 在 0 到 0.5 之间循环）。底座 Group 绕 Y 轴匀速旋转（rotation.y 每帧增加），四匹马作为子节点跟着一起转。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用 position + rotation + Group 层级关系完整描述了一个旋转木马。这就是将来指挥 agent 的方式。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/transforms">Three.js Fundamentals — Transforms</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方变换教程，有互动示例</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/using_transforms.html">Godot — Using Transforms</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 变换文档，讲局部/全局变换</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："为什么旋转 90 度物体翻了好多圈？""scale 能不能是负数？""position 和 translate 有什么区别？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 2 课 / 3D 图形概念入门 · <a href="../reference/transform.html" style="color: var(--accent);">📖 变换参考卡</a></p>
+</div>
+
+<script>
+/* 测验组件 — 点击选项即时反馈 + 选项随机排序 */
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+
+    // Fisher-Yates 洗牌，随机打乱选项顺序
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    // 重新插入 DOM
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+
+        // 标记正确答案
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initQuizzes);
+
+</script>
+</body>
+</html>
