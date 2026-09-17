@@ -70,7 +70,7 @@ jobs:
           args: >-
             --offline
             --no-progress
-            --base docs
+            --root-dir ${{ github.workspace }}/docs
             --exclude-all-private
             --exclude 'https?://.*'
             './docs/**/*.html'
