@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S0 — 基准场景：冒险者营地</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.demo-link { display: block; background: linear-gradient(135deg, #1a2332, #161b27); border: 1px solid var(--accent); border-radius: 10px; padding: 1.2rem; margin: 1.2rem 0; text-align: center; text-decoration: none; }
+.demo-link .demo-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+.demo-link .demo-desc { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem; }
+.roadmap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.roadmap .r-item { padding: 0.45rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; display: flex; gap: 0.6rem; }
+.roadmap .r-item:last-child { border-bottom: none; }
+.roadmap .r-num { color: var(--accent3); font-weight: 700; min-width: 2rem; }
+.roadmap .r-current { color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="../lessons/index.html">← 主课程</a>
+  <span>风格化 S0</span>
+  <a href="./s0-asset-test.html">demo →</a>
+</div>
+
+<h1><span class="num">S0</span>基准场景：冒险者营地</h1>
+
+<p>欢迎来到风格化专项。这门课的学习方法和之前完全不同——<strong>不讲新概念，只做"变换"</strong>。我们选了一套素材搭一个基准场景，接下来每一课把它变成另一种风格，用 A/B 对比看清每种风格化技术到底改变了什么。</p>
+
+<h2>这门课的核心命题</h2>
+
+<div class="concept">
+  <div class="term">不用 shader，风格化能走多远？</div>
+  <p>引擎自带的材质、光照、后处理、雾、调色——这些"免费"手段能做出几成风格化效果？我们会在每一课明确记录"这里卡住了，需要 shader"，最终得到一份你自己的《无 shader 天花板报告》——这就是你以后决定"要不要学 shader"的依据。</p>
+</div>
+
+<div class="concept">
+  <div class="term">风格是变量，素材是常量 <span class="en">A/B 对照学习法</span></div>
+  <p>同一个营地场景，写实渲染是它的"原点"。每一课只改渲染层（光照/材质/后处理/调色），场景内容不动——这样你能精确看到：描边改变了什么、调色改变了什么、像素化改变了什么。</p>
+</div>
+
+<h2>基准场景：冒险者营地</h2>
+
+<p>素材来自两个免费 CC0 资产包：</p>
+
+<table>
+  <tr><th>包</th><th>提供</th><th>角色</th></tr>
+  <tr><td><strong>KayKit Adventurers</strong></td><td>骑士（76 动画）+ 武器配件</td><td>主角——会动的主体</td></tr>
+  <tr><td><strong>Kenney Mini Forest</strong></td><td>帐篷/树/岩石/栅栏/靶子/弓箭手</td><td>舞台——静态环境</td></tr>
+</table>
+
+<p>为什么这样搭配？<strong>风格化效果需要一个"主角"来承载</strong>——三渲二的描边要画在角色身上才明显，漫画速度线要配挥剑动画才有张力。而场景件提供丰富的轮廓和色彩，让调色、像素化的效果有对比参照。</p>
+
+<h2>无 shader 武器库（课程技术边界）</h2>
+
+<p>这门课只用引擎"现成"的手段。先盘点我们有什么：</p>
+
+<table>
+  <tr><th>手段</th><th>能做什么</th><th>做不了（需 shader）</th></tr>
+  <tr><td><strong>光照设计</strong></td><td>色温/方向/强度定调性</td><td>色阶离散化</td></tr>
+  <tr><td><strong>材质参数</strong></td><td>去金属度/高粗糙度=扁平哑光</td><td>自定义光照模型</td></tr>
+  <tr><td><strong>Inverted Hull 描边</strong></td><td>✅ 复制 mesh+背面+黑材质</td><td>线条粗细随距离变化</td></tr>
+  <tr><td><strong>后处理 pass</strong></td><td>Bloom/暗角/像素化/扫描线</td><td>自定义边缘检测</td></tr>
+  <tr><td><strong>雾</strong></td><td>氛围统一、色彩倾向</td><td>高度雾定制形状</td></tr>
+  <tr><td><strong>调色 LUT</strong></td><td>整体色感一键切换</td><td>局部调色</td></tr>
+  <tr><td><strong>billboard 面片</strong></td><td>速度线/光柱/光斑</td><td>动态形变</td></tr>
+  <tr><td><strong>相机</strong></td><td>FOV 夸张、正交投影（2D 感）</td><td>—</td></tr>
+</table>
+
+<div class="tip">
+  <strong>关键发现：Inverted Hull 描边不需要 shader</strong>——Three.js 里就是"复制 mesh、换黑色材质、背面渲染、scale 放大"。这意味着三渲二最难的描边其实在无 shader 边界内！这是这门课能走得比想象中远的关键。
+</div>
+
+<h2>课程地图</h2>
+
+<div class="roadmap">
+  <div class="r-item"><span class="r-num r-current">S0</span><span><strong>基准场景</strong>（本课）— 搭建营地，写实渲染原点</span></div>
+  <div class="r-item"><span class="r-num">S1</span><span><strong>三渲二</strong> — 描边+预烘焙色阶+强平行光</span></div>
+  <div class="r-item"><span class="r-num">S2</span><span><strong>氛围调色</strong> — LUT+雾+后处理，同场景 5 种调性</span></div>
+  <div class="r-item"><span class="r-num">S3</span><span><strong>漫画/网点</strong> — 高对比+网点贴图+billboard 速度线</span></div>
+  <div class="r-item"><span class="r-num">S4</span><span><strong>像素/复古</strong> — 低分辨率渲染+调色板+最近邻采样</span></div>
+  <div class="r-item"><span class="r-num">S5</span><span><strong>故障/科幻</strong> — RGB 错位+UV 偏移动画</span></div>
+  <div class="r-item"><span class="r-num">S6</span><span><strong>天花板报告</strong> — 无 shader 能做到的边界 + shader 进阶地图</span></div>
+</div>
+
+<h2>本课 demo：基准场景</h2>
+
+<a class="demo-link" href="./s0-asset-test.html">
+  <div class="demo-title">🎬 冒险者营地 · 写实原点</div>
+  <div class="demo-desc">骑士挥剑 + 营地场景 — 记住它现在的样子，S1 开始每一课都会让它"变一个世界"</div>
+</a>
+
+<p>这个 demo 就是课程的"原点"。当前它用的是<strong>标准写实渲染</strong>：PBR 材质、暖色平行光、半球环境光、ACES 色调映射、PCF 软阴影——你在 001~026 课学过的所有"写实向"配置。</p>
+
+<div class="warn">
+  <strong>记住这个画面</strong>。S1 三渲二改造后，同样的营地会完全是另一个观感——那时候回头对比，你会第一次直观理解"渲染风格"这四个字到底意味着什么。
+</div>
+
+<h2>demo 框架说明</h2>
+
+<p>本课及后续所有 demo 都用同一套框架（<code>_template.html</code>）：</p>
+
+<ul style="font-size: 0.9rem; padding-left: 1.4rem; margin: 0.5rem 0;">
+  <li><strong>上 60%</strong>：3D 画面（OrbitControls 可旋转缩放）</li>
+  <li><strong>下 40%</strong>：控制台——每课的"风格浓度"滑块/按钮</li>
+  <li><strong>素材加载</strong>：GLTFLoader 统一加载 KayKit/Kenney 的 glb</li>
+</ul>
+
+<div class="tip">
+  <strong>S0 的作业</strong>：打开 demo，用 OrbitControls 转一圈，从几个角度看看这个营地。挑一个你最喜欢的视角——后续每课我们都尽量用相近的视角做 A/B 对比，这样风格差异最直观。
+</div>
+
+<div class="lesson-footer">
+  <p>风格化专项 S0 · <a href="../lessons/index.html">📚 主课程目录</a> · <a href="./s0-asset-test.html">🎬 demo</a></p>
+</div>
+
+</body>
+</html>
