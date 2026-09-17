@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>太空站走廊 — PBR 材质演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  #app { position: fixed; inset: 0; }
+  #app canvas { transform-origin: 0 0; }
+  canvas { display: block; }
+
+  #ui {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; flex-direction: column; gap: 8px;
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    align-items: center; width: 92%; max-width: 420px;
+  }
+  .panel {
+    background: rgba(15, 20, 35, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(100, 140, 255, 0.2);
+    border-radius: 14px; padding: 10px 16px;
+    width: 100%;
+  }
+  .panel .p-title {
+    font-size: 11px; font-weight: 700; color: rgba(140,180,255,.6);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  button {
+    padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(120,160,255,.25);
+    background: rgba(50, 80, 140, 0.4); color: #cfe3ff;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+  }
+  button:active { transform: scale(0.95); }
+  button.on {
+    background: linear-gradient(135deg, #3a7bd5, #2f9e7d);
+    border-color: transparent; color: #fff;
+  }
+  #label {
+    font-size: 11px; color: rgba(255,255,255,.4);
+    background: rgba(0,0,0,.4); padding: 3px 10px; border-radius: 12px;
+  }
+  .slider-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .slider-row label { font-size: 11px; color: #8899bb; white-space: nowrap; min-width: 60px; }
+  input[type=range] { flex: 1; accent-color: #6db3ff; height: 20px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="ui">
+  <div id="label">🚀 太空站走廊 — PBR 材质</div>
+  <div class="panel">
+    <div class="p-title">地板材质</div>
+    <div class="slider-row">
+      <label>金属度</label>
+      <input type="range" id="floorMetal" min="0" max="100" value="90">
+    </div>
+    <div class="slider-row">
+      <label>粗糙度</label>
+      <input type="range" id="floorRough" min="0" max="100" value="30">
+    </div>
+  </div>
+  <div class="panel">
+    <div class="p-title">灯条</div>
+    <div class="row">
+      <button id="btnLightColor" class="on">💙 蓝白</button>
+      <button id="btnLightPulse">🔄 呼吸灯</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="p-title">视角</div>
+    <div class="row">
+      <button id="btnCamWalk" class="on">🚶 走廊巡游</button>
+      <button id="btnCamFree">🎥 自由视角</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// iSH WebView 兼容
+const S = 0.5;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+function fitRenderer() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  const el = renderer.domElement;
+  el.style.width = innerWidth + 'px';
+  el.style.height = innerHeight + 'px';
+  el.style.transform = `translate(${innerWidth * 0.25}px, ${innerHeight * 0.25}px) scale(${S})`;
+}
+fitRenderer();
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050510);
+scene.fog = new THREE.Fog(0x050510, 8, 25);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 1.6, 8);
+
+// --- 材质 ---
+// 地板：光滑金属
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x333340, metalness: 0.9, roughness: 0.3
+});
+// 墙壁：哑光白塑料
+const wallMat = new THREE.MeshStandardMaterial({
+  color: 0xcccccc, metalness: 0.1, roughness: 0.8
+});
+// 天花板
+const ceilMat = new THREE.MeshStandardMaterial({
+  color: 0x888899, metalness: 0.2, roughness: 0.7
+});
+// 门框：镀铬
+const frameMat = new THREE.MeshStandardMaterial({
+  color: 0xdddddd, metalness: 1.0, roughness: 0.1
+});
+// 灯条：自发光
+const lightMat = new THREE.MeshStandardMaterial({
+  color: 0x000000, emissive: 0x88ccff, emissiveIntensity: 3.0
+});
+// 面板屏幕：绿色自发光
+const screenMat = new THREE.MeshStandardMaterial({
+  color: 0x000000, emissive: 0x00ff88, emissiveIntensity: 2.0
+});
+// 暗色面板
+const panelMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1a2e, metalness: 0.3, roughness: 0.6
+});
+// 管道
+const pipeMat = new THREE.MeshStandardMaterial({
+  color: 0x666677, metalness: 0.8, roughness: 0.4
+});
+// 红色警示灯
+const warnMat = new THREE.MeshStandardMaterial({
+  color: 0x000000, emissive: 0xff3333, emissiveIntensity: 2.0
+});
+
+// --- 走廊参数 ---
+const W = 3;      // 走廊宽
+const H = 2.8;    // 走廊高
+const SEG = 4;    // 每段长度
+const N = 6;      // 段数
+const TOTAL = SEG * N;
+
+// --- 地板 ---
+{
+  const geo = new THREE.PlaneGeometry(W, TOTAL);
+  const mesh = new THREE.Mesh(geo, floorMat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(0, 0, -TOTAL / 2 + 8);
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+// --- 地板条纹（金属板分割线）---
+for (let i = 0; i <= N; i++) {
+  const geo = new THREE.BoxGeometry(W, 0.02, 0.08);
+  const mesh = new THREE.Mesh(geo, frameMat);
+  mesh.position.set(0, 0.01, 8 - i * SEG);
+  scene.add(mesh);
+}
+
+// --- 墙壁 ---
+for (const side of [-1, 1]) {
+  const geo = new THREE.PlaneGeometry(TOTAL, H);
+  const mesh = new THREE.Mesh(geo, wallMat);
+  mesh.rotation.y = side * Math.PI / 2;
+  mesh.position.set(side * W / 2, H / 2, -TOTAL / 2 + 8);
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+// --- 天花板 ---
+{
+  const geo = new THREE.PlaneGeometry(W, TOTAL);
+  const mesh = new THREE.Mesh(geo, ceilMat);
+  mesh.rotation.x = Math.PI / 2;
+  mesh.position.set(0, H, -TOTAL / 2 + 8);
+  scene.add(mesh);
+}
+
+// --- 天花板灯条 ---
+const lightStrips = [];
+for (let i = 0; i < N; i++) {
+  const geo = new THREE.BoxGeometry(0.3, 0.05, SEG * 0.7);
+  const mesh = new THREE.Mesh(geo, lightMat);
+  mesh.position.set(0, H - 0.03, 8 - SEG * i - SEG / 2);
+  scene.add(mesh);
+  lightStrips.push(mesh);
+}
+
+// --- 门框 ---
+for (let i = 0; i <= N; i++) {
+  const z = 8 - i * SEG;
+  // 左右柱
+  for (const side of [-1, 1]) {
+    const geo = new THREE.BoxGeometry(0.12, H, 0.12);
+    const mesh = new THREE.Mesh(geo, frameMat);
+    mesh.position.set(side * (W / 2 - 0.06), H / 2, z);
+    mesh.castShadow = true;
+    scene.add(mesh);
+  }
+  // 横梁
+  const geo = new THREE.BoxGeometry(W, 0.12, 0.12);
+  const mesh = new THREE.Mesh(geo, frameMat);
+  mesh.position.set(0, H - 0.06, z);
+  scene.add(mesh);
+}
+
+// --- 墙壁面板（每隔一段交替） ---
+for (let i = 0; i < N; i++) {
+  const z = 8 - SEG * i - SEG / 2;
+  for (const side of [-1, 1]) {
+    // 面板背景
+    const bgGeo = new THREE.BoxGeometry(0.05, 1.2, 2.5);
+    const bg = new THREE.Mesh(bgGeo, panelMat);
+    bg.position.set(side * (W / 2 - 0.03), H * 0.45, z);
+    scene.add(bg);
+
+    // 屏幕（交替左右墙）
+    if ((i + (side > 0 ? 1 : 0)) % 2 === 0) {
+      const sGeo = new THREE.PlaneGeometry(0.8, 0.5);
+      const s = new THREE.Mesh(sGeo, screenMat);
+      s.rotation.y = -side * Math.PI / 2;
+      s.position.set(side * (W / 2 - 0.06), H * 0.55, z);
+      scene.add(s);
+    }
+  }
+}
+
+// --- 墙壁管道 ---
+for (const side of [-1, 1]) {
+  const geo = new THREE.CylinderGeometry(0.05, 0.05, TOTAL, 8);
+  const mesh = new THREE.Mesh(geo, pipeMat);
+  mesh.rotation.x = Math.PI / 2;
+  mesh.position.set(side * (W / 2 - 0.08), H * 0.85, -TOTAL / 2 + 8);
+  scene.add(mesh);
+}
+
+// --- 警示灯（门框旁） ---
+const warnLights = [];
+for (let i = 0; i <= N; i += 2) {
+  for (const side of [-1, 1]) {
+    const geo = new THREE.SphereGeometry(0.04, 8, 8);
+    const mesh = new THREE.Mesh(geo, warnMat.clone());
+    mesh.position.set(side * (W / 2 - 0.08), H - 0.2, 8 - i * SEG);
+    scene.add(mesh);
+    warnLights.push(mesh);
+  }
+}
+
+// --- 尽头舱门 ---
+{
+  const geo = new THREE.BoxGeometry(W * 0.8, H * 0.85, 0.1);
+  const mesh = new THREE.Mesh(geo, frameMat);
+  mesh.position.set(0, H * 0.425, 8 - TOTAL - 0.05);
+  scene.add(mesh);
+  // 舱门中心灯
+  const dotGeo = new THREE.SphereGeometry(0.08, 12, 12);
+  const dot = new THREE.Mesh(dotGeo, lightMat);
+  dot.position.set(0, H * 0.5, 8 - TOTAL + 0.02);
+  scene.add(dot);
+}
+
+// --- 点光源（模拟灯条照明） ---
+const pointLights = [];
+for (let i = 0; i < N; i++) {
+  const light = new THREE.PointLight(0x88ccff, 3, 6, 1.5);
+  light.position.set(0, H - 0.2, 8 - SEG * i - SEG / 2);
+  scene.add(light);
+  pointLights.push(light);
+}
+
+// 环境光
+scene.add(new THREE.AmbientLight(0x334466, 0.8));
+
+// 主方向光（从走廊尽头打来）
+const dirLight = new THREE.DirectionalLight(0x88aaff, 1.0);
+dirLight.position.set(0, 3, -10);
+scene.add(dirLight);
+
+// --- 控制器 ---
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 1.4, 0);
+controls.enablePan = false;
+controls.enabled = false; // 默认走廊巡游模式
+
+// --- UI ---
+let walkMode = true;
+let pulseMode = false;
+const lightColors = [0x88ccff, 0xff8844, 0x88ff88, 0xff88cc, 0xffff88];
+let lightColorIdx = 0;
+
+document.getElementById('btnLightColor').onclick = () => {
+  lightColorIdx = (lightColorIdx + 1) % lightColors.length;
+  const c = lightColors[lightColorIdx];
+  lightStrips.forEach(m => m.material.emissive.setHex(c));
+  pointLights.forEach(l => l.color.setHex(c));
+  const names = ['💙 蓝白', '🧡 暖橙', '💚 翠绿', '💗 粉紫', '💛 暖黄'];
+  document.getElementById('btnLightColor').textContent = names[lightColorIdx];
+};
+
+document.getElementById('btnLightPulse').onclick = () => {
+  pulseMode = !pulseMode;
+  document.getElementById('btnLightPulse').classList.toggle('on', pulseMode);
+};
+
+document.getElementById('btnCamWalk').onclick = () => {
+  walkMode = true;
+  controls.enabled = false;
+  document.getElementById('btnCamWalk').classList.add('on');
+  document.getElementById('btnCamFree').classList.remove('on');
+};
+document.getElementById('btnCamFree').onclick = () => {
+  walkMode = false;
+  controls.enabled = true;
+  document.getElementById('btnCamFree').classList.add('on');
+  document.getElementById('btnCamWalk').classList.remove('on');
+};
+
+// 地板滑块
+document.getElementById('floorMetal').oninput = e => {
+  floorMat.metalness = e.target.value / 100;
+};
+document.getElementById('floorRough').oninput = e => {
+  floorMat.roughness = e.target.value / 100;
+};
+
+// --- 动画 ---
+const clock = new THREE.Clock();
+let walkT = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  // 走廊巡游
+  if (walkMode) {
+    walkT += dt * 0.8;
+    const z = 6 - (walkT % TOTAL);
+    camera.position.set(
+      Math.sin(t * 0.5) * 0.3,  // 轻微左右摇摆
+      1.6 + Math.sin(t * 2) * 0.02, // 走路颠簸
+      z
+    );
+    camera.lookAt(0, 1.4, z - 5);
+  }
+
+  // 呼吸灯
+  if (pulseMode) {
+    const intensity = 2.0 + Math.sin(t * 2) * 1.5;
+    lightStrips.forEach(m => m.material.emissiveIntensity = intensity);
+    pointLights.forEach(l => l.intensity = intensity * 1.5);
+  }
+
+  // 警示灯闪烁
+  const warnOn = Math.sin(t * 3) > 0;
+  warnLights.forEach(m => {
+    m.material.emissiveIntensity = warnOn ? 2.5 : 0.3;
+  });
+
+  // 屏幕微微闪烁
+  screenMat.emissiveIntensity = 1.8 + Math.sin(t * 8) * 0.3;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  fitRenderer();
+});
+</script>
+</body>
+</html>

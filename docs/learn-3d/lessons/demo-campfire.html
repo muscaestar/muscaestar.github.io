@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>夜晚营地 · 篝火</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  #app { position: fixed; inset: 0; }
+  #app canvas { transform-origin: 0 0; }
+  canvas { display: block; }
+
+  #ui {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 10; font-family: -apple-system, "PingFang SC", sans-serif;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  #label {
+    font-size: 11px; color: rgba(255,255,255,.25);
+    background: rgba(0,0,0,.3); padding: 4px 14px; border-radius: 12px;
+    letter-spacing: 0.05em;
+  }
+  .row { display: flex; gap: 6px; }
+  button {
+    padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,200,100,.15);
+    background: rgba(30, 25, 20, 0.6); color: rgba(255,220,170,.5);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    transition: all .2s; font-family: inherit;
+    backdrop-filter: blur(8px);
+  }
+  button:active { transform: scale(0.95); }
+  button.on {
+    background: rgba(80, 50, 20, 0.5);
+    border-color: rgba(255,180,80,.3);
+    color: rgba(255,210,150,.8);
+  }
+  #vignette {
+    position: fixed; inset: 0; z-index: 5; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.55) 100%);
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="vignette"></div>
+
+<div id="ui">
+  <div class="row">
+    <button id="btnCam" class="on">🪑 静坐</button>
+    <button id="btnFree">🎥 自由</button>
+    <button id="btnRain">🌧️ 无雨</button>
+  </div>
+  <div id="label">🔥 夜晚营地 · 篝火</div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+const S = 0.5;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.8;
+function fitRenderer() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  const el = renderer.domElement;
+  el.style.width = innerWidth + 'px';
+  el.style.height = innerHeight + 'px';
+  el.style.transform = `translate(${innerWidth * 0.25}px, ${innerHeight * 0.25}px) scale(${S})`;
+}
+fitRenderer();
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e1a);
+scene.fog = new THREE.FogExp2(0x0a0e1a, 0.02);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+
+// ================= 程序纹理生成 =================
+
+// 木头纹理 — 年轮 + 纵向木纹
+function makeWoodTexture() {
+  const W = 256, H = 256;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  // 底色 — 深棕
+  ctx.fillStyle = '#3a2210';
+  ctx.fillRect(0, 0, W, H);
+
+  const rng = (() => { let s = 42; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+
+  // 纵向木纹（不规则条纹）
+  for (let i = 0; i < 40; i++) {
+    const x = rng() * W;
+    const w = 1 + rng() * 4;
+    const alpha = 0.08 + rng() * 0.15;
+    const shade = rng() > 0.5 ? '255,200,140' : '20,10,5';
+    ctx.fillStyle = `rgba(${shade},${alpha})`;
+    ctx.fillRect(x, 0, w, H);
+  }
+
+  // 年轮环（水平弧线，模拟截面）
+  for (let i = 0; i < 15; i++) {
+    const y = rng() * H;
+    const r = 20 + rng() * 80;
+    ctx.beginPath();
+    ctx.arc(W / 2 + (rng() - 0.5) * 40, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${rng() > 0.5 ? '60,35,15' : '80,50,25'},${0.1 + rng() * 0.2})`;
+    ctx.lineWidth = 1 + rng() * 3;
+    ctx.stroke();
+  }
+
+  // 细裂纹
+  for (let i = 0; i < 8; i++) {
+    const x = rng() * W;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    let cx = x;
+    for (let y = 0; y < H; y += 8) {
+      cx += (rng() - 0.5) * 6;
+      ctx.lineTo(cx, y);
+    }
+    ctx.strokeStyle = `rgba(15,8,3,${0.2 + rng() * 0.3})`;
+    ctx.lineWidth = 0.5 + rng() * 1;
+    ctx.stroke();
+  }
+
+  // 噪点颗粒
+  for (let i = 0; i < 2000; i++) {
+    const x = rng() * W, y = rng() * H;
+    const v = rng();
+    ctx.fillStyle = v > 0.5
+      ? `rgba(120,80,40,${0.03 + rng() * 0.06})`
+      : `rgba(10,5,2,${0.03 + rng() * 0.06})`;
+    ctx.fillRect(x, y, 1 + rng() * 2, 1 + rng() * 2);
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// 木头粗糙度贴图（亮=粗糙）
+function makeWoodRoughness() {
+  const W = 128, H = 128;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#d0d0d0'; // 基础高粗糙
+  ctx.fillRect(0, 0, W, H);
+  const rng = (() => { let s = 99; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+  for (let i = 0; i < 30; i++) {
+    const x = rng() * W, w = 2 + rng() * 6;
+    ctx.fillStyle = `rgba(${150 + rng() * 80},${150 + rng() * 80},${150 + rng() * 80},0.3)`;
+    ctx.fillRect(x, 0, w, H);
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// 石头纹理 — 噪点 + 裂纹 + 苔藓
+function makeStoneTexture() {
+  const W = 256, H = 256;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  // 底色 — 灰
+  ctx.fillStyle = '#555550';
+  ctx.fillRect(0, 0, W, H);
+
+  const rng = (() => { let s = 77; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+
+  // 大块色斑（石头的不均匀色块）
+  for (let i = 0; i < 20; i++) {
+    const x = rng() * W, y = rng() * H;
+    const rx = 15 + rng() * 50, ry = rx * (0.5 + rng() * 0.5);
+    const shade = 60 + rng() * 40;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(1, ry / rx);
+    ctx.beginPath();
+    ctx.arc(0, 0, rx, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${shade},${shade + rng() * 10},${shade - 5},${0.15 + rng() * 0.2})`;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 细密噪点
+  for (let i = 0; i < 3000; i++) {
+    const x = rng() * W, y = rng() * H;
+    const v = rng();
+    if (v > 0.6) {
+      ctx.fillStyle = `rgba(140,140,135,${0.05 + rng() * 0.1})`;
+    } else if (v > 0.3) {
+      ctx.fillStyle = `rgba(40,40,38,${0.05 + rng() * 0.1})`;
+    } else {
+      ctx.fillStyle = `rgba(80,85,70,${0.04 + rng() * 0.08})`; // 微绿苔藓
+    }
+    ctx.fillRect(x, y, 1 + rng() * 3, 1 + rng() * 3);
+  }
+
+  // 裂纹
+  for (let i = 0; i < 5; i++) {
+    let x = rng() * W, y = rng() * H;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let j = 0; j < 10; j++) {
+      x += (rng() - 0.5) * 30;
+      y += (rng() - 0.3) * 20;
+      ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `rgba(30,30,28,${0.3 + rng() * 0.3})`;
+    ctx.lineWidth = 0.5 + rng() * 1.5;
+    ctx.stroke();
+  }
+
+  // 苔藓斑（绿色小点）
+  for (let i = 0; i < 15; i++) {
+    const x = rng() * W, y = rng() * H;
+    const r = 3 + rng() * 10;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(60,80,40,${0.15 + rng() * 0.2})`);
+    g.addColorStop(1, 'rgba(60,80,40,0)');
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// 石头粗糙度贴图
+function makeStoneRoughness() {
+  const W = 128, H = 128;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#e0e0e0'; // 很粗糙
+  ctx.fillRect(0, 0, W, H);
+  const rng = (() => { let s = 55; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+  // 一些相对光滑的面
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * W, y = rng() * H, r = 10 + rng() * 30;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(160,160,160,${0.2 + rng() * 0.3})`);
+    g.addColorStop(1, 'rgba(160,160,160,0)');
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// ================= 材质 =================
+
+const woodTex = makeWoodTexture();
+const woodRough = makeWoodRoughness();
+const stoneTex = makeStoneTexture();
+const stoneRough = makeStoneRoughness();
+
+// 地面 — 湿泥土，微反光
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1512, metalness: 0.05, roughness: 0.85,
+});
+
+// 石头 — 纹理 + 粗糙度贴图
+const stoneMat = new THREE.MeshStandardMaterial({
+  map: stoneTex,
+  roughnessMap: stoneRough,
+  color: 0xaaaaaa, metalness: 0.05, roughness: 1.0,
+  flatShading: true
+});
+
+// 原木 — 木纹贴图 + 粗糙度贴图
+const logMat = new THREE.MeshStandardMaterial({
+  map: woodTex,
+  roughnessMap: woodRough,
+  color: 0xbb9977, metalness: 0.0, roughness: 1.0,
+});
+
+// 炭 — 近黑带微光
+const charMat = new THREE.MeshStandardMaterial({
+  map: woodTex,
+  color: 0x1a0a05, metalness: 0.0, roughness: 0.95,
+  emissive: 0xff4400, emissiveIntensity: 0.15
+});
+
+// 帐篷布 — 哑光帆布
+const tentMat = new THREE.MeshStandardMaterial({
+  color: 0x4a5548, metalness: 0.0, roughness: 0.92,
+  side: THREE.DoubleSide
+});
+
+// 帐篷内衬 — 微暖
+const tentInnerMat = new THREE.MeshStandardMaterial({
+  color: 0x6a5a40, metalness: 0.0, roughness: 0.9,
+  emissive: 0xff8844, emissiveIntensity: 0.3,
+  side: THREE.BackSide
+});
+
+// ================= 场景 =================
+
+// 地面
+{
+  const geo = new THREE.PlaneGeometry(80, 80, 32, 32);
+  // 微微起伏
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i);
+    const d = Math.sqrt(x * x + y * y);
+    if (d > 2) pos.setZ(i, Math.sin(x * 0.3) * Math.cos(y * 0.4) * 0.3);
+  }
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, groundMat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+// 篝火石圈
+{
+  const n = 8;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const r = 0.7 + Math.random() * 0.1;
+    const geo = new THREE.DodecahedronGeometry(0.12 + Math.random() * 0.08, 1);
+    const mesh = new THREE.Mesh(geo, stoneMat);
+    mesh.position.set(Math.cos(a) * r, 0.06, Math.sin(a) * r);
+    mesh.rotation.set(Math.random(), Math.random(), Math.random());
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+}
+
+// 篝火木堆（交叉原木）
+{
+  const logGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.8, 6);
+  for (let i = 0; i < 5; i++) {
+    const mesh = new THREE.Mesh(logGeo, logMat);
+    const a = (i / 5) * Math.PI * 2 + 0.3;
+    mesh.position.set(Math.cos(a) * 0.15, 0.12, Math.sin(a) * 0.15);
+    mesh.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+    mesh.rotation.y = a;
+    mesh.castShadow = true;
+    scene.add(mesh);
+  }
+  // 炭
+  const charGeo = new THREE.SphereGeometry(0.2, 8, 6);
+  const charMesh = new THREE.Mesh(charGeo, charMat);
+  charMesh.position.y = 0.05;
+  charMesh.scale.y = 0.5;
+  scene.add(charMesh);
+}
+
+// 坐的原木
+{
+  const geo = new THREE.CylinderGeometry(0.15, 0.17, 1.8, 8);
+  const mesh = new THREE.Mesh(geo, logMat);
+  mesh.rotation.z = Math.PI / 2;
+  mesh.position.set(1.5, 0.15, 0.8);
+  mesh.rotation.y = -0.4;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+
+// 帐篷
+{
+  // A 字帐篷 — 两个倾斜平面
+  const w = 2.2, h = 1.8, d = 2.5;
+  for (const side of [-1, 1]) {
+    const geo = new THREE.PlaneGeometry(w, d);
+    const mesh = new THREE.Mesh(geo, tentMat);
+    mesh.position.set(-4.5 + side * w * 0.35, h * 0.55, -3.0);
+    mesh.rotation.z = side * 0.6;
+    mesh.rotation.y = side * 0.05;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    // 内衬
+    const inner = new THREE.Mesh(geo, tentInnerMat);
+    inner.position.copy(mesh.position);
+    inner.rotation.copy(mesh.rotation);
+    inner.scale.setScalar(0.98);
+    scene.add(inner);
+  }
+  // 背面封口
+  const backGeo = new THREE.PlaneGeometry(w * 0.9, d * 0.8);
+  const back = new THREE.Mesh(backGeo, tentMat);
+  back.position.set(-4.5, h * 0.5, -3.0 - d * 0.45);
+  back.rotation.x = -0.1;
+  scene.add(back);
+
+  // 帐篷内小灯
+  const tentLight = new THREE.PointLight(0xffaa44, 1.5, 3, 2);
+  tentLight.position.set(-4.5, 0.8, -2.7);
+  scene.add(tentLight);
+}
+
+// 远处树木剪影
+{
+  const treeMat = new THREE.MeshStandardMaterial({
+    color: 0x1a251a, metalness: 0, roughness: 1
+  });
+  const positions = [
+    [-8, 0, -6], [10, 0, -8], [-6, 0, 8], [12, 0, 5],
+    [-12, 0, -3], [8, 0, -12], [5, 0, 10], [-10, 0, 6],
+    [15, 0, -4], [-15, 0, -8], [3, 0, -15], [-4, 0, 14]
+  ];
+  for (const [x, y, z] of positions) {
+    const h = 3 + Math.random() * 4;
+    // 树干
+    const trunkGeo = new THREE.CylinderGeometry(0.1, 0.2, h, 5);
+    const trunk = new THREE.Mesh(trunkGeo, treeMat);
+    trunk.position.set(x, h / 2, z);
+    scene.add(trunk);
+    // 树冠 — 几个叠加圆锥
+    for (let j = 0; j < 3; j++) {
+      const cr = 1.2 - j * 0.3;
+      const coneGeo = new THREE.ConeGeometry(cr, h * 0.4, 6);
+      const cone = new THREE.Mesh(coneGeo, treeMat);
+      cone.position.set(x, h * 0.5 + j * h * 0.2, z);
+      scene.add(cone);
+    }
+  }
+}
+
+// 散落的石头
+{
+  for (let i = 0; i < 12; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = 2 + Math.random() * 6;
+    const geo = new THREE.DodecahedronGeometry(0.05 + Math.random() * 0.15, 0);
+    const mesh = new THREE.Mesh(geo, stoneMat);
+    mesh.position.set(Math.cos(a) * d, 0.03, Math.sin(a) * d);
+    mesh.rotation.set(Math.random(), Math.random(), Math.random());
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+}
+
+// 背包
+{
+  const geo = new THREE.BoxGeometry(0.4, 0.5, 0.25);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x8a6a3a, roughness: 0.85 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(1.2, 0.25, 1.3);
+  mesh.rotation.y = 0.3;
+  mesh.castShadow = true;
+  scene.add(mesh);
+}
+
+// 水壶
+{
+  const geo = new THREE.CylinderGeometry(0.06, 0.06, 0.2, 10);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.3 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(0.9, 0.1, 0.6);
+  mesh.castShadow = true;
+  scene.add(mesh);
+}
+
+// ================= 火焰粒子 =================
+
+const fireParticles = [];
+const FIRE_COUNT = 80;
+const fireGeo = new THREE.BufferGeometry();
+const firePositions = new Float32Array(FIRE_COUNT * 3);
+const fireSizes = new Float32Array(FIRE_COUNT);
+const fireAlphas = new Float32Array(FIRE_COUNT);
+const fireSpeeds = new Float32Array(FIRE_COUNT);
+
+for (let i = 0; i < FIRE_COUNT; i++) {
+  resetFireParticle(i, true);
+}
+
+function resetFireParticle(i, randomY = false) {
+  const a = Math.random() * Math.PI * 2;
+  const r = Math.random() * 0.15;
+  firePositions[i * 3] = Math.cos(a) * r;
+  firePositions[i * 3 + 1] = randomY ? Math.random() * 1.2 : 0.05;
+  firePositions[i * 3 + 2] = Math.sin(a) * r;
+  fireSizes[i] = 0.3 + Math.random() * 0.7;
+  fireAlphas[i] = 0.6 + Math.random() * 0.4;
+  fireSpeeds[i] = 0.8 + Math.random() * 1.2;
+}
+
+fireGeo.setAttribute('position', new THREE.BufferAttribute(firePositions, 3));
+fireGeo.setAttribute('size', new THREE.BufferAttribute(fireSizes, 1));
+fireGeo.setAttribute('alpha', new THREE.BufferAttribute(fireAlphas, 1));
+
+const fireMat = new THREE.ShaderMaterial({
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  vertexShader: `
+    attribute float size;
+    attribute float alpha;
+    varying float vAlpha;
+    varying float vY;
+    void main() {
+      vAlpha = alpha;
+      vY = position.y;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * (3.0 / -mv.z) * 100.0;
+      gl_Position = projectionMatrix * mv;
+    }
+  `,
+  fragmentShader: `
+    varying float vAlpha;
+    varying float vY;
+    void main() {
+      float d = length(gl_PointCoord - 0.5) * 2.0;
+      if (d > 1.0) discard;
+      float t = smoothstep(1.0, 0.0, d);
+      // 火焰颜色：底部黄白 → 中部橙 → 顶部红
+      vec3 col;
+      if (vY < 0.3) col = mix(vec3(1.0, 0.9, 0.5), vec3(1.0, 0.6, 0.1), vY / 0.3);
+      else if (vY < 0.8) col = mix(vec3(1.0, 0.6, 0.1), vec3(1.0, 0.3, 0.0), (vY - 0.3) / 0.5);
+      else col = mix(vec3(1.0, 0.3, 0.0), vec3(0.8, 0.1, 0.0), min(1.0, (vY - 0.8) / 0.4));
+      float fade = 1.0 - smoothstep(0.6, 1.2, vY);
+      gl_FragColor = vec4(col, t * vAlpha * fade);
+    }
+  `
+});
+const fire = new THREE.Points(fireGeo, fireMat);
+fire.position.y = 0.15;
+scene.add(fire);
+
+// ================= 余烬/火星 =================
+
+const EMBER_COUNT = 30;
+const emberGeo = new THREE.BufferGeometry();
+const emberPos = new Float32Array(EMBER_COUNT * 3);
+const emberSizes = new Float32Array(EMBER_COUNT);
+const emberSpeeds = [];
+
+for (let i = 0; i < EMBER_COUNT; i++) {
+  resetEmber(i);
+}
+function resetEmber(i) {
+  const a = Math.random() * Math.PI * 2;
+  const r = Math.random() * 0.2;
+  emberPos[i * 3] = Math.cos(a) * r;
+  emberPos[i * 3 + 1] = 0.2;
+  emberPos[i * 3 + 2] = Math.sin(a) * r;
+  emberSizes[i] = 0.02 + Math.random() * 0.04;
+  emberSpeeds[i] = {
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: 0.5 + Math.random() * 1.0,
+    vz: (Math.random() - 0.5) * 0.3,
+    life: 2 + Math.random() * 3
+  };
+}
+emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+emberGeo.setAttribute('size', new THREE.BufferAttribute(emberSizes, 1));
+
+const emberMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `
+    attribute float size;
+    void main() {
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * (3.0 / -mv.z) * 200.0;
+      gl_Position = projectionMatrix * mv;
+    }
+  `,
+  fragmentShader: `
+    void main() {
+      float d = length(gl_PointCoord - 0.5) * 2.0;
+      if (d > 1.0) discard;
+      float t = smoothstep(1.0, 0.0, d);
+      gl_FragColor = vec4(1.0, 0.5, 0.1, t * 0.8);
+    }
+  `
+});
+const embers = new THREE.Points(emberGeo, emberMat);
+scene.add(embers);
+
+// ================= 星星 =================
+
+{
+  const N = 800;
+  const pos = new Float32Array(N * 3);
+  const sizes = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const r = 80 + Math.random() * 60;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI * 0.45; // 只在上半球
+    pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    pos[i * 3 + 1] = r * Math.cos(phi);
+    pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    sizes[i] = 0.3 + Math.random() * 1.2;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { time: { value: 0 } },
+    vertexShader: `
+      attribute float size;
+      uniform float time;
+      varying float vTwinkle;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        float tw = sin(time * (0.5 + size) + position.x * 10.0) * 0.5 + 0.5;
+        vTwinkle = 0.4 + tw * 0.6;
+        gl_PointSize = size * 2.0;
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying float vTwinkle;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float t = smoothstep(1.0, 0.0, d);
+        gl_FragColor = vec4(0.9, 0.9, 1.0, t * vTwinkle);
+      }
+    `
+  });
+  const stars = new THREE.Points(g, m);
+  scene.add(stars);
+  window.__starMat = m;
+}
+
+// 月亮
+{
+  const moonGeo = new THREE.SphereGeometry(2, 16, 16);
+  const moonMat = new THREE.MeshBasicMaterial({ color: 0xeeeedd });
+  const moon = new THREE.Mesh(moonGeo, moonMat);
+  moon.position.set(30, 40, -50);
+  scene.add(moon);
+  // 月光辉光
+  const glowGeo = new THREE.SphereGeometry(3.5, 16, 16);
+  const glowMat = new THREE.ShaderMaterial({
+    transparent: true, side: THREE.BackSide, depthWrite: false,
+    uniforms: { c: { value: new THREE.Color(0xccccdd) } },
+    vertexShader: `varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `uniform vec3 c; varying vec3 vN;
+      void main(){ float i = pow(0.65 - dot(vN, vec3(0,0,1.0)), 3.0);
+      gl_FragColor = vec4(c, 1.0) * i * 0.5; }`
+  });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  glow.position.copy(moon.position);
+  scene.add(glow);
+}
+
+// ================= 光照 =================
+
+// 篝火主光 — 暖橙点光源，闪烁
+const fireLight = new THREE.PointLight(0xff5522, 6, 10, 2);
+fireLight.position.set(0, 0.8, 0);
+fireLight.castShadow = true;
+fireLight.shadow.mapSize.set(512, 512);
+fireLight.shadow.bias = -0.005;
+scene.add(fireLight);
+
+// 篝火底部辅光 — 更亮更黄
+const fireCore = new THREE.PointLight(0xffcc44, 2.5, 3, 2);
+fireCore.position.set(0, 0.3, 0);
+scene.add(fireCore);
+
+// 月光 — 冷蓝平行光，微弱但可见
+const moonLight = new THREE.DirectionalLight(0x8899bb, 0.8);
+moonLight.position.set(30, 40, -50);
+scene.add(moonLight);
+
+// 环境光 — 极暗蓝
+scene.add(new THREE.AmbientLight(0x1a2244, 1.2));
+
+// ================= 雨 =================
+
+let rainOn = false;
+const RAIN_COUNT = 500;
+const rainGeo = new THREE.BufferGeometry();
+const rainPos = new Float32Array(RAIN_COUNT * 3);
+const rainSpeeds = new Float32Array(RAIN_COUNT);
+
+for (let i = 0; i < RAIN_COUNT; i++) {
+  rainPos[i * 3] = (Math.random() - 0.5) * 30;
+  rainPos[i * 3 + 1] = Math.random() * 20;
+  rainPos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  rainSpeeds[i] = 8 + Math.random() * 4;
+}
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+
+const rainMat = new THREE.PointsMaterial({
+  color: 0x8899bb, size: 0.06, transparent: true, opacity: 0.4,
+  blending: THREE.AdditiveBlending, depthWrite: false
+});
+const rain = new THREE.Points(rainGeo, rainMat);
+rain.visible = false;
+scene.add(rain);
+
+// ================= 控制 =================
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.target.set(0, 0.5, 0);
+controls.minDistance = 1;
+controls.maxDistance = 15;
+controls.enablePan = false;
+controls.enabled = false;
+
+let sitMode = true;
+let rainActive = false;
+
+document.getElementById('btnCam').onclick = () => {
+  sitMode = true; controls.enabled = false;
+  document.getElementById('btnCam').classList.add('on');
+  document.getElementById('btnFree').classList.remove('on');
+};
+document.getElementById('btnFree').onclick = () => {
+  sitMode = false;
+  controls.enabled = true;
+  // 切换时把相机放到合理位置
+  camera.position.set(3, 2, 3);
+  controls.target.set(0, 0.3, 0);
+  controls.update();
+  document.getElementById('btnFree').classList.add('on');
+  document.getElementById('btnCam').classList.remove('on');
+};
+document.getElementById('btnRain').onclick = () => {
+  rainActive = !rainActive;
+  rain.visible = rainActive;
+  document.getElementById('btnRain').textContent = rainActive ? '🌧️ 下雨中' : '🌧️ 无雨';
+  document.getElementById('btnRain').classList.toggle('on', rainActive);
+};
+
+// ================= 动画 =================
+
+const clock = new THREE.Clock();
+let sitAngle = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  // --- 火焰粒子 ---
+  const fPos = fireGeo.attributes.position.array;
+  const fAlpha = fireGeo.attributes.alpha.array;
+  for (let i = 0; i < FIRE_COUNT; i++) {
+    fPos[i * 3 + 1] += dt * fireSpeeds[i] * 1.5;
+    fPos[i * 3] += Math.sin(t * 3 + i) * dt * 0.3;
+    fPos[i * 3 + 2] += Math.cos(t * 2.5 + i * 0.7) * dt * 0.2;
+    fAlpha[i] = Math.max(0, fAlpha[i] - dt * 0.4);
+    if (fPos[i * 3 + 1] > 1.5 || fAlpha[i] <= 0) {
+      resetFireParticle(i);
+    }
+  }
+  fireGeo.attributes.position.needsUpdate = true;
+  fireGeo.attributes.alpha.needsUpdate = true;
+
+  // --- 余烬 ---
+  const ePos = emberGeo.attributes.position.array;
+  for (let i = 0; i < EMBER_COUNT; i++) {
+    const s = emberSpeeds[i];
+    ePos[i * 3] += s.vx * dt + Math.sin(t * 2 + i * 1.5) * dt * 0.5;
+    ePos[i * 3 + 1] += s.vy * dt;
+    ePos[i * 3 + 2] += s.vz * dt + Math.cos(t * 1.8 + i) * dt * 0.3;
+    s.life -= dt;
+    if (s.life <= 0 || ePos[i * 3 + 1] > 8) resetEmber(i);
+  }
+  emberGeo.attributes.position.needsUpdate = true;
+
+  // --- 篝火闪烁 ---
+  const flicker = Math.sin(t * 8) * 0.3 + Math.sin(t * 13) * 0.2 + Math.sin(t * 5.7) * 0.15;
+  fireLight.intensity = 5.5 + flicker * 1.8;
+  fireCore.intensity = 2.2 + flicker * 0.8;
+  fireLight.position.x = Math.sin(t * 3) * 0.05;
+  fireLight.position.z = Math.cos(t * 2.7) * 0.05;
+
+  // 炭光呼吸
+  charMat.emissiveIntensity = 0.1 + Math.sin(t * 2) * 0.05 + flicker * 0.03;
+
+  // --- 星星闪烁 ---
+  window.__starMat.uniforms.time.value = t;
+
+  // --- 静坐模式相机 ---
+  if (sitMode) {
+    sitAngle += dt * 0.02;
+    camera.position.set(
+      Math.sin(sitAngle) * 0.5 + 2.0,
+      1.2 + Math.sin(t * 0.5) * 0.03,
+      Math.cos(sitAngle) * 0.5 + 2.0
+    );
+    camera.lookAt(0, 0.6, 0);
+  }
+
+  // --- 雨 ---
+  if (rainActive) {
+    const rPos = rainGeo.attributes.position.array;
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      rPos[i * 3 + 1] -= rainSpeeds[i] * dt;
+      if (rPos[i * 3 + 1] < 0) {
+        rPos[i * 3 + 1] = 20;
+        rPos[i * 3] = (Math.random() - 0.5) * 30;
+        rPos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+      }
+    }
+    rainGeo.attributes.position.needsUpdate = true;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  fitRenderer();
+});
+</script>
+</body>
+</html>

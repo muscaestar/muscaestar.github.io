@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>017 — 程序化生成：用算法种出世界</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0016-occlusion-culling.html">← 上一课</a>
+  <span>第 17 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">017</span>程序化生成：用算法种出世界</h1>
+
+<p>《我的世界》有 18 亿亿个方块的地形，《无人深空》有 18 万亿颗星球——显然不是美术手摆的。它们是<strong>程序化生成（Procedural Generation）</strong>：写一套规则，让算法自动种出世界。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">程序化生成 <span class="en">Procedural Generation (PCG)</span></div>
+  <p>用算法而不是手工创建内容。地形、植被、迷宫、任务、名字——只要你能写出规则，就能自动生成。核心优势：无限内容、小存储、可复现。</p>
+</div>
+
+<div class="concept">
+  <div class="term">随机种子 <span class="en">Random Seed</span></div>
+  <p>程序化生成的"世界编号"。同一个种子生成的世界完全一样——所以《我的世界》可以分享种子码，别人输入后得到一模一样的世界。</p>
+</div>
+
+<div class="concept">
+  <div class="term">噪声函数 <span class="en">Noise Function</span></div>
+  <p>程序化生成的核心工具。不是纯随机（白噪声，杂乱无章），而是"平滑的随机"——相邻位置的值相近，远处才不同。像山的高度：相邻两点高度差不多，拉开距离才有起伏。</p>
+</div>
+
+<h2>噪声：从随机到自然</h2>
+
+<pre>纯随机（白噪声）：
+  每 个 点 都 乱 跳 —— 像 电 视 雪 花
+  做地形：尖刺密布，完全不像山
+
+平滑噪声（Perlin/Simplex）：
+  相邻点平滑过渡 —— 像 起 伏 的 布
+  做地形：有山坡有山谷，自然
+
+关键性质：
+  1. 连续性：相邻位置值相近
+  2. 确定性：同一个坐标永远得到同一个值
+  3. 无周期性：不会看出重复图案（理想情况）</pre>
+
+<h2>分形叠加：一层噪声不够</h2>
+
+<p>单层噪声太"规则"——都是同样大小的起伏。真实地形有大山脉，山脉上有小山坡，山坡上有碎石。解决：<strong>叠加多层不同频率的噪声</strong>。</p>
+
+<pre>分形噪声（fBm, Fractal Brownian Motion）：
+
+  最终高度 = 
+      noise(x, y) × 1.0      ← 低频大幅：大山脉
+    + noise(x×2, y×2) × 0.5  ← 中频中幅：山坡起伏
+    + noise(x×4, y×4) × 0.25 ← 高频小幅：表面粗糙
+    + noise(x×8, y×8) × 0.125
+
+  每层频率 ×2，振幅 ÷2（叫 octave 八度）
+
+  4~6 层叠加 → 既有大结构又有小细节 → 自然</pre>
+
+<div class="tip">
+  <strong>这个思想无处不在</strong>：地形高度、云层形状、水面波纹、火焰抖动、材质纹理——都是"低频定大形，高频加细节"。以后看到任何"自然感"的程序纹理，猜 fBm 八九不离十。
+</div>
+
+<h2>从噪声到世界：完整管线</h2>
+
+<pre>以生成分岛为例：
+
+1. 高度图：fBm 噪声 → 每个格子的海拔
+2. 地形分类：按高度分层
+     < 0.3  深水
+     < 0.4  浅水
+     < 0.5  沙滩
+     < 0.7  草地
+     < 0.85 森林
+     ≥ 0.85 雪山
+3. 湿度图：另一张噪声（不同种子）→ 决定植被密度
+4. 撒物件：森林格子上按湿度随机撒树（泊松盘采样，防止挤一起）
+5. 河流：从山顶沿梯度下降走到海（A* 或简单下坡）</pre>
+
+<h2>常用生成算法速查</h2>
+
+<table>
+  <tr><th>算法</th><th>生成什么</th><th>核心思想</th></tr>
+  <tr><td><strong>Perlin/Simplex 噪声</strong></td><td>地形高度、云、纹理</td><td>平滑随机 + 分形叠加</td></tr>
+  <tr><td><strong>Worley/Voronoi</strong></td><td>细胞纹理、碎裂地块、蜂窝</td><td>到最近特征点的距离</td></tr>
+  <tr><td><strong>L-system</strong></td><td>植物、树、分形</td><td>字符串重写规则递归展开</td></tr>
+  <tr><td><strong>波函数坍缩（WFC）</strong></td><td>地图、关卡、像素画</td><td>局部约束传播（像解数独）</td></tr>
+  <tr><td><strong>元胞自动机</strong></td><td>洞穴、地牢</td><td>格子按邻居规则演化几代</td></tr>
+  <tr><td><strong>泊松盘采样</strong></td><td>撒树、撒石头</td><td>随机但保持最小间距</td></tr>
+  <tr><td><strong>迷宫算法</strong></td><td>地牢</td><td>递归分割/回溯/Prim</td></tr>
+</table>
+
+<h2>种子：可复现的魔法</h2>
+
+<pre>伪随机数生成器（PRNG）：
+  seed = 42
+  random() → 0.374  （永远是 0.374）
+  random() → 0.891  （永远是 0.891）
+
+同一个种子 → 同一串"随机"数 → 同一个世界
+
+好处：
+  1. 分享：发种子码 = 发整个世界
+  2. 存储：不用存地图，只存一个数字
+  3. 流式加载：玩家走到哪里，现场算哪里
+     （《我的世界》从不存完整地图，只存玩家改过的部分）</pre>
+
+<div class="warn">
+  <strong>确定性是双刃剑</strong>：所有客户端必须用同一个算法同一个种子，否则联机时每个人看到的世界不一样。改一行噪声代码 = 所有人的世界全变。所以生成算法要版本化。
+</div>
+
+<h2>手工 + 程序化的混合</h2>
+
+<p>纯程序化容易"千篇一律"（算法味太重），实际项目都是混合：</p>
+
+<table>
+  <tr><th>层级</th><th>谁做</th><th>例子</th></tr>
+  <tr><td>大结构</td><td>手工设计</td><td>主城位置、剧情关卡、地标</td></tr>
+  <tr><td>中结构</td><td>程序生成 + 手工规则</td><td>地形起伏、道路走向、村落布局</td></tr>
+  <tr><td>小细节</td><td>纯程序化</td><td>草、石头、树的精确位置</td></tr>
+</table>
+
+<div class="tip">
+  <strong>《塞尔达传说：旷野之息》的做法</strong>：地形大体手工雕琢（保证玩法设计），但植被、石头、蘑菇这类填充物按规则自动撒。美术画"规则"（这里该长什么），程序管"执行"。
+</div>
+
+<h2>Three.js 实现（地形）</h2>
+
+<pre>// Simplex 噪声库：three/addons/math/SimplexNoise.js
+import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
+
+const noise = new SimplexNoise();
+const geo = new THREE.PlaneGeometry(100, 100, 128, 128);
+const pos = geo.attributes.position;
+
+for (let i = 0; i < pos.count; i++) {
+  const x = pos.getX(i), y = pos.getY(i);
+  let h = 0, freq = 0.02, amp = 10;
+  for (let o = 0; o < 4; o++) {          // 4 层分形
+    h += noise.noise(x * freq, y * freq) * amp;
+    freq *= 2; amp *= 0.5;
+  }
+  pos.setZ(i, h);
+}
+geo.computeVertexNormals();</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：内置 FastNoiseLite（Simplex/Perlin/Cellular 都有）
+var noise = FastNoiseLite.new()
+noise.seed = 42
+noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+noise.fractal_octaves = 4
+noise.fractal_gain = 0.5
+noise.fractal_lacunarity = 2.0
+
+# 采样
+var height = noise.get_noise_2d(x, y)  # -1 ~ 1
+
+# 地形：HeightMapShape3D + 网格，或插件（Terrain3D）</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么程序化地形用 Perlin 噪声而不是纯随机数？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">Perlin 噪声计算更快</button>
+    <button class="opt" data-correct="false">纯随机数不能设置种子</button>
+    <button class="opt" data-correct="true">Perlin 噪声相邻位置的值平滑过渡，才有连续的山坡；纯随机每点乱跳，全是尖刺</button>
+    <button class="opt" data-correct="false">Perlin 噪声的值更大</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！关键是连续性——真实地形相邻点高度接近。纯随机（白噪声）每个格子独立乱跳，做地形全是密集尖刺，完全不像自然地貌。"
+    data-wrong="差别在<strong>连续性</strong>。Perlin 噪声相邻位置值相近（平滑），纯随机相邻位置无关（乱跳）。地形需要"山坡"而不是"尖刺"——这就是平滑噪声存在的意义。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">分形叠加（fBm）为什么要"频率 ×2，振幅 ÷2"地叠多层噪声？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">这样计算量最小</button>
+    <button class="opt" data-correct="true">低频决定大结构（山脉），高频叠加小细节（碎石）——多层叠加才有自然地形的丰富层次</button>
+    <button class="opt" data-correct="false">单层噪声范围不够大</button>
+    <button class="opt" data-correct="false">为了防止噪声重复</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！单层噪声只有一种尺度的起伏，太规则。4~6 层叠加 = 大山脉 + 山坡 + 表面粗糙，每层负责一个尺度。这是"自然感"的通用配方，云、水、火都一样。"
+    data-wrong="单层噪声 = 单一尺度 = 规则感。fBm 用多层覆盖多个尺度：<strong>低频定大形，高频加细节</strong>。4~6 层 octaves 是经验值，少了单调，多了浪费。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">《我的世界》分享"种子码"就能让别人得到一模一样的世界，这背后的原理是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">种子码里压缩存了整个地图</button>
+    <button class="opt" data-correct="false">服务器会同步地图数据给输入种子的人</button>
+    <button class="opt" data-correct="true">伪随机数生成器由种子完全决定——同种子同算法，生成的每个"随机"数序列都一样，世界自然一样</button>
+    <button class="opt" data-correct="false">种子码是地图的下载链接</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！PRNG 是确定性算法：seed → 固定的数列。世界生成完全由这串数驱动，所以同种子 = 同世界。地图不用存储不用传输，一个数字就够了。"
+    data-wrong="种子不是地图的压缩包或链接。它是<strong>伪随机序列的起点</strong>——同种子产生同样的"随机"数列，同样的数列驱动同样的生成算法，得到同样的世界。确定性是程序化生成的超能力。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 生存游戏的岛屿生成方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"地形用 5 层 fBm Simplex 噪声，叠加径向衰减（离中心越远越低）保证是岛。生物群系按高度+湿度双噪声分：低海拔湿地、中海拔森林、高海拔岩石。树用泊松盘撒，密度由湿度图控制，海滩不撒。河流从最高点沿梯度下降画到海，两岸自动铺沙。资源点（矿石、浆果丛）用 Worley 噪声的细胞中心定位，保证分布均匀不扎堆。全局一个种子，联机时主机发给客户端。村庄和副本入口手工标记位置，写进种子配置里覆盖生成结果。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 fBm、径向衰减、双噪声群系、泊松盘、梯度河流、Worley 资源点、种子同步、手工覆盖。这就是完整的岛屿生成方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://www.redblobgames.com/maps/terrain-from-noise/">Red Blob Games — Terrain from Noise</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">最好的程序化地形交互教程（可在线玩参数）</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/classes/class_fastnoiselite.html">Godot — FastNoiseLite</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 内置噪声库文档</span></li>
+    <li><a href="https://www.youtube.com/watch?v=wTB35aS51lA">GDC — Procedural Generation in No Man's Sky</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">《无人深空》生成技术分享</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："域扭曲（Domain Warping）是什么？""怎么生成溶洞而不只是山地？""城市能程序化生成吗？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 17 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

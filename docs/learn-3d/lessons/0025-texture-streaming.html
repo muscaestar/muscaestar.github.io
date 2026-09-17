@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>025 — 纹理流送：开放世界怎么加载 4K 贴图</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0024-batching.html">← 上一课</a>
+  <span>第 25 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">025</span>纹理流送：开放世界怎么加载 4K 贴图</h1>
+
+<p>《原神》一个区域的贴图加起来几个 GB，手机内存只有 6-8GB——<strong>不可能全加载</strong>。答案：纹理流送（Texture Streaming）——只加载当前需要的，用完就扔。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">纹理流送 <span class="en">Texture Streaming</span></div>
+  <p>按需加载贴图：相机靠近时加载高清版，远离时卸载。不是一次性全加载，而是"流式"进出内存。核心挑战：怎么判断"需要什么"，怎么无缝切换。</p>
+</div>
+
+<div class="concept">
+  <div class="term">Mipmap <span class="en">多级渐远纹理</span></div>
+  <p>同一张贴图的多个分辨率版本：4096×4096 → 2048 → 1024 → ... → 1×1。远处用低分辨率（省显存+减少闪烁），近处用高分辨率。GPU 自动按距离选级别。</p>
+</div>
+
+<div class="concept">
+  <div class="term">纹理压缩 <span class="en">Texture Compression</span></div>
+  <p>ASTC/ETC2/BC 等格式，把贴图压缩到 1/4~1/8 大小，GPU 直接解压渲染。手机必备——不压缩的 4K 贴图一张就 64MB，压缩后 8-16MB。</p>
+</div>
+
+<h2>Mipmap：纹理流送的基础</h2>
+
+<pre>// Mipmap 层级
+4096×4096 (原始)  ← 近处用
+2048×2048 (1/4)   ← 中距离
+1024×1024 (1/16)  ← 远处
+512×512   (1/64)  ← 很远
+...
+1×1       (平均色) ← 极远
+
+// 内存增加：原始 × 1.33（每级是上一级的 1/4，等比数列求和）
+// 但远处用低级，显存占用反而减少</pre>
+
+<table>
+  <tr><th>距离</th><th>Mip 级别</th><th>分辨率</th><th>显存占用</th></tr>
+  <tr><td>近（&lt;10m）</td><td>0</td><td>4096×4096</td><td>64MB（未压缩）</td></tr>
+  <tr><td>中（10-50m）</td><td>2</td><td>1024×1024</td><td>4MB</td></tr>
+  <tr><td>远（&gt;50m）</td><td>4</td><td>256×256</td><td>256KB</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Mipmap 是自动的</strong>：生成 mipmap 链后，GPU 按像素在屏幕上的大小自动选级别。你不需要手动切换，但理解原理后才能优化流送策略。
+</div>
+
+<h2>纹理压缩：手机的生存之道</h2>
+
+<table>
+  <tr><th>格式</th><th>平台</th><th>压缩比</th><th>质量</th></tr>
+  <tr><td><strong>ASTC</strong></td><td>iOS/现代 Android</td><td>4:1 ~ 8:1</td><td>最好，块大小可调</td></tr>
+  <tr><td><strong>ETC2</strong></td><td>Android（OpenGL ES 3.0）</td><td>4:1</td><td>好</td></tr>
+  <tr><td><strong>PVRTC</strong></td><td>iOS（老设备）</td><td>4:1 ~ 8:1</td><td>一般</td></tr>
+  <tr><td><strong>BC7</strong></td><td>PC/主机</td><td>4:1</td><td>最好</td></tr>
+  <tr><td><strong>未压缩</strong></td><td>无</td><td>1:1</td><td>完美但太大</td></tr>
+</table>
+
+<pre>// 4K 贴图内存对比（RGBA）
+未压缩：4096×4096×4 = 64MB
+ASTC 6×6：4096×4096×0.5 = 8MB  (8:1 压缩)
+ETC2：4096×4096×1 = 16MB  (4:1 压缩)
+
+// 手机 100 张 4K 贴图
+未压缩：6.4GB ← 爆内存
+ASTC 6×6：800MB ← 可以</pre>
+
+<h2>纹理流送策略</h2>
+
+<table>
+  <tr><th>策略</th><th>原理</th><th>适合</th></tr>
+  <tr><td><strong>距离流送</strong></td><td>相机距离决定加载哪个 mip 级别</td><td>通用，最常用</td></tr>
+  <tr><td><strong>区域流送</strong></td><td>世界分块，进入区域加载该区域的贴图</td><td>开放世界</td></tr>
+  <tr><td><strong>可见性流送</strong></td><td>只加载可见物体的贴图</td><td>室内/线性关卡</td></tr>
+  <tr><td><strong>预测流送</strong></td><td>根据移动方向预测即将需要的贴图</td><td>高速移动场景</td></tr>
+</table>
+
+<pre>// 距离流送的简化逻辑
+func update_streaming():
+    var camera_pos = camera.global_position
+    for texture in textures:
+        var dist = camera_pos.distance_to(texture.world_position)
+        var required_mip = calculate_mip_from_distance(dist)
+        
+        if required_mip < texture.loaded_mip:
+            load_higher_mip(texture, required_mip)  # 靠近，加载高清
+        elif required_mip > texture.loaded_mip + 1:
+            unload_to_mip(texture, required_mip)    # 远离，卸载高清</pre>
+
+<h2>流送的挑战</h2>
+
+<table>
+  <tr><th>挑战</th><th>原因</th><th>解决</th></tr>
+  <tr><td>突然模糊</td><td>高清贴图还没加载完</td><td>预测加载+渐隐过渡</td></tr>
+  <tr><td>卡顿</td><td>加载大贴图时 IO 阻塞</td><td>异步加载+分帧加载</td></tr>
+  <tr><td>内存抖动</td><td>频繁加载卸载</td><td>LRU 缓存+滞回区间</td></tr>
+  <tr><td>磁盘空间</td><td>所有 mip 级别都存</td><td>只存需要的级别+压缩</td></tr>
+</table>
+
+<div class="warn">
+  <strong>纹理 pop-in 是开放世界的通病</strong>：走近一个建筑，贴图从模糊突然变清晰——这就是流送没跟上。解决：提前加载（预测玩家移动方向）+ 渐隐过渡（不要瞬间切换）。
+</div>
+
+<h2>虚拟纹理（Virtual Texturing）</h2>
+
+<p>更激进的方案：把整个世界的贴图当成一个巨大的虚拟纹理，按需加载"页"：</p>
+
+<pre>// 虚拟纹理原理
+// 世界贴图分成固定大小的页（如 128×128）
+// 只加载当前可见的页到显存
+// 不可见的页在磁盘上，需要时加载
+
+// 优势：理论上无限大的贴图
+// 劣势：实现复杂，需要自定义 shader
+// 代表：id Tech 6（DOOM）、Unreal 5</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：纹理导入设置
+# 导入面板 → 纹理 → 压缩
+# VRAM Compressed：ASTC/ETC2 压缩
+# Mipmaps：开（默认）
+
+# 运行时查询纹理内存
+var texture = preload("res://texture.png")
+var size = texture.get_size()
+var memory = size.x * size.y * 4  # 未压缩估算
+print("纹理内存：", memory / 1024 / 1024, "MB")
+
+# 流送控制（Godot 4 自动处理，但可以手动干预）
+# RenderingServer.texture_set_streaming(texture_rid, true)</pre>
+
+<h2>Three.js 实现</h2>
+
+<pre>// Three.js：mipmap 自动生成（默认）
+const texture = new THREE.TextureLoader().load('texture.png');
+texture.generateMipmaps = true;  // 默认 true
+texture.minFilter = THREE.LinearMipmapLinearFilter;  // 三线性过滤
+
+// 纹理压缩：KTX2 格式（GPU 压缩纹理）
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+const ktx2Loader = new KTX2Loader();
+ktx2Loader.load('texture.ktx2', (texture) => {
+  material.map = texture;
+});</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么手机平台必须用纹理压缩？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">压缩后画质更好</button>
+    <button class="opt" data-correct="true">不压缩的 4K 贴图一张 64MB，手机内存根本装不下——压缩到 8-16MB 才能用</button>
+    <button class="opt" data-correct="false">压缩后加载更快</button>
+    <button class="opt" data-correct="false">引擎强制要求压缩</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！算笔账：4K RGBA 未压缩 64MB，手机 6-8GB 内存，100 张贴图就 6.4GB——爆内存。ASTC 压缩到 8MB，100 张 800MB——可以。纹理压缩不是优化，是手机平台的生存必需。"
+    data-wrong="关键在<strong>内存数学</strong>：未压缩 4K 贴图 64MB，手机内存 6-8GB，系统占一半，留给游戏的 3-4GB。100 张贴图 6.4GB——根本装不下。压缩到 8MB，100 张 800MB——这才是手机平台能用的前提。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Mipmap 的内存增加是多少？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">翻倍（×2）</button>
+    <button class="opt" data-correct="true">约 1/3（×1.33）——每级是上一级的 1/4，等比数列求和</button>
+    <button class="opt" data-correct="false">四倍（×4）</button>
+    <button class="opt" data-correct="false">不增加</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Mipmap 链：1 + 1/4 + 1/16 + 1/64 + ... = 4/3 ≈ 1.33。内存只增加 33%，但换来远处用低级省显存+减少闪烁——非常划算的交易。"
+    data-wrong="算算：4096×4096（1）+ 2048×2048（1/4）+ 1024×1024（1/16）+ ... 这是等比数列，公比 1/4，求和 = 1/(1-1/4) = 4/3 ≈ 1.33。内存增加 33%，但远处用低级，实际显存占用反而减少。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">纹理 pop-in（突然从模糊变清晰）的根本原因是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">贴图质量太差</button>
+    <button class="opt" data-correct="true">高清贴图加载没跟上玩家移动——流送策略不够好，预测加载不足</button>
+    <button class="opt" data-correct="false">GPU 性能不够</button>
+    <button class="opt" data-correct="false">mipmap 没生成</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！pop-in 是流送的经典问题：玩家走近，高清贴图还在磁盘上没加载完，只能显示低级 mip，加载完后突然切换。解决：预测加载（按移动方向提前加载）+ 渐隐过渡（不要瞬间切换）。"
+    data-wrong="pop-in 不是画质问题，是<strong>流送时序问题</strong>。玩家移动快，高清贴图加载慢，到了面前还是低级 mip，加载完后突然切换——这就是"突然变清晰"。预测加载和渐隐过渡是标准解法。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 开放世界手游的纹理流送方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"纹理压缩：ASTC 6×6（8:1 压缩），角色贴图 ASTC 4×4（质量优先），地形贴图 ASTC 8×8（压缩优先）。Mipmap：全部开，远处自动降级。流送策略：距离+区域混合——世界分 500m×500m 块，进入块加载该区域贴图，块内按距离控制 mip 级别。预测加载：根据玩家移动方向，提前加载前方 2 个块的贴图。渐隐过渡：贴图切换用 0.3 秒 crossfade，避免 pop-in。LRU 缓存：最近使用的 200 张贴图保留在内存，超出后卸载最久没用的。异步加载：所有贴图加载在后台线程，主线程不阻塞。内存预算：贴图总内存控制在 1.5GB 以内（手机 6GB 内存，系统占 2GB，游戏逻辑占 1.5GB）。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 ASTC 分级压缩、距离+区域混合流送、预测加载、渐隐过渡、LRU 缓存、异步加载、内存预算。这就是完整的开放世界纹理流送方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_textures.html">Godot — Importing Textures</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 纹理导入和压缩文档</span></li>
+    <li><a href="https://threejs.org/manual/#en/textures">Three.js — Textures</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 纹理教程（mipmap/压缩）</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："ASTC 的块大小怎么选？""虚拟纹理在手机上可行吗？""纹理流送的预测算法怎么写？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 25 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

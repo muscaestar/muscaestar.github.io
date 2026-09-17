@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>022 — 风格化特效：卡通水、速度线和像素化</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0021-screen-space.html">← 上一课</a>
+  <span>第 22 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">022</span>风格化特效：卡通水、速度线和像素化</h1>
+
+<p>前面学的都是"怎么更像现实"。风格化特效反过来——<strong>故意不像现实</strong>，用夸张、简化、符号化的方式表达。三渲二描边、像素化、漫画速度线，都是"放弃物理正确，追求表现力"。</p>
+
+<h2>核心思想</h2>
+
+<div class="concept">
+  <div class="term">风格化渲染 <span class="en">Stylized Rendering</span></div>
+  <p>目标不是"照片级真实"，而是"像某种艺术形式"——像手绘、像漫画、像像素游戏、像水彩。技术手段：简化光照（色阶）、夸张轮廓（描边）、符号化特效（速度线）、降低精度（像素化）。</p>
+</div>
+
+<h2>卡通水：风格化水面</h2>
+
+<p>真实水面要 SSR + 折射 + 波浪模拟，风格化水面用"图案+动画"：</p>
+
+<pre>// 卡通水核心：色阶 + 滚动贴图 + 简单折射
+// 1. 基础色：深水/浅水两档色阶
+float depth = texture(depthMap, uv).r;
+vec3 waterColor = mix(deepColor, shallowColor, step(depth, threshold));
+
+// 2. 波纹：两张噪声贴图以不同速度滚动叠加
+vec2 waveUV = uv + noise1(uv * 2.0 + time * 0.1).rg * 0.05
+                   + noise2(uv * 4.0 - time * 0.15).rg * 0.03;
+vec3 wave = texture(waveTexture, waveUV).rgb;
+
+// 3. 边缘泡沫：深度接近 0 的地方画白色
+float foam = step(depth, foamThreshold);
+waterColor = mix(waterColor, vec3(1), foam * 0.8);</pre>
+
+<table>
+  <tr><th>元素</th><th>做法</th><th>效果</th></tr>
+  <tr><td><strong>深水/浅水</strong></td><td>深度色阶，两档颜色</td><td>一眼看出深浅</td></tr>
+  <tr><td><strong>波纹</strong></td><td>噪声贴图滚动</td><td>流动感</td></tr>
+  <tr><td><strong>边缘泡沫</strong></td><td>深度接近 0 画白色</td><td>水与岸的交界</td></tr>
+  <tr><td><strong>高光</strong></td><td>卡通大高光点</td><td>波光粼粼</td></tr>
+</table>
+
+<div class="tip">
+  <strong>《原神》《塞尔达》的水都是这个思路</strong>：不追求物理正确，追求"一眼认出是水"+"好看"。色阶+图案+动画，比 SSR 水面便宜十倍，效果还更"卡通"。
+</div>
+
+<h2>速度线：漫画式动感</h2>
+
+<p>冲刺、挥拳、爆炸——漫画用速度线表达"快"，游戏也用：</p>
+
+<pre>// 速度线：屏幕空间后处理
+// 1. 计算每个像素到屏幕中心的距离和角度
+vec2 toCenter = uv - vec2(0.5);
+float angle = atan(toCenter.y, toCenter.x);
+
+// 2. 角度 × 频率 → 条纹
+float lines = step(0.8, fract(angle * 20.0 + time * 5.0));
+
+// 3. 距离中心越远越强（中心清晰，边缘模糊）
+float radial = smoothstep(0.3, 0.8, length(toCenter));
+fragColor.rgb += lines * radial * intensity;</pre>
+
+<table>
+  <tr><th>变体</th><th>效果</th><th>场景</th></tr>
+  <tr><td><strong>放射线</strong></td><td>从中心向外辐射</td><td>冲刺、爆炸</td></tr>
+  <tr><td><strong>平行线</strong></td><td>同一方向排列</td><td>横向移动、挥拳</td></tr>
+  <tr><td><strong>环形线</strong></td><td>同心圆扩散</td><td>冲击波、落地</td></tr>
+</table>
+
+<h2>像素化：复古即风格</h2>
+
+<pre>// 像素化：UV 取整，强制回到网格
+vec2 pixelUV = floor(uv * resolution) / resolution;
+vec3 color = texture(scene, pixelUV).rgb;
+// resolution 越低，像素越大，越"复古"</pre>
+
+<table>
+  <tr><th>分辨率</th><th>效果</th><th>参考</th></tr>
+  <tr><td>320×180</td><td>轻度像素化，现代复古</td><td>《Octopath Traveler》</td></tr>
+  <tr><td>160×90</td><td>明显像素风</td><td>《Celeste》过场</td></tr>
+  <tr><td>64×36</td><td>极端像素化</td><td>艺术效果</td></tr>
+</table>
+
+<h2>其他常见风格化特效</h2>
+
+<table>
+  <tr><th>效果</th><th>原理</th><th>用途</th></tr>
+  <tr><td><strong>半调网点</strong></td><td>亮度映射到网点大小</td><td>漫画印刷感</td></tr>
+  <tr><td><strong>水彩晕染</strong></td><td>噪声扰动 UV + 边缘扩散</td><td>水彩画风</td></tr>
+  <tr><td><strong>油画笔触</strong></td><td>法线扰动 + 笔触贴图叠加</td><td>油画风</td></tr>
+  <tr><td><strong>CRT 扫描线</strong></td><td>水平条纹 + 边缘暗角 + 色差</td><td>复古显示器</td></tr>
+  <tr><td><strong>故障艺术</strong></td><td>UV 随机偏移 + 色彩分离</td><td>科幻/恐怖</td></tr>
+  <tr><td><strong>边缘发光</strong></td><td>描边着色而非黑色</td><td>魔法/能量效果</td></tr>
+</table>
+
+<h2>风格化 vs 写实的取舍</h2>
+
+<table>
+  <tr><th></th><th>写实</th><th>风格化</th></tr>
+  <tr><td><strong>目标</strong></td><td>照片级真实</td><td>像某种艺术形式</td></tr>
+  <tr><td><strong>光照</strong></td><td>PBR 完整模型</td><td>色阶简化</td></tr>
+  <tr><td><strong>反射</strong></td><td>SSR / 光线追踪</td><td>假反射 / 省略</td></tr>
+  <tr><td><strong>阴影</strong></td><td>PCF 软阴影</td><td>色阶阴影 / 贴图阴影</td></tr>
+  <tr><td><strong>性能</strong></td><td>贵</td><td>便宜</td></tr>
+  <tr><td><strong>适合</strong></td><td>3A 写实游戏</td><td>独立游戏 / 手游 / 二次元</td></tr>
+</table>
+
+<div class="warn">
+  <strong>风格化不是"做不好写实"</strong>——它是主动选择。好的风格化比写实更难：需要美术定调、技术配合、全团队统一审美。《塞尔达》的水彩风、《原神》的二次元渲染，背后都是大量风格化技术的积累。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>// 像素化后处理
+const pixelShader = {
+  uniforms: { tDiffuse: { value: null }, resolution: { value: new THREE.Vector2(320, 180) } },
+  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    varying vec2 vUv;
+    void main() {
+      vec2 pixelUV = floor(vUv * resolution) / resolution;
+      gl_FragColor = texture2D(tDiffuse, pixelUV);
+    }
+  `
+};
+const pixelPass = new ShaderPass(pixelShader);
+composer.addPass(pixelPass);</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：像素化——渲染分辨率降低 + 上采样
+# project.godot
+# rendering/viewport/scaling_3d_scale = 0.25  (渲染 25% 分辨率)
+
+# 速度线：屏幕空间 shader
+# shader_type canvas_item;
+# uniform float intensity;
+# void fragment() {
+#   vec2 to_center = UV - vec2(0.5);
+#   float angle = atan(to_center.y, to_center.x);
+#   float lines = step(0.8, fract(angle * 20.0 + TIME * 5.0));
+#   float radial = smoothstep(0.3, 0.8, length(to_center));
+#   COLOR.rgb += lines * radial * intensity;
+# }</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">风格化水面（卡通水）的核心思路是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">物理精确的水面模拟</button>
+    <button class="opt" data-correct="true">色阶+图案+动画——不追求物理正确，追求"一眼认出是水"且好看</button>
+    <button class="opt" data-correct="false">用 SSR 做真实反射</button>
+    <button class="opt" data-correct="false">用粒子系统模拟水花</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！卡通水 = 深度色阶（深浅两档）+ 噪声波纹（滚动贴图）+ 边缘泡沫（白色）。比 SSR 水面便宜十倍，效果还更"卡通"。《原神》《塞尔达》都是这个思路。"
+    data-wrong="风格化的核心是<strong>表现力优先</strong>。物理精确的水面模拟又贵又不"卡通"。色阶+图案+动画，一眼认出是水，性能开销极小，风格统一——这才是卡通水的设计目标。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">速度线特效为什么从屏幕中心向外辐射？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">这样性能最好</button>
+    <button class="opt" data-correct="false">美术习惯这样画</button>
+    <button class="opt" data-correct="true">模拟人眼聚焦——中心清晰边缘模糊，配合放射线条强化"冲向某物"的动感</button>
+    <button class="opt" data-correct="false">引擎限制只能这样做</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！速度线的放射结构模拟人眼聚焦效果——中心是焦点清晰，边缘模糊+线条强化速度感。这是漫画几十年验证的视觉语言，游戏直接借用。"
+    data-wrong="想想漫画：主角冲刺时，背景是放射状线条，中心是主角清晰，边缘线条模糊。这模拟的是<strong>人眼聚焦</strong>——注意力集中在中心，边缘的速度线强化"快"的感觉。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么独立游戏和手游更倾向风格化而非写实？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">写实技术太难了，独立开发者不会</button>
+    <button class="opt" data-correct="true">风格化性能开销小、风格独特、审美门槛相对低——适合小团队和性能受限平台</button>
+    <button class="opt" data-correct="false">玩家不喜欢写实风格</button>
+    <button class="opt" data-correct="false">写实游戏不赚钱</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！风格化的三重优势：性能便宜（手机能跑）、风格独特（差异化竞争）、审美可控（色阶+描边比 PBR 好调）。独立游戏和手游的最优解。"
+    data-wrong="不是不会写实，是<strong>成本效益</strong>。写实要大量美术资源+高性能硬件，独立团队和手游都承担不起。风格化用色阶+描边+符号化特效，性能便宜，风格反而更独特——双赢。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 二次元手游的风格化特效方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"角色渲染：三渲二色阶+描边（前面学过的配方）。特效：技能用卡通水思路——色阶+噪声贴图滚动+边缘泡沫，不做 SSR 反射。速度线：冲刺/大招触发屏幕空间放射线，从角色位置向外辐射，配合 FOV 拉宽+相机震动。像素化：复古彩蛋模式——渲染分辨率降到 25%，上采样到全屏。CRT 效果：怀旧关卡加扫描线+边缘暗角+轻微色差。故障艺术：BOSS 战转场用 UV 随机偏移+色彩分离，营造紧张感。所有风格化特效都围绕'二次元美术调性'统一设计，不混搭写实特效。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了三渲二角色+卡通水特效+速度线+像素化彩蛋+CRT+故障艺术，并强调风格统一。这就是完整的二次元手游风格化方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/index.html">Godot — Shaders</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot shader 官方教程（风格化特效基础）</span></li>
+    <li><a href="https://threejs.org/manual/#en/postprocessing">Three.js — Post Processing</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 后处理（像素化/速度线可用 ShaderPass 实现）</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："卡通水怎么和角色交互？""速度线的线条密度怎么调？""像素化怎么和 UI 共存？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 22 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

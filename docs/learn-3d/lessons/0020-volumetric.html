@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>020 — 体积效果：雾、云和光柱</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0019-particles.html">← 上一课</a>
+  <span>第 20 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">020</span>体积效果：雾、云和光柱</h1>
+
+<p>远处群山在雾中变淡、手电光束在黑暗中可见、云在天上飘——这些都涉及"光在介质中传播"，也就是<strong>体积效果</strong>。真实模拟太贵，所以游戏用的是层层递进的近似。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">体积效果 <span class="en">Volumetric Effects</span></div>
+  <p>普通渲染只算表面，体积效果考虑光穿过介质（雾/云/烟）的路径——光在介质里被吸收、散射、自发光，"看到的不只是表面，还有表面之间的空气"。</p>
+</div>
+
+<div class="concept">
+  <div class="term">Ray Marching <span class="en">射线步进</span></div>
+  <p>体积效果的核心算法：从相机向场景发射线，沿射线每步采样介质密度，累加光的贡献。步数越多越准越贵。这是体积云、体积雾、体积光的通用框架。</p>
+</div>
+
+<div class="concept">
+  <div class="term">大气散射 <span class="en">Atmospheric Scattering</span></div>
+  <p>天空为什么是蓝的？日落为什么是红的？—— 瑞利散射（短波蓝光散射多）+ 米氏散射（大颗粒，各种波长都散）。大气散射是天空渲染的物理基础。</p>
+</div>
+
+<h2>从便宜到贵的体积方案</h2>
+
+<table>
+  <tr><th>方案</th><th>原理</th><th>成本</th><th>适合</th></tr>
+  <tr><td><strong>高度雾</strong></td><td>按片元世界高度混合雾色</td><td>几乎免费</td><td>山谷低雾、地牢氛围</td></tr>
+  <tr><td><strong>距离雾</strong></td><td>按相机距离混合雾色</td><td>几乎免费</td><td>通用远景雾、隐藏远景加载</td></tr>
+  <tr><td><strong>光柱贴图</strong></td><td>面片+渐隐贴图模拟光束</td><td>便宜</td><td>舞台灯光、窗户光斑</td></tr>
+  <tr><td><strong>Billboard 云</strong></td><td>面向相机的面片+云贴图</td><td>便宜</td><td>远景云、静态天空</td></tr>
+  <tr><td><strong>体积光（Ray March）</strong></td><td>沿射线步进采样，累加散射</td><td>中</td><td>手电光束、教堂彩窗光</td></tr>
+  <tr><td><strong>体积云（3D 噪声 + Ray March）</strong></td><td>3D 噪声定义密度场，步进采样</td><td>贵</td><td>飞行游戏、天气系统</td></tr>
+  <tr><td><strong>大气散射</strong></td><td>完整大气模型，太阳/天空/雾统一</td><td>贵</td><td>开放世界、飞行模拟</td></tr>
+</table>
+
+<div class="tip">
+  <strong>大多数游戏混用</strong>：距离雾管远景，光柱贴图管局部光束，billboard 云管远景云，只在飞行镜头才用真体积云。根据镜头需求选方案。
+</div>
+
+<h2>距离雾：最基础也最重要</h2>
+
+<p>所有游戏引擎都内置距离雾，因为它同时做两件事：</p>
+
+<table>
+  <tr><th>功能</th><th>说明</th></tr>
+  <tr><td><strong>氛围</strong></td><td>远山变淡、远景模糊——"空气透视"，给场景深度感</td></tr>
+  <tr><td><strong>遮丑</strong></td><td>隐藏远景 LOD 切换、场景加载边界、视野尽头</td></tr>
+</table>
+
+<pre>// 线性雾：start~end 之间从 0% 到 100% 雾
+scene.fog = new THREE.Fog(0x88aacc, 10, 100);
+
+// 指数雾：浓度随距离指数增长，更自然
+scene.fog = new THREE.FogExp2(0x88aacc, 0.03);
+
+// 雾色选择 = 氛围的灵魂
+// 白天：浅蓝灰 | 黄昏：橙红 | 夜晚：深蓝黑 | 地牢：绿黑</pre>
+
+<div class="warn">
+  <strong>雾色比雾参数更重要</strong>。同样的密度，蓝雾是清晨、橙雾是沙尘暴、绿雾是毒气。调雾先调颜色，再调浓度。
+</div>
+
+<h2>体积光：手电和教堂光</h2>
+
+<p>真实的光束是光在雾中散射的结果。游戏里的做法：</p>
+
+<table>
+  <tr><th>方法</th><th>原理</th><th>效果</th></tr>
+  <tr><td><strong>锥体贴图</strong></td><td>圆锥 mesh + 渐隐贴图，Additive 混合</td><td>便宜但假，转角穿帮</td></tr>
+  <tr><td><strong>屏幕空间 Ray March</strong></td><td>后处理中沿视线步进，累加光源贡献</td><td>真光束，有遮挡，较贵</td></tr>
+  <tr><td><strong>体积阴影贴图</strong></td><td>光源视角渲染深度，步进时查阴影</td><td>光束被物体挡住，真实但最贵</td></tr>
+</table>
+
+<pre>// 屏幕空间体积光原理（后处理 fragment shader）
+// 从相机到片元沿视线步进 N 步
+for (int i = 0; i < N; i++) {
+  vec3 p = camera + ray * t[i];
+  float light = 光源强度(p) * 衰减(p);
+  accum += light;
+}
+// 累加结果就是这条视线上看到的"光的总量"</pre>
+
+<h2>体积云：最贵的体积效果</h2>
+
+<p>真正的云是 3D 密度场，需要 ray marching 采样。简化版：</p>
+
+<pre>// 3D 噪声定义云的密度场
+float cloudDensity(vec3 p) {
+  float base = fbm3d(p * 0.01);           // 大形状
+  float detail = fbm3d(p * 0.05) * 0.3;   // 细节
+  return max(0, base + detail - coverage); // coverage 控制云量
+}
+
+// Ray marching：沿视线步进，密度高的地方吸收/散射光
+vec4 marchCloud(vec3 origin, vec3 dir) {
+  vec4 result = vec4(0);
+  for (float t = 0; t < maxDist; t += step) {
+    vec3 p = origin + dir * t;
+    float d = cloudDensity(p);
+    if (d > 0) {
+      // 向光源方向再步进，算云的透光性
+      float light = marchLight(p);
+      result.rgb += cloudColor * d * light;
+      result.a += d * (1 - result.a);
+    }
+  }
+  return result;
+}</pre>
+
+<div class="tip">
+  <strong>手机平台的云策略</strong>：远景 billboard + 头顶少量 3D 噪声云 + 雾衔接。全场景 ray marching 体积云在手机上是帧率杀手。大多数"飞行游戏"的云其实是精心布置的 billboard 序列。
+</div>
+
+<h2>大气散射：天空渲染的物理</h2>
+
+<p>为什么天是蓝的、日落是红的：</p>
+
+<table>
+  <tr><th>散射类型</th><th>颗粒</th><th>效果</th></tr>
+  <tr><td><strong>瑞利散射</strong></td><td>分子（极小）</td><td>短波（蓝光）散射多 → 天蓝</td></tr>
+  <tr><td><strong>米氏散射</strong></td><td>尘埃水滴（大）</td><td>各波长都散 → 云白、雾灰</td></tr>
+</table>
+
+<pre>日落红的原理：
+正午：光垂直穿过大气 → 路径短 → 蓝光散射掉一些，但还是蓝
+日落：光斜穿大气 → 路径长 → 蓝光全散光了 → 剩下红光到眼睛</pre>
+
+<div class="tip">
+  <strong>实用价值</strong>：不需要手写大气散射——引擎（Unreal/Unity/Godot 4）都内置了物理天空。但理解原理后你就知道：想"黄昏感"就增大光学厚度（调 atmosphere thickness），想"异星天空"就改瑞利系数（变成紫色天空）。
+</div>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4 的体积雾：WorldEnvironment 节点
+extends WorldEnvironment
+
+func _ready():
+    var env = Environment.new()
+    env.background_mode = Environment.BG_SKY
+    
+    # 体积雾
+    env.volumetric_fog_enabled = true
+    env.volumetric_fog_density = 0.05
+    env.volumetric_fog_albedo = Color(0.8, 0.8, 0.8)
+    
+    # 雾
+    env.fog_enabled = true
+    env.fog_light_color = Color(0.6, 0.7, 0.8)
+    env.fog_density = 0.01
+    
+    environment = env
+
+# 体积光：SpotLight3D 开 shadow + volumetric_fog 自然出光束
+# 无需特殊设置，引擎自动算</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么大多数游戏同时用距离雾+光柱贴图+billboard 云，而不是统一用 ray marching？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">引擎不支持 ray marching</button>
+    <button class="opt" data-correct="true">ray marching 成本太高——按镜头需求混合方案，远景用便宜近似，特写才上真体积</button>
+    <button class="opt" data-correct="false">billboard 效果更好看</button>
+    <button class="opt" data-correct="false">美术只会画贴图，不会调 shader</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！体积效果的黄金法则：能贴图就不 ray march，能 billboard 就不 3D。根据镜头需求选方案——远景云观众不会凑近看，billboard 足够；只有飞行镜头才需要真体积云。"
+    data-wrong="不是技术限制，是<strong>成本效益</strong>。ray marching 每像素几十次采样，全屏跑太贵。正确策略：远景用便宜近似（雾+贴图），特写才用真体积——观众在远处根本看不出区别。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">距离雾除了氛围之外的另一个关键作用是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">遮丑——隐藏远景 LOD 切换、场景加载边界、视野尽头</button>
+    <button class="opt" data-correct="false">提高渲染性能（雾中不渲染）</button>
+    <button class="opt" data-correct="false">模拟相机景深</button>
+    <button class="opt" data-correct="false">减少贴图加载</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！雾是"遮丑布"——远处加载边界、LOD 切换跳变、视野尽头，都用雾自然掩盖。没有雾，玩家会清楚看到远处物体突然出现。"
+    data-wrong="想想实际游戏：远景物体突然"蹦"出来，但通常被雾盖住你看不见。雾的遮丑功能和氛围功能同等重要——它让远景的 LOD 跳变和加载边界变得不可察觉。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">日落时天空为什么是红色的？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">太阳本身变红了</button>
+    <button class="opt" data-correct="true">光斜穿大气路径长，蓝光被瑞利散射消耗殆尽，只剩红光到达眼睛</button>
+    <button class="opt" data-correct="false">大气中的尘埃反射红光</button>
+    <button class="opt" data-correct="false">大气温度变化改变光的颜色</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！正午光垂直穿大气路径短，蓝光散一些但还有。日落光斜穿大气路径长，蓝光全散光了，只剩红光。这就是瑞利散射的直接结果。"
+    data-wrong="关键是<strong>瑞利散射</strong>：短波（蓝光）被大气分子散射的概率远高于长波（红光）。日落时光穿过的大气路径更长，蓝光在到达你眼睛之前就全被散射掉了。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 开放世界手游的体积效果方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"分层方案：全局用距离雾管远景，雾色按天气系统切换（晴天浅蓝/雨天灰/沙尘橙），浓度随时间变化（清晨浓正午淡）。局部光源（手电/车灯/路灯）用锥体贴图+渐隐，便宜且可控。云用远景 billboard 序列+头顶 3D 噪声云——飞行高度低时 billboard 足够，高时切换真体积云。大气散射用引擎内置物理天空，调光学厚度做黄昏。手机端：体积光只给主角手电，NPC 用普通点光，远景雾密度比 PC 高 20% 掩盖更多 LOD 切换。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了分层方案、天气联动、锥体贴图、混合云策略、手机降级。这就是真实的开放世界体积方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/volumetric_fog.html">Godot — Volumetric Fog</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 体积雾官方文档</span></li>
+    <li><a href="https://threejs.org/manual/#en/fog">Three.js — Fog</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 雾的官方教程</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："体积光和 Bloom 的区别？""怎么让雾只出现在山谷低处？""体积云怎么和手机发热平衡？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 20 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

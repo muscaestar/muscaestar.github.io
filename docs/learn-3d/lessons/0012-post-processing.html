@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>012 — 后处理：画面最后的润色</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.effect-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; margin: 0.7rem 0; }
+.effect-item .name { font-weight: 700; color: var(--accent); font-size: 0.95rem; }
+.effect-item .en { font-weight: 400; font-size: 0.8rem; color: var(--text-dim); margin-left: 0.4rem; }
+.effect-item .what { font-size: 0.88rem; margin: 0.3rem 0; }
+.effect-item .use { font-size: 0.8rem; color: var(--accent3); }
+.effect-item .cost { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0011-toon-complete.html">← 上一课</a>
+  <span>第 12 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">012</span>后处理：画面最后的润色</h1>
+
+<p>场景渲染完了，但画面还差点"味道"——灯光没有辉光，暗部死黑，整体发灰。这时候上<strong>后处理</strong>：不动场景，直接对渲染好的画面做滤镜。就像拍照后的修图。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">后处理 <span class="en">Post-processing</span></div>
+  <p>场景渲染成一张图片后，对这张图片做的所有处理。不碰几何体和材质，直接操作像素——像 Photoshop 滤镜，但是每帧实时执行。</p>
+</div>
+
+<div class="concept">
+  <div class="term">渲染目标 <span class="en">Render Target</span></div>
+  <p>后处理的前提：场景不直接画到屏幕，而是画到一张纹理（Render Target）。然后对这张纹理做处理，最后才显示。</p>
+</div>
+
+<div class="concept">
+  <div class="term">通道 <span class="en">Pass</span></div>
+  <p>每个后处理效果是一个 pass。多个效果串成链：渲染场景 → Bloom → 色调映射 → 暗角 → 屏幕。每个 pass 读上一个的结果。</p>
+</div>
+
+<h2>后处理的工作原理</h2>
+
+<pre>传统渲染：
+  场景 → 直接画到屏幕
+
+后处理渲染：
+  场景 → 画到纹理 A（Render Target）
+         ↓
+  纹理 A → Bloom pass → 纹理 B
+         ↓
+  纹理 B → 色调映射 pass → 纹理 C
+         ↓
+  纹理 C → 暗角 pass → 屏幕
+
+每个 pass 就是一次全屏 shader：
+  输入一张纹理，逐像素处理，输出新纹理</pre>
+
+<div class="tip">
+  <strong>类比</strong>：后处理链 = Photoshop 的图层滤镜。原图（场景渲染）→ 辉光滤镜（Bloom）→ 曲线调整（色调映射）→ 暗角滤镜（Vignette）→ 导出（屏幕）。区别是游戏每秒做 60 次。
+</div>
+
+<h2>常见后处理效果</h2>
+
+<div class="effect-item">
+  <div class="name">辉光 <span class="en">Bloom</span></div>
+  <div class="what">亮部向外溢出光晕。原理：提取画面中超过亮度阈值的像素 → 高斯模糊 → 叠加回原图。</div>
+  <div class="use">→ 霓虹灯、太阳、魔法、科幻 UI 的发光感</div>
+  <div class="cost">成本：中等（需要多次模糊 pass）</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">色调映射 <span class="en">Tone Mapping</span></div>
+  <div class="what">把 HDR（高动态范围）颜色压缩到屏幕能显示的 LDR 范围。不是简单截断，而是用曲线压缩——亮部不过曝，暗部有细节。</div>
+  <div class="use">→ 所有 HDR 渲染的必经之路，决定画面的"电影感"</div>
+  <div class="cost">成本：便宜（每像素一次计算）</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">暗角 <span class="en">Vignette</span></div>
+  <div class="what">画面四角变暗，视线聚焦中心。</div>
+  <div class="use">→ 恐怖游戏氛围、照片感、引导视线</div>
+  <div class="cost">成本：极便宜</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">色差 <span class="en">Chromatic Aberration</span></div>
+  <div class="what">RGB 三通道轻微错位，边缘出现红蓝重影。模拟相机镜头的色散缺陷。</div>
+  <div class="use">→ 受击特效、失真/迷幻场景、复古镜头感</div>
+  <div class="cost">成本：便宜</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">景深 <span class="en">Depth of Field, DOF</span></div>
+  <div class="what">焦点清晰，前景/背景模糊。模拟相机光圈。</div>
+  <div class="use">→ 对话特写、引导注意力、电影感</div>
+  <div class="cost">成本：贵（需要深度图 + 多次模糊）</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">运动模糊 <span class="en">Motion Blur</span></div>
+  <div class="what">快速移动的物体拖出残影。模拟相机快门。</div>
+  <div class="use">→ 高速赛车、动作游戏、掩盖低帧率</div>
+  <div class="cost">成本：中等到贵（需要速度缓冲）</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">屏幕空间环境光遮蔽 <span class="en">SSAO</span></div>
+  <div class="what">根据深度图计算缝隙/角落的遮蔽，实时加深凹陷处。是 AO 贴图的实时版。</div>
+  <div class="use">→ 增加场景立体感和接触阴影</div>
+  <div class="cost">成本：贵（需要深度+法线缓冲，大量采样）</div>
+</div>
+
+<div class="effect-item">
+  <div class="name">颜色分级 <span class="en">Color Grading / LUT</span></div>
+  <div class="what">整体调色：对比度、饱和度、色温、色调分离。常用 LUT（查找表）——把调色结果存成一张小纹理，实时映射。</div>
+  <div class="use">→ 统一画面风格（赛博朋克蓝橙、末日黄褐）</div>
+  <div class="cost">成本：便宜</div>
+</div>
+
+<h2>HDR 与色调映射</h2>
+
+<p>为什么需要色调映射？因为<strong>真实世界的亮度范围远超屏幕</strong>：</p>
+
+<pre>真实世界亮度（HDR）：
+  星光 0.001 → 室内 100 → 阳光 100,000
+
+屏幕显示范围（LDR）：
+  0 → 1（255 级）
+
+直接截断：阳光和台灯都显示成 1.0（纯白）→ 过曝
+色调映射：用曲线压缩 → 都亮但能区分
+
+常用曲线：
+  Reinhard:   c / (1 + c)        简单，亮部压缩明显
+  ACES:       电影工业标准        保留色彩，电影感
+  Uncharted2: 游戏常用            暗部细节好</pre>
+
+<div class="tip">
+  <strong>ACES 是现在的默认选择</strong>——好莱坞电影工业标准，Three.js 和 Godot 都内置。换色调映射曲线是改变画面"电影感"最快的方法。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>// EffectComposer：后处理链管理器
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// 1. 创建 composer
+const composer = new EffectComposer(renderer);
+
+// 2. 第一个 pass 必须是 RenderPass（渲染场景到纹理）
+composer.addPass(new RenderPass(scene, camera));
+
+// 3. 添加效果 pass
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.5,   // 强度
+  0.4,   // 半径
+  0.85   // 阈值（多亮才发光）
+);
+composer.addPass(bloom);
+
+// 4. 渲染循环改用 composer
+function animate() {
+  composer.render();  // 替代 renderer.render()
+}
+
+// 色调映射不用 pass，直接在 renderer 上设：
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：WorldEnvironment 节点 + Environment 资源
+# 大部分后处理是内置开关，不用写代码
+
+# Environment 资源里的选项：
+glow_enabled = true              # 辉光（Bloom）
+glow_intensity = 0.5
+glow_bloom = 0.3                 # 阈值
+
+tonemap_mode = Environment.TONE_MAPPER_ACES
+
+adjustment_enabled = true        # 颜色分级
+adjustment_brightness = 1.0
+adjustment_contrast = 1.1
+adjustment_saturation = 1.05
+
+ssao_enabled = true              # SSAO
+volumetric_fog_enabled = true    # 体积雾（第 20 课）</pre>
+
+<div class="tip">
+  <strong>Godot 的优势</strong>：后处理全部内置在 Environment 资源里——辉光、SSAO、色调映射、雾、调整，打勾就有。Three.js 要自己拼 EffectComposer 链。这就是为什么 Godot 适合快速出效果。
+</div>
+
+<h2>手机端的取舍</h2>
+
+<table>
+  <tr><th>效果</th><th>手机建议</th><th>替代方案</th></tr>
+  <tr><td>Bloom</td><td>✅ 可用（低分辨率模糊）</td><td>自发光贴图假装发光</td></tr>
+  <tr><td>色调映射</td><td>✅ 必用（几乎免费）</td><td>—</td></tr>
+  <tr><td>暗角</td><td>✅ 可用（免费）</td><td>—</td></tr>
+  <tr><td>颜色分级</td><td>✅ 可用（LUT 很便宜）</td><td>—</td></tr>
+  <tr><td>SSAO</td><td>⚠️ 慎用（贵）</td><td>烘焙 AO 贴图</td></tr>
+  <tr><td>景深</td><td>⚠️ 慎用（贵）</td><td>只在过场动画用</td></tr>
+  <tr><td>运动模糊</td><td>❌ 一般不用</td><td>提高帧率更重要</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">后处理和普通渲染管线的区别是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">场景先渲染到纹理，再对纹理做滤镜链，最后输出屏幕</button>
+    <button class="opt" data-correct="false">后处理是渲染完之后手工修图</button>
+    <button class="opt" data-correct="false">后处理直接修改几何体和材质</button>
+    <button class="opt" data-correct="false">后处理只在场景加载时执行一次</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！后处理的关键是渲染目标（Render Target）——场景先画到纹理，每个 pass 对纹理做一次全屏 shader 处理，像滤镜链一样串联，每帧实时执行。"
+    data-wrong="后处理是<strong>实时滤镜链</strong>：场景 → 纹理 → pass 1 → pass 2 → 屏幕。每帧执行，不修改场景本身，只处理渲染结果的像素。就像 Photoshop 滤镜但每秒 60 次。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Bloom（辉光）的实现原理是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">给发光物体加大一号的半透明外壳</button>
+    <button class="opt" data-correct="false">提高亮部的饱和度</button>
+    <button class="opt" data-correct="true">提取超阈值亮像素 → 高斯模糊 → 叠加回原图</button>
+    <button class="opt" data-correct="false">在亮部周围画一圈光晕贴图</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Bloom 三步：1) 亮度阈值提取（只有够亮的像素参与）2) 高斯模糊（光晕扩散）3) 叠加回原图（亮部向外溢光）。阈值参数控制'多亮才发光'。"
+    data-wrong="Bloom 是纯屏幕空间操作：<strong>提取亮部 → 模糊 → 叠加</strong>。和物体本身无关，所以任何亮的东西（灯、太阳、霓虹）都会自动发光。阈值控制什么算'亮'。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么手机端要慎用 SSAO 和景深，但 Bloom 和色调映射没问题？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">SSAO 和景深是新技术，兼容性不好</button>
+    <button class="opt" data-correct="true">SSAO 和景深需要深度缓冲和大量采样，计算量大；Bloom 用低分辨率模糊，色调映射只是每像素一次计算</button>
+    <button class="opt" data-correct="false">手机屏幕太小，看不出 SSAO 效果</button>
+    <button class="opt" data-correct="false">SSAO 和景深只支持 PC 显卡</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！成本差异在采样次数。SSAO 每像素要采样几十次周围深度，景深要多次大半径模糊；Bloom 可以在 1/4 分辨率下模糊（光晕本来就糊），色调映射每像素只算一次。手机端取舍原则：能用烘焙就不用实时（AO 贴图替代 SSAO）。"
+    data-wrong="差别在<strong>计算量</strong>。SSAO/景深需要深度缓冲 + 大量采样，贵；Bloom 可以低分辨率做，色调映射几乎免费。手机原则：便宜的随便用，贵的找替代（烘焙 AO 替代 SSAO）。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个夜晚赛博朋克场景，怎么描述后处理需求？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"后处理链：先 Bloom——阈值调低（0.7）让霓虹灯和招牌都发光，强度中等别糊成一片。然后 ACES 色调映射，曝光 1.2 提亮夜景。颜色分级用 LUT 做蓝橙色调——阴影偏蓝，高光偏橙。再加轻微色差（屏幕边缘 RGB 错位）增加镜头感。最后暗角 0.3 聚焦视线。手机端：SSAO 关掉，用烘焙 AO 贴图替代。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 Bloom 阈值/强度、ACES、曝光、LUT 色调分离、色差、暗角、性能取舍。这就是完整的后处理方案描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/post-processing">Three.js Fundamentals — Post-processing</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">EffectComposer 官方教程</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/environment_and_post_processing.html">Godot — Environment and Post-processing</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 后处理完整文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："FXAA 和 MSAA 抗锯齿有什么区别？""屏幕空间反射（SSR）怎么做？""LUT 纹理怎么制作？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 12 课 / 系统性 3D 进阶 · <a href="../reference/post-processing.html" style="color: var(--accent);">📖 后处理速查卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

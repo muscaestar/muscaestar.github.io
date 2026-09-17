@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>007 — 纹理与 UV：给物体穿皮肤</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.tex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1rem 0; }
+.tex-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; }
+.tex-item .name { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 0.2rem; }
+.tex-item .en { font-size: 0.72rem; color: var(--text-dim); font-weight: 400; }
+.tex-item .desc { font-size: 0.8rem; color: var(--text); margin-top: 0.2rem; }
+.tex-item .effect { font-size: 0.72rem; color: var(--accent3); margin-top: 0.2rem; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0006-camera.html">← 上一课</a>
+  <span>第 7 课</span>
+  <a href="./0008-animation.html">下一课 →</a>
+</div>
+
+<h1><span class="num">007</span>纹理与 UV：给物体穿皮肤</h1>
+
+<p>第 3 课讲了几何体（形状），第 4 课讲了材质（外观参数）。但你注意到没有——篝火 demo 里木头上的纹理是怎么来的？这节课讲清楚：<strong>图片是怎么"贴"到 3D 物体上的？</strong></p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">纹理 <span class="en">Texture</span></div>
+  <p>一张普通的 2D 图片（JPG/PNG），贴在 3D 物体表面。就像给礼物盒包包装纸——盒子是几何体，包装纸就是纹理。</p>
+</div>
+
+<div class="concept">
+  <div class="term">UV 坐标 <span class="en">UV Mapping</span></div>
+  <p>把 3D 表面"展开"成 2D 平面的映射关系。每个顶点除了 (x, y, z) 位置，还有 (u, v) 坐标，告诉 GPU"这个点对应纹理图片上的哪个像素"。U 和 V 都是 0 到 1 的值。</p>
+</div>
+
+<div class="concept">
+  <div class="term">贴图通道 <span class="en">Texture Channel / Map</span></div>
+  <p>材质上挂纹理的位置。一个 PBR 材质可以同时挂多张纹理——颜色贴图、法线贴图、粗糙度贴图等，各管各的。</p>
+</div>
+
+<h2>UV 展开：从 3D 到 2D</h2>
+
+<p>想象把一个纸盒拆开摊平——这就是 UV 展开：</p>
+
+<pre>3D 立方体               UV 展开（2D）
+    ┌─────┐              ┌──┬──┬──┬──┐
+   ╱     ╱│              │后│左│前│右│
+  ┌─────┐ │              ├──┴──┴──┴──┤
+  │     │ │              │    底      │
+  │     │ ╱              ├───────────┤
+  └─────┘╱               │    顶      │
+                         └───────────┘</pre>
+
+<p>每个顶点记住自己在 2D 纹理上的位置 (u, v)。GPU 渲染时，根据三角形三个顶点的 UV 坐标，自动插值出每个像素应该取纹理上哪个颜色。</p>
+
+<div class="tip">
+  <strong>地球 demo 的贴图</strong>：地球纹理 (2048×1024) 就是一张展开的世界地图。球体的 UV 坐标把经度映射到 U（0~1 = 180°W~180°E），纬度映射到 V（0~1 = 90°S~90°N）。
+</div>
+
+<h2>常用贴图通道</h2>
+
+<div class="tex-grid">
+  <div class="tex-item">
+    <div class="name">颜色贴图 <span class="en">Albedo / Diffuse</span></div>
+    <div class="desc">物体表面的颜色。最基础的纹理。</div>
+    <div class="effect">→ 地球的大陆和海洋颜色</div>
+  </div>
+  <div class="tex-item">
+    <div class="name">法线贴图 <span class="en">Normal Map</span></div>
+    <div class="desc">模拟表面凹凸细节，不增加几何体。</div>
+    <div class="effect">→ 砖墙的缝隙、皮肤的毛孔</div>
+  </div>
+  <div class="tex-item">
+    <div class="name">粗糙度贴图 <span class="en">Roughness Map</span></div>
+    <div class="desc">控制表面不同区域的粗糙程度。</div>
+    <div class="effect">→ 金属上的划痕（划痕处更粗糙）</div>
+  </div>
+  <div class="tex-item">
+    <div class="name">金属度贴图 <span class="en">Metallic Map</span></div>
+    <div class="desc">控制表面不同区域的金属特性。</div>
+    <div class="effect">→ 生锈的铁（锈处非金属，铁处金属）</div>
+  </div>
+  <div class="tex-item">
+    <div class="name">AO 贴图 <span class="en">Ambient Occlusion</span></div>
+    <div class="desc">预计算的阴影，凹陷处更暗。</div>
+    <div class="effect">→ 墙角、缝隙处的自然阴影</div>
+  </div>
+  <div class="tex-item">
+    <div class="name">自发光贴图 <span class="en">Emissive Map</span></div>
+    <div class="desc">控制哪些区域自发光。</div>
+    <div class="effect">→ 建筑窗户夜晚亮灯</div>
+  </div>
+</div>
+
+<h2>法线贴图详解</h2>
+
+<p>法线贴图是最"神奇"的贴图——它不改变几何体，但能让平面看起来像有凹凸：</p>
+
+<pre>原理：
+  法线贴图的 RGB 颜色 = 表面法线的 XYZ 方向
+  R (红) = X 方向（左右倾斜）
+  G (绿) = Y 方向（上下倾斜）
+  B (蓝) = Z 方向（朝向观察者）
+
+  大部分像素偏蓝紫色 (128, 128, 255)
+  = 法线朝向 (0, 0, 1) = 正对观察者 = 平坦
+
+  偏离蓝紫的像素 = 法线偏斜 = 光照产生阴影 = 看起来像凹凸</pre>
+
+<div class="tip">
+  <strong>为什么法线贴图是蓝紫色的？</strong>因为大部分区域是平坦的，法线朝向 (0, 0, 1)，映射到 RGB 就是 (0.5, 0.5, 1.0)——蓝紫色。这就是你看到的法线贴图都是那种"迷幻蓝紫"的原因。
+</div>
+
+<h3>法线贴图长什么样？</h3>
+
+<p>看这三张图就明白了：</p>
+
+<p><strong>1. 完全平坦的表面</strong> → 整块淡紫色（法线全是 (0,0,1)）</p>
+<p style="text-align:center; margin: 0.8rem 0;"><img src="../assets/tex/normal_flat.png" alt="平面法线贴图" style="max-width:200px; border:1px solid var(--border); border-radius:8px;"></p>
+
+<p><strong>2. 半球凸起</strong> → 彩虹渐变（边缘法线朝四周倾斜，颜色 = 方向）</p>
+<p style="text-align:center; margin: 0.8rem 0;"><img src="../assets/tex/normal_bump.png" alt="半球法线贴图" style="max-width:200px; border:1px solid var(--border); border-radius:8px;"></p>
+
+<p><strong>3. 实战：砖墙</strong> → 砖缝边缘有绿色/粉色条纹（高度突变处法线朝侧面偏斜）</p>
+<p style="text-align:center; margin: 0.8rem 0;">
+  <img src="../assets/tex/diffuse_brick_512.png" alt="砖墙颜色贴图" style="max-width:200px; border:1px solid var(--border); border-radius:8px; margin-right:0.5rem;">
+  <img src="../assets/tex/normal_brick_512.png" alt="砖墙法线贴图" style="max-width:200px; border:1px solid var(--border); border-radius:8px;">
+</p>
+<p style="font-size:0.8rem; color:var(--text-dim); text-align:center;">左：颜色贴图（长什么样） | 右：法线贴图（哪凸哪凹）</p>
+
+<div class="tip">
+  <strong>一句话总结</strong>：法线贴图不存颜色，存"每个像素的表面朝向"。淡紫色 = 正对镜头；偏红/绿/蓝 = 朝某个方向倾斜。游戏里的砖墙、树皮、岩石的凹凸感，大多是它在骗眼睛。
+</div>
+
+<h3>什么时候会用到法线贴图？</h3>
+
+<p>法线贴图是<strong>性能优化</strong>的核心手段——用 2D 图片假装 3D 细节，不增加几何体：</p>
+
+<table>
+  <tr><th>场景</th><th>为什么用法线贴图</th><th>不用会怎样</th></tr>
+  <tr><td><strong>砖墙/石板路</strong></td><td>缝隙凹凸感</td><td>需要建几万边形才有同样效果</td></tr>
+  <tr><td><strong>皮肤/皮革</strong></td><td>毛孔、皱纹、纹理</td><td>模型面数爆炸，手机跑不动</td></tr>
+  <tr><td><strong>金属划痕</strong></td><td>细微划痕的反光变化</td><td>需要真的建模划痕，不现实</td></tr>
+  <tr><td><strong>布料褶皱</strong></td><td>衣服上的细小褶皱</td><td>需要极高面数才能表现</td></tr>
+  <tr><td><strong>岩石/树皮</strong></td><td>自然表面的粗糙感</td><td>程序化生成或雕刻成本极高</td></tr>
+</table>
+
+<div class="warn">
+  <strong>核心思想</strong>：法线贴图是<strong>视觉欺骗</strong>——改变光照计算，让眼睛以为有凹凸，但几何体还是平的。这是游戏开发里最重要的优化技巧之一：用贴图换性能。
+</div>
+
+<h3>怎么制作法线贴图？</h3>
+
+<table>
+  <tr><th>方法</th><th>工具</th><th>适用</th></tr>
+  <tr><td><strong>从照片生成</strong></td><td>Photoshop (NVIDIA 插件)、GIMP、在线工具</td><td>快速原型、真实材质</td></tr>
+  <tr><td><strong>从高度图转换</strong></td><td>Substance Designer、Materialize</td><td>程序化纹理、游戏资产</td></tr>
+  <tr><td><strong>3D 雕刻烘焙</strong></td><td>ZBrush、Blender</td><td>高精度模型转低模</td></tr>
+  <tr><td><strong>手绘</strong></td><td>Substance Painter</td><td>风格化游戏（卡通渲染）</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Godot 工作流</strong>：美术在 Blender 雕刻高模 → 烘焙法线贴图 → 导出低模 + 法线贴图 → Godot 里挂 <code>normal_texture</code>。这是标准 PBR 流程。
+</div>
+
+<h3>法线贴图的局限性：会穿帮</h3>
+
+<p>法线贴图有个致命弱点——<strong>灯光方向变了会穿帮</strong>：</p>
+
+<pre>场景：一面砖墙，贴了法线贴图
+
+灯光从左边打来：砖缝左边亮、右边暗 ✅ 看起来合理
+灯光从右边打来：砖缝<strong>还是左边亮、右边暗</strong> ❌ 穿帮了！
+
+为什么？法线贴图存的是<strong>固定的法线方向</strong>，不随灯光变化。
+它只是告诉 GPU "这个像素的表面朝这边"，然后 GPU 根据当前灯光方向计算明暗。
+灯光变了，但法线没变，光照结果就不对——凹凸感不会跟着灯光"转"。</pre>
+
+<div class="warn">
+  <strong>法线贴图是"静态光影的骗子"</strong>——灯光一变就露馅。它从来没打算解决"灯光全方位变化"的问题，那是几何体该干的活。
+</div>
+
+<h3>解决方案：从便宜到贵</h3>
+
+<table>
+  <tr><th>方案</th><th>原理</th><th>适用场景</th><th>性能开销</th></tr>
+  <tr><td><strong>法线贴图</strong></td><td>2D 图片存法线方向</td><td>灯光方向固定/变化小</td><td>最便宜</td></tr>
+  <tr><td><strong>视差贴图 (Parallax)</strong></td><td>根据视角偏移 UV，模拟深度</td><td>轻微视角变化</td><td>便宜</td></tr>
+  <tr><td><strong>位移贴图 (Displacement)</strong></td><td>真的移动顶点</td><td>需要真实凹凸</td><td>中等</td></tr>
+  <tr><td><strong>Tessellation</strong></td><td>GPU 实时细分网格</td><td>近距离特写</td><td>贵</td></tr>
+  <tr><td><strong>高模</strong></td><td>直接建高面数模型</td><td>电影级渲染</td><td>最贵</td></tr>
+</table>
+
+<h3>实际项目怎么选？</h3>
+
+<table>
+  <tr><th>平台</th><th>策略</th></tr>
+  <tr><td><strong>手机游戏</strong></td><td>法线贴图 + 限制灯光变化范围（或接受穿帮）</td></tr>
+  <tr><td><strong>PC/主机游戏</strong></td><td>法线贴图 + 视差贴图（远景）/ tessellation（近景）</td></tr>
+  <tr><td><strong>电影/CG</strong></td><td>高模 + 位移贴图（不在乎性能）</td></tr>
+</table>
+
+<h3>你的场景：需要全方位灯光展示怎么办？</h3>
+
+<table>
+  <tr><th>选项</th><th>做法</th><th>效果</th></tr>
+  <tr><td><strong>1. 限制灯光范围</strong></td><td>灯光只在 ±45° 内变化</td><td>穿帮不明显，大多数游戏这么做</td></tr>
+  <tr><td><strong>2. 视差贴图</strong></td><td>法线贴图升级版，根据视角偏移 UV</td><td>比纯法线贴图好，但灯光变化还是会穿帮</td></tr>
+  <tr><td><strong>3. 真的建模</strong></td><td>砖缝、划痕真的建出来</td><td>灯光怎么变都对，但面数爆炸</td></tr>
+  <tr><td><strong>4. 混合方案（LOD）</strong></td><td>远景用法线贴图，近景换高模</td><td>性能和效果的平衡</td></tr>
+</table>
+
+<div class="tip">
+  <strong>为什么游戏里有"烘焙光照"？</strong>把灯光也固定下来，和法线贴图配合，骗得彻底。静物场景（建筑、室内）最适合烘焙，动的物体（角色、载具）还得实时光照。
+</div>
+
+<h2>烘焙光照：另一种"贴图换性能"</h2>
+
+<p>法线贴图模拟<strong>微观凹凸</strong>，还有一种贴图模拟<strong>宏观光影</strong>——光照贴图（Lightmap）：</p>
+
+<table>
+  <tr><th>贴图类型</th><th>模拟什么</th><th>什么时候用</th><th>运行时还需要光照吗？</th></tr>
+  <tr><td><strong>法线贴图</strong></td><td>微观凹凸（砖缝、毛孔）</td><td>任何需要表面细节的地方</td><td><strong>需要</strong>（法线贴图依赖光照方向）</td></tr>
+  <tr><td><strong>光照贴图</strong></td><td>宏观光影（阳光、阴影）</td><td>静物、场景、建筑</td><td><strong>不需要</strong>（光影已烘焙）</td></tr>
+</table>
+
+<h3>烘焙光照的工作流程</h3>
+
+<pre>1. 建模 + UV 展开（第二套 UV 专门给光照贴图）
+2. 布置灯光（方向光、点光源）
+3. 烘焙光照（Godot: BakedLightmap 节点）
+   → 生成一张光照贴图（存明暗信息）
+4. 运行时：材质挂光照贴图，灯光设为 "Baked Only"
+   → 不再实时计算这个物体的光照</pre>
+
+<div class="warn">
+  <strong>核心区别</strong>：法线贴图是"让平面看起来像有凹凸"，光照贴图是"把光照结果存成贴图"。两者经常<strong>同时用</strong>——法线贴图管细节，光照贴图管整体光影。
+</div>
+
+<h3>什么时候用烘焙光照？</h3>
+
+<table>
+  <tr><th>场景</th><th>适合烘焙吗？</th><th>原因</th></tr>
+  <tr><td>建筑内部/外部</td><td>✅ 非常适合</td><td>静物，光照方向固定</td></tr>
+  <tr><td>地形/地面</td><td>✅ 非常适合</td><td>大面积静物，实时光照太贵</td></tr>
+  <tr><td>静态道具（桌椅、箱子）</td><td>✅ 适合</td><td>不动，光影不变</td></tr>
+  <tr><td>角色/载具</td><td>❌ 不适合</td><td>会动，光影要实时算</td></tr>
+  <tr><td>动态灯光（手电筒、爆炸）</td><td>❌ 不能烘焙</td><td>灯光本身在变</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Godot 实战</strong>：用 <code>BakedLightmap</code> 节点标记烘焙范围，点击 "Bake" 生成光照贴图。角色和动态物体设为 <code>Dynamic</code>，静物设为 <code>Baked</code>。这是手游性能优化的标准做法。
+</div>
+
+<h2>三种"假细节贴图"的分工</h2>
+
+<p>法线贴图、AO 贴图、光照贴图经常一起出现，但它们骗的东西完全不同：</p>
+
+<table>
+  <tr><th>贴图</th><th>管什么</th><th>尺度</th><th>依赖光照方向？</th><th>动态光照下穿帮？</th></tr>
+  <tr><td><strong>法线贴图</strong></td><td>表面朝向（假凹凸）</td><td>微观（毛孔、划痕）</td><td>✅ 依赖</td><td>❌ 会穿帮</td></tr>
+  <tr><td><strong>AO 贴图</strong></td><td>环境光被挡多少</td><td>中观（缝隙、角落）</td><td>❌ 不依赖</td><td>✅ 不穿帮</td></tr>
+  <tr><td><strong>光照贴图</strong></td><td>直接光的明暗和阴影</td><td>宏观（房间、地形）</td><td>❌ 已烘焙固定</td><td>❌ 灯光必须固定</td></tr>
+</table>
+
+<h3>AO 贴图详解：和凹凸无关</h3>
+
+<p><strong>AO = Ambient Occlusion（环境光遮蔽）</strong>，模拟的是：<strong>缝隙、凹陷、角落处的环境光被"挡住"了，所以更暗</strong>。</p>
+
+<pre>现实世界的直觉：
+  墙角比墙面中间暗（两面墙互相挡光）
+  砖缝比砖面暗（缝隙深处光进不去）
+  物体接触地面的接缝处有一圈暗边
+
+AO 贴图是灰度图：
+  白色 = 完全暴露，环境光照得足
+  黑色 = 完全遮蔽，环境光进不去
+  灰色 = 半遮蔽</pre>
+
+<div class="warn">
+  <strong>AO 贴图不是表达凹凸的</strong>——它不编码方向，就是一张明暗图，乘到环境光上。法线贴图骗的是<strong>直接光</strong>（"这像素朝向那边，所以亮/暗"），AO 贴图骗的是<strong>环境光</strong>（"这个位置光进不来，所以暗"）。
+</div>
+
+<h3>为什么 AO 贴图在动态光照下不穿帮？</h3>
+
+<p>因为 AO 假设环境光来自<strong>四面八方</strong>（天空光、反弹光），不来自特定方向。所以不管你的主光源怎么转，缝隙里该暗还是暗——这是物理上合理的。</p>
+
+<pre>砖墙场景：
+  法线贴图：砖缝在直射光下有明暗变化（阳光扫过会闪）→ 会穿帮
+  AO 贴图：砖缝深处<strong>永远</strong>比砖面暗一点（不管阳光从哪来）→ 不穿帮
+
+两者叠加 = 真实的砖缝观感</pre>
+
+<h3>三种贴图怎么配合？</h3>
+
+<table>
+  <tr><th>层级</th><th>贴图</th><th>作用</th><th>例子</th></tr>
+  <tr><td><strong>微观</strong></td><td>法线贴图</td><td>直接光下的凹凸细节</td><td>砖缝在阳光下的明暗</td></tr>
+  <tr><td><strong>中观</strong></td><td>AO 贴图</td><td>环境光的遮蔽</td><td>砖缝深处永远偏暗</td></tr>
+  <tr><td><strong>宏观</strong></td><td>光照贴图</td><td>整体光影和阴影</td><td>阳光照在墙面上的亮区、柱子投在地上的影子</td></tr>
+</table>
+
+<div class="tip">
+  <strong>一句话总结</strong>：法线贴图管"朝向"，AO 贴图管"挡光"，光照贴图管"光影"。三种贴图各管一层，叠加起来就是完整的 PBR 材质。
+</div>
+
+<h2>你已经用过纹理</h2>
+
+<pre>// 地球 demo — 颜色贴图
+const earthTex = await loadTexture('./textures/earth.b64.txt', 'image/jpeg');
+const earth = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+  map: earthTex,           // 颜色贴图通道
+  emissiveMap: earthTex,   // 自发光贴图通道（iSH 兼容方案）
+}));
+
+// 篝火 demo — 程序生成纹理（CanvasTexture）
+const woodTex = makeWoodTexture();   // Canvas 2D 画木纹
+const logMat = new THREE.MeshStandardMaterial({
+  map: woodTex,                      // 颜色贴图
+  roughnessMap: makeWoodRoughness(), // 粗糙度贴图
+});</pre>
+
+<h2>纹理重复与包裹</h2>
+
+<p>当 UV 坐标超出 0~1 范围时，纹理怎么显示？</p>
+
+<table>
+  <tr><th>模式</th><th>Three.js</th><th>效果</th></tr>
+  <tr><td><strong>重复</strong></td><td><code>RepeatWrapping</code></td><td>平铺重复（铺地砖）</td></tr>
+  <tr><td>镜像重复</td><td><code>MirroredRepeatWrapping</code></td><td>镜像平铺（无接缝）</td></tr>
+  <tr><td>边缘拉伸</td><td><code>ClampToEdgeWrapping</code></td><td>边缘像素拉伸（地形图）</td></tr>
+</table>
+
+<pre>// 地面铺砖 — 纹理重复 4x4 次
+const tex = new THREE.TextureLoader().load('tiles.png');
+tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+tex.repeat.set(4, 4);
+
+const floorMat = new THREE.MeshStandardMaterial({ map: tex });</pre>
+
+<h2>纹理尺寸与性能</h2>
+
+<table>
+  <tr><th>尺寸</th><th>内存</th><th>适用</th></tr>
+  <tr><td>256×256</td><td>0.25 MB</td><td>小物件、远景</td></tr>
+  <tr><td>512×512</td><td>1 MB</td><td>一般场景</td></tr>
+  <tr><td>1024×1024</td><td>4 MB</td><td>主角、近景</td></tr>
+  <tr><td>2048×2048</td><td>16 MB</td><td>高清特写（地球贴图）</td></tr>
+  <tr><td>4096×4096</td><td>64 MB</td><td>电影级，手机上慎用</td></tr>
+</table>
+
+<div class="warn">
+  <strong>手机性能</strong>：每张纹理都占显存。一个场景用 10 张 1024 纹理 = 40MB 显存。建议手机端单张不超过 1024，总量控制在 50MB 以内。
+</div>
+
+<h2>Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td><code>map</code></td><td><code>albedo_texture</code></td><td>颜色贴图</td></tr>
+  <tr><td><code>normalMap</code></td><td><code>normal_texture</code></td><td>法线贴图</td></tr>
+  <tr><td><code>roughnessMap</code></td><td><code>roughness_texture</code></td><td>粗糙度贴图</td></tr>
+  <tr><td><code>metalnessMap</code></td><td><code>metallic_texture</code></td><td>金属度贴图</td></tr>
+  <tr><td><code>aoMap</code></td><td><code>ao_texture</code></td><td>AO 贴图</td></tr>
+  <tr><td><code>emissiveMap</code></td><td><code>emission_texture</code></td><td>自发光贴图</td></tr>
+  <tr><td><code>RepeatWrapping</code></td><td>材质 → UV1 → 重复</td><td>纹理重复</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想让一面墙看起来像有砖块缝隙的凹凸感，但不增加几何体，应该用什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">颜色贴图，画上砖块图案</button>
+    <button class="opt" data-correct="true">法线贴图，模拟缝隙的光照阴影</button>
+    <button class="opt" data-correct="false">粗糙度贴图，让缝隙更粗糙</button>
+    <button class="opt" data-correct="false">增加几何体的分段数</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！法线贴图通过改变光照方向来"骗"眼睛看到凹凸，不需要真的增加几何体。砖墙、石板路、皮肤纹理都用这个。"
+    data-wrong="法线贴图（Normal Map）通过改变光照方向来模拟凹凸，不增加几何体。颜色贴图只是换颜色，粗糙度贴图只影响光滑度，都不产生凹凸感。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">UV 坐标中 U 和 V 的取值范围通常是多少？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">-1 到 1</button>
+    <button class="opt" data-correct="true">0 到 1</button>
+    <button class="opt" data-correct="false">0 到 255</button>
+    <button class="opt" data-correct="false">-180 到 180</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！UV 坐标归一化到 0~1。(0,0) 是纹理左下角，(1,1) 是右上角。超出 0~1 时由包裹模式（Repeat/Clamp）决定怎么显示。"
+    data-wrong="UV 坐标是归一化的 0~1 范围。(0,0) = 纹理左下角，(1,1) = 右上角。超出这个范围时由包裹模式决定（重复/拉伸等）。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">法线贴图为什么看起来是蓝紫色的？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">因为艺术家喜欢这个颜色</button>
+    <button class="opt" data-correct="false">因为蓝色对 GPU 更友好</button>
+    <button class="opt" data-correct="true">因为平坦表面的法线朝 (0,0,1)，映射成 RGB 就是蓝紫色</button>
+    <button class="opt" data-correct="false">因为人眼对蓝紫色最敏感</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！法线 (0,0,1) 映射到 RGB = (0.5, 0.5, 1.0) = 蓝紫色。大部分表面是平坦的，所以法线贴图大面积蓝紫。"
+    data-wrong="法线贴图用 RGB 编码法线方向。平坦表面法线朝 (0,0,1)，映射成 RGB 就是 (0.5, 0.5, 1.0)——蓝紫色。所以法线贴图都是蓝紫色的。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">一个需要全方位旋转展示、灯光从各个角度打过来的产品展示场景，只用一张法线贴图模拟凹凸，会出现什么问题？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">灯光方向变了但法线没变，凹凸的光影不会跟着灯光转，会穿帮</button>
+    <button class="opt" data-correct="false">法线贴图会自动适应灯光方向，不会有问题</button>
+    <button class="opt" data-correct="false">颜色会失真，但凹凸感没问题</button>
+    <button class="opt" data-correct="false">GPU 会报错拒绝渲染</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！法线贴图存的是固定法线方向，灯光变了它不会跟着变。全方位灯光展示需要视差贴图、位移贴图或真实几何体。"
+    data-wrong="法线贴图的法线方向是固定的，灯光方向改变后，凹凸处的明暗不会跟着灯光变化，视觉上就穿帮了。这就是为什么全方位展示需要更高级的方案。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">法线贴图和光照贴图（Lightmap）的区别是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">是一回事，只是叫法不同</button>
+    <button class="opt" data-correct="false">法线贴图管宏观光影，光照贴图管微观凹凸</button>
+    <button class="opt" data-correct="true">法线贴图模拟微观凹凸（还需要光照），光照贴图存宏观光影（不需要实时光照）</button>
+    <button class="opt" data-correct="false">法线贴图给静物用，光照贴图给动物体用</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！法线贴图改变光照计算方向来假造凹凸，仍需实时光照；光照贴图直接把光影明暗烘焙成图，运行时不用算光照。两者常同时用：法线管细节，lightmap 管整体光影。"
+    data-wrong="法线贴图模拟微观凹凸（砖缝、毛孔），运行时仍需要光照计算；光照贴图存宏观光影（阳光、阴影），烘焙后不需要实时光照。用法正好相反：法线贴图常用于动物体，光照贴图只适合静物。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">AO 贴图（环境光遮蔽）和法线贴图的区别是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">AO 贴图表达微观凹凸，法线贴图表达宏观光影</button>
+    <button class="opt" data-correct="true">AO 贴图存环境光被遮蔽的程度（灰度图），法线贴图存表面朝向（RGB 编码方向）</button>
+    <button class="opt" data-correct="false">AO 贴图依赖光照方向，法线贴图不依赖</button>
+    <button class="opt" data-correct="false">是一回事，只是格式不同</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！AO 贴图是灰度图，表示环境光进不进得来（缝隙暗、表面亮），不依赖光照方向所以动态光照下不穿帮。法线贴图是 RGB 图，编码表面朝向，依赖光照方向所以会穿帮。"
+    data-wrong="AO 贴图存'环境光被挡多少'（灰度，不依赖方向），法线贴图存'表面朝哪边'（RGB 编码方向，依赖光照）。AO 管中观缝隙的明暗，法线管微观凹凸的光影。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个古老石庙场景，怎么用纹理描述材质？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"石柱用 StandardMaterial3D，albedo_texture 用灰色石材纹理（1024×1024），normal_texture 用石材表面的凹凸法线贴图——让柱面看起来有凿痕和风化痕迹。roughness_texture 控制粗糙度——底部被触摸多的地方 roughness 低（更光滑），高处 roughness 高（更粗糙）。地面石板 albedo_texture 设 RepeatWrapping 平铺 8×8 次，配 AO 贴图让石板缝隙处自然变暗。壁画墙面用 emissive 通道挂一张发光的符文贴图，让某些图案微微发光。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 5 种贴图通道（albedo、normal、roughness、AO、emissive）描述完整材质方案。这就是专业级的纹理描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/textures">Three.js Fundamentals — Textures</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方纹理教程，有 UV 互动示例</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html">Godot — Standard Material 3D</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot PBR 材质各贴图通道详解</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："法线贴图怎么制作？""位移贴图和法线贴图有什么区别？""纹理 atlas 是什么？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 7 课 / 3D 图形概念入门 · <a href="../reference/texture.html" style="color: var(--accent);">📖 纹理参考卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initQuizzes);
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>动画演示：三种方式同时对比</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>左</strong>：关键帧跳跃（机械） | <strong>中</strong>：补间弹跳（Q弹） | <strong>右</strong>：骨骼手臂（关节）<br>
+  拖动旋转视角，捏合缩放
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// 场景设置
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 4, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.5, 0);
+
+// 灯光
+scene.add(new THREE.AmbientLight(0x8899bb, 1.5));
+const dir = new THREE.DirectionalLight(0xffffff, 2.0);
+dir.position.set(5, 8, 5);
+scene.add(dir);
+
+// 地面
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x1a1f2e, roughness: 0.9 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+const grid = new THREE.GridHelper(20, 20, 0x30363d, 0x21262d);
+scene.add(grid);
+
+// ==================== 1. 关键帧动画：跳跃的球（左） ====================
+const ball = new THREE.Mesh(
+  new THREE.SphereGeometry(0.5, 32, 32),
+  new THREE.MeshStandardMaterial({ color: 0xff6b6b, roughness: 0.4 })
+);
+ball.position.set(-5, 0.5, 0);
+scene.add(ball);
+
+// 关键帧：时间 → 高度（跳跃轨迹）
+const keyframes = [
+  { time: 0,   y: 0.5 },   // 地面
+  { time: 0.5, y: 2.5 },   // 最高点
+  { time: 1.0, y: 0.5 },   // 落地
+  { time: 1.5, y: 1.8 },   // 第二次跳（低一点）
+  { time: 2.0, y: 0.5 },   // 落地
+];
+let keyframeTime = 0;
+
+// ==================== 2. 补间动画：弹跳的方块（中） ====================
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(0.8, 0.8, 0.8),
+  new THREE.MeshStandardMaterial({ color: 0x4ecdc4, roughness: 0.4 })
+);
+cube.position.set(0, 0.5, 0);
+scene.add(cube);
+
+// 补间：从 A 点到 B 点，带弹跳缓动
+let tweenFrom = { x: 0, z: 0 };
+let tweenTo = { x: 0, z: 0 };
+let tweenProgress = 0;
+let tweenDuration = 1.5;
+let isTweening = false;
+let tweenTimer = 0;
+
+// Ease Out Bounce（弹跳感）
+function easeOutBounce(t) {
+  const n1 = 7.5625, d1 = 2.75;
+  if (t < 1 / d1) return n1 * t * t;
+  else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+  else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+  else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+}
+
+function startNewTween() {
+  tweenFrom = { x: cube.position.x, z: cube.position.z };
+  // 随机目标位置（-2 到 2 范围内）
+  tweenTo = { 
+    x: (Math.random() - 0.5) * 4, 
+    z: (Math.random() - 0.5) * 4 
+  };
+  tweenProgress = 0;
+  isTweening = true;
+}
+
+// ==================== 3. 骨骼动画：摆动的手臂（右） ====================
+const armBase = new THREE.Group();
+armBase.position.set(5, 0, 0);
+scene.add(armBase);
+
+// 上臂（从底座伸出）
+const upperArm = new THREE.Mesh(
+  new THREE.BoxGeometry(0.25, 1.2, 0.25),
+  new THREE.MeshStandardMaterial({ color: 0xffd93d, roughness: 0.4 })
+);
+upperArm.position.y = 0.6;
+armBase.add(upperArm);
+
+// 前臂关节（挂在上臂顶端）
+const elbowJoint = new THREE.Group();
+elbowJoint.position.y = 1.2;
+upperArm.add(elbowJoint);
+
+// 前臂
+const forearm = new THREE.Mesh(
+  new THREE.BoxGeometry(0.2, 1.0, 0.2),
+  new THREE.MeshStandardMaterial({ color: 0x6bcf7f, roughness: 0.4 })
+);
+forearm.position.y = 0.5;
+elbowJoint.add(forearm);
+
+// 手腕关节（挂在前臂末端）
+const wristJoint = new THREE.Group();
+wristJoint.position.y = 1.0;
+forearm.add(wristJoint);
+
+// 手（球）
+const hand = new THREE.Mesh(
+  new THREE.SphereGeometry(0.25, 16, 16),
+  new THREE.MeshStandardMaterial({ color: 0xff8b94, roughness: 0.4 })
+);
+wristJoint.add(hand);
+
+// ==================== 标签 ====================
+function makeLabel(text, x, y, z, color = '#58a6ff') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = color;
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 128, 42);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: texture, transparent: true })
+  );
+  sprite.position.set(x, y, z);
+  sprite.scale.set(2.5, 0.6, 1);
+  scene.add(sprite);
+}
+
+makeLabel('关键帧：机械跳跃', -5, 3.5, 0, '#ff6b6b');
+makeLabel('补间：Q弹移动', 0, 3.5, 0, '#4ecdc4');
+makeLabel('骨骼：关节手臂', 5, 3.5, 0, '#ffd93d');
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  controls.update();
+
+  // 1. 关键帧动画：球跳跃（循环）
+  keyframeTime += dt;
+  if (keyframeTime > 2.0) keyframeTime = 0;
+  
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    const kf1 = keyframes[i];
+    const kf2 = keyframes[i + 1];
+    if (keyframeTime >= kf1.time && keyframeTime <= kf2.time) {
+      const localT = (keyframeTime - kf1.time) / (kf2.time - kf1.time);
+      ball.position.y = kf1.y + (kf2.y - kf1.y) * localT;
+      break;
+    }
+  }
+
+  // 2. 补间动画：方块弹跳移动（自动循环）
+  tweenTimer += dt;
+  if (!isTweening && tweenTimer > 2.0) {
+    startNewTween();
+    tweenTimer = 0;
+  }
+  
+  if (isTweening) {
+    tweenProgress += dt;
+    const rawT = Math.min(tweenProgress / tweenDuration, 1.0);
+    const easedT = easeOutBounce(rawT);
+    
+    cube.position.x = tweenFrom.x + (tweenTo.x - tweenFrom.x) * easedT;
+    cube.position.z = tweenFrom.z + (tweenTo.z - tweenFrom.z) * easedT;
+    
+    if (rawT >= 1.0) {
+      isTweening = false;
+    }
+  }
+
+  // 3. 骨骼动画：手臂摆动（循环）
+  // 上臂：左右摆动
+  armBase.rotation.z = Math.sin(t * 1.5) * 0.4;
+  // 前臂：弯曲（叠加在上臂之上）
+  elbowJoint.rotation.z = Math.sin(t * 2.0 + 0.5) * 0.8;
+  // 手腕：转动（叠加在前臂之上）
+  wristJoint.rotation.z = Math.sin(t * 3.0 + 1.0) * 0.6;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

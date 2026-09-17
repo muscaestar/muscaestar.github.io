@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>011 — 完整三渲二：实战配方</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.recipe { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.recipe .step { display: flex; gap: 0.8rem; margin: 0.8rem 0; }
+.recipe .num { 
+  width: 28px; height: 28px; border-radius: 50%; 
+  background: var(--accent); color: #fff; 
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+}
+.recipe .content { flex: 1; }
+.recipe .name { font-weight: 700; color: var(--accent); margin-bottom: 0.2rem; }
+.recipe .desc { font-size: 0.88rem; color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0010-cel-shading.html">← 上一课</a>
+  <span>第 11 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">011</span>完整三渲二：实战配方</h1>
+
+<p>描边 + 色阶 + 材质简化 = 完整三渲二。这节课把前两课的技术组装起来，给你一个可以直接用的<strong>实战配方</strong>。</p>
+
+<h2>三渲二的完整配方</h2>
+
+<div class="recipe">
+  <div class="step">
+    <div class="num">1</div>
+    <div class="content">
+      <div class="name">描边（Outline）</div>
+      <div class="desc">Inverted Hull：复制 mesh，顶点外扩 2%，黑色背面渲染。轮廓线是三渲二的标志性特征。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="content">
+      <div class="name">色阶（Cel Shading）</div>
+      <div class="desc">3 级色阶，硬切过渡，阴影色深蓝紫（#2a2a4a）。离散光照创造色块感。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="content">
+      <div class="name">材质简化</div>
+      <div class="desc">去掉 PBR 的金属度/粗糙度变化，用平涂色（flat color）。动漫风格不需要真实材质细节。</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">4</div>
+    <div class="content">
+      <div class="name">可选：风格化阴影</div>
+      <div class="desc">阴影边缘加硬、阴影色偏移、或者完全去掉阴影（某些风格）。</div>
+    </div>
+  </div>
+</div>
+
+<h2>步骤 1：描边（复习）</h2>
+
+<pre>// Inverted Hull 描边
+const outline = new THREE.Mesh(
+  geometry.clone(),
+  new THREE.MeshBasicMaterial({ 
+    color: 0x000000, 
+    side: THREE.BackSide 
+  })
+);
+outline.scale.multiplyScalar(1.02);
+scene.add(outline);</pre>
+
+<div class="tip">
+  <strong>描边粗细</strong>：2% 是经典值。太细（1%）看不清，太粗（5%）像贴纸。角色特写可以 3%，远景 1%。
+</div>
+
+<h2>步骤 2：色阶（复习）</h2>
+
+<pre>// 3 级色阶，硬切，深蓝阴影
+float cel = floor(intensity * 3.0) / 3.0;
+vec3 color = mix(shadowColor, baseColor, cel);</pre>
+
+<div class="tip">
+  <strong>阴影色选择</strong>：深蓝紫（#2a2a4a）是万能选择——比纯黑柔和，适合大多数场景。夜晚场景用更深的蓝，黄昏用深棕。
+</div>
+
+<h2>步骤 3：材质简化</h2>
+
+<p>PBR 材质追求真实——金属度、粗糙度、法线细节。三渲二追求<strong>概括</strong>——平涂色，去掉细节：</p>
+
+<table>
+  <tr><th>PBR 材质</th><th>三渲二材质</th><th>原因</th></tr>
+  <tr><td>金属度 0~1 变化</td><td>金属度 = 0（非金属）或 1（金属）</td><td>动漫里金属就是亮，非金属就是哑光</td></tr>
+  <tr><td>粗糙度 0~1 变化</td><td>粗糙度 = 0.8（统一）</td><td>不需要细微变化，统一即可</td></tr>
+  <tr><td>法线贴图（细节）</td><td>不用法线贴图</td><td>色阶已经概括了光影，不需要微观凹凸</td></tr>
+  <tr><td>AO 贴图（缝隙阴影）</td><td>可选，或烘焙到阴影色</td><td>简化光影，减少真实感</td></tr>
+</table>
+
+<pre>// 三渲二材质设置
+const toonMaterial = new THREE.MeshToonMaterial({
+  color: 0xff6b6b,        // 平涂色
+  // 不用 metalness/roughness 变化
+  // 不用 normalMap
+  // 不用 aoMap（或烘焙到颜色里）
+});</pre>
+
+<h2>步骤 4：风格化阴影（可选）</h2>
+
+<h3>硬阴影</h3>
+
+<pre>// 标准阴影是软边（PCF 模糊）
+// 三渲二用硬边阴影（一条线分开）
+
+// Three.js：调 shadow radius
+light.shadow.radius = 0;  // 0 = 硬边
+
+// Godot：Shadow → Quality → Hard</pre>
+
+<h3>阴影色偏移</h3>
+
+<pre>// 阴影不是黑色，而是有色
+// 比如：阳光下的阴影偏蓝，火光下的阴影偏红
+
+// 在 Shader 里混合：
+vec3 shadowTint = vec3(0.8, 0.9, 1.0);  // 偏蓝
+vec3 shadowColor = mix(baseColor * 0.3, shadowTint, 0.3);</pre>
+
+<h2>完整 Three.js 实现</h2>
+
+<pre>// 1. 创建角色（简化材质）
+const character = new THREE.Group();
+
+const bodyMat = new THREE.MeshToonMaterial({ color: 0xff6b6b });
+const headMat = new THREE.MeshToonMaterial({ color: 0xffd93d });
+
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+const head = new THREE.Mesh(headGeo, headMat);
+character.add(body, head);
+scene.add(character);
+
+// 2. 描边（Inverted Hull）
+const outlineGroup = new THREE.Group();
+character.children.forEach(child => {
+  const outline = new THREE.Mesh(
+    child.geometry.clone(),
+    new THREE.MeshBasicMaterial({ 
+      color: 0x000000, 
+      side: THREE.BackSide 
+    })
+  );
+  outline.scale.multiplyScalar(1.02);
+  outline.position.copy(child.position);
+  outlineGroup.add(outline);
+});
+scene.add(outlineGroup);
+
+// 3. 灯光（简单平行光）
+const light = new THREE.DirectionalLight(0xffffff, 1.0);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+// 4. 渲染（MeshToonMaterial 自动做色阶）
+// 不需要自定义 Shader！</pre>
+
+<div class="tip">
+  <strong>Three.js 的 MeshToonMaterial</strong>：内置卡通渲染，自动做 3 级色阶。不需要写 Shader，直接换材质就行。渐变贴图（gradientMap）可以自定义色阶。
+</div>
+
+<h2>完整 Godot 实现</h2>
+
+<pre># 1. 材质：StandardMaterial3D + Toon 模式
+var mat = StandardMaterial3D.new()
+mat.shading_mode = StandardMaterial3D.SHADING_MODE_CEL
+mat.cel_levels = 3
+mat.cel_threshold = 0.5
+mat.albedo_color = Color(1, 0.4, 0.4)  # 平涂色
+
+# 2. 描边：Next Pass
+var outline = StandardMaterial3D.new()
+outline.albedo_color = Color.BLACK
+outline.cull_mode = StandardMaterial3D.CULL_FRONT
+outline.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+mat.next_pass = outline
+
+# 3. 灯光：DirectionalLight3D
+# 调整 shadow 为硬边（Project Settings → Rendering → Quality → Shadows）
+
+# 4. 完成！Godot 自动处理色阶和描边</pre>
+
+<h2>风格变体</h2>
+
+<table>
+  <tr><th>风格</th><th>描边</th><th>色阶</th><th>阴影</th><th>例子</th></tr>
+  <tr><td><strong>经典赛璐璐</strong></td><td>黑色 2%</td><td>3 级硬切</td><td>硬边深蓝</td><td>《龙珠 FighterZ》</td></tr>
+  <tr><td><strong>水彩风</strong></td><td>淡蓝 1%</td><td>4 级软过渡</td><td>无阴影</td><td>《Gris》</td></tr>
+  <tr><td><strong>漫画风</strong></td><td>黑色 3%</td><td>2 级硬切</td><td>纯黑硬边</td><td>《蜘蛛侠：平行宇宙》</td></tr>
+  <tr><td><strong>吉卜力风</strong></td><td>无描边</td><td>3 级软过渡</td><td>深棕软边</td><td>《二之国》</td></tr>
+  <tr><td><strong>像素风</strong></td><td>黑色 2%</td><td>2 级硬切</td><td>无阴影+像素化</td><td>《Octopath Traveler》</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">三渲二的完整配方是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">描边 + PBR 材质 + 软阴影</button>
+    <button class="opt" data-correct="false">色阶 + 法线贴图 + AO 贴图</button>
+    <button class="opt" data-correct="true">描边 + 色阶 + 材质简化（平涂色）</button>
+    <button class="opt" data-correct="false">后处理 + 粒子特效 + 体积雾</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！三渲二 = 描边（轮廓）+ 色阶（明暗色块）+ 材质简化（平涂色，去掉 PBR 细节）。可选加风格化阴影。"
+    data-wrong="三渲二的核心是<strong>描边 + 色阶 + 材质简化</strong>。PBR 材质和法线贴图是写实渲染的技术，三渲二要去掉这些细节，追求概括和平涂。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么三渲二要去掉 PBR 的金属度/粗糙度变化？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">PBR 性能太差，手机跑不动</button>
+    <button class="opt" data-correct="false">PBR 和描边冲突，不能同时用</button>
+    <button class="opt" data-correct="true">动漫风格追求概括，不需要真实材质的细微变化</button>
+    <button class="opt" data-correct="false">PBR 是过时的技术，应该淘汰</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！动漫风格是"概括的艺术"——用有限的色块表现光影，不需要金属度 0.7 vs 0.8 这种细微差别。统一处理（非金属=哑光，金属=亮）更符合风格。"
+    data-wrong="三渲二不是性能问题，是<strong>风格选择</strong>。动漫用概括代替细节——金属就是亮，非金属就是哑光，不需要 0~1 的连续变化。这和色阶的"离散化"理念一致。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">《塞尔达传说：旷野之息》用的是哪种三渲二风格？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">经典赛璐璐（黑色描边+硬阴影）</button>
+    <button class="opt" data-correct="true">水彩风（淡色描边+软过渡+无强烈阴影）</button>
+    <button class="opt" data-correct="false">漫画风（粗描边+纯黑阴影）</button>
+    <button class="opt" data-correct="false">像素风（像素化+2级色阶）</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！旷野之息是<strong>水彩风</strong>——淡色描边（不是纯黑）、4 级软过渡色阶、柔和阴影。整体像水彩画，和吉卜力风格接近但有自己的特色。"
+    data-wrong="旷野之息是<strong>水彩风</strong>——描边不是纯黑（偏蓝灰）、色阶过渡柔和、阴影不强烈。这和经典赛璐璐（《龙珠》）或漫画风（《蜘蛛侠》）不同，更接近吉卜力的柔和感。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 向 agent 描述一个完整的三渲二角色需求</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"做一个经典动漫风格的三渲二角色。描边用 Inverted Hull，2% 粗细，纯黑色。色阶用 3 级硬切，阴影色深蓝紫（#2a2a4a）。材质简化：去掉 PBR 的金属度/粗糙度变化，用平涂色。阴影用硬边，不要软阴影。高光做一级额外提亮（specular 也色阶化）。整体参考《龙珠 FighterZ》的渲染风格——色块分明，边界锐利，动漫感强。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 Inverted Hull、色阶级数、过渡硬度、自定义阴影色、材质简化、硬阴影、高光色阶、参考案例。这就是完整的三渲二需求描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/materials">Three.js — MeshToonMaterial</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 内置卡通材质文档</span></li>
+    <li><a href="https://www.youtube.com/watch?v=yh6sU3xYQZ0">GDC: The Rendering of Zelda: Breath of the Wild</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">《旷野之息》渲染技术详解（任天堂）</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："怎么让三渲二角色和写实场景融合？""动态三渲二（根据情绪变风格）怎么做？""三渲二的性能开销大吗？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 11 课 / 系统性 3D 进阶 · <a href="../reference/toon-pipeline.html" style="color: var(--accent);">📖 三渲二速查卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

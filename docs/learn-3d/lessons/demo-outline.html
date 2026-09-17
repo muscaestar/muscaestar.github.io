@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>描边演示：Inverted Hull</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.95); padding: 12px;
+    border-top: 1px solid #30363d; display: flex; gap: 8px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 16px; border: 1px solid #30363d; border-radius: 8px;
+    background: #161b27; color: #c9d1d9; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  .slider-container {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; background: #161b27; border-radius: 8px; border: 1px solid #30363d;
+  }
+  .slider-container label { font-size: 12px; color: #8b949e; }
+  .slider-container input[type="range"] {
+    width: 100px; accent-color: #58a6ff;
+  }
+  .slider-container .value { font-size: 12px; color: #58a6ff; font-weight: 600; min-width: 32px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>Inverted Hull 描边演示</strong>：左边正常渲染，右边带描边<br>
+  拖动旋转视角，下方调节描边粗细
+</div>
+<div id="controls">
+  <div class="slider-container">
+    <label>描边粗细</label>
+    <input type="range" id="outlineWidth" min="0" max="10" value="2" step="0.5">
+    <span class="value" id="outlineValue">2%</span>
+  </div>
+  <button class="btn" id="toggleOutline">隐藏描边</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// 场景设置
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 3, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.5, 0);
+
+// 灯光
+scene.add(new THREE.AmbientLight(0x8899bb, 1.5));
+const dir = new THREE.DirectionalLight(0xffffff, 2.0);
+dir.position.set(5, 8, 5);
+scene.add(dir);
+
+// 地面
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x1a1f2e, roughness: 0.9 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+const grid = new THREE.GridHelper(20, 20, 0x30363d, 0x21262d);
+scene.add(grid);
+
+// ==================== 创建角色（卡通风格小机器人） ====================
+function createCharacter() {
+  const group = new THREE.Group();
+  
+  // 身体（圆角方块）
+  const bodyGeo = new THREE.BoxGeometry(1.2, 1.5, 0.8);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff6b6b, roughness: 0.4 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 1.0;
+  group.add(body);
+  
+  // 头（球）
+  const headGeo = new THREE.SphereGeometry(0.6, 32, 32);
+  const headMat = new THREE.MeshStandardMaterial({ color: 0xffd93d, roughness: 0.4 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = 2.2;
+  group.add(head);
+  
+  // 眼睛（两个小黑球）
+  const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+  leftEye.position.set(-0.25, 2.3, 0.5);
+  group.add(leftEye);
+  const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+  rightEye.position.set(0.25, 2.3, 0.5);
+  group.add(rightEye);
+  
+  // 手臂（圆柱）
+  const armGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.0, 16);
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x4ecdc4, roughness: 0.4 });
+  const leftArm = new THREE.Mesh(armGeo, armMat);
+  leftArm.position.set(-0.8, 1.2, 0);
+  leftArm.rotation.z = 0.3;
+  group.add(leftArm);
+  const rightArm = new THREE.Mesh(armGeo, armMat);
+  rightArm.position.set(0.8, 1.2, 0);
+  rightArm.rotation.z = -0.3;
+  group.add(rightArm);
+  
+  // 腿（圆柱）
+  const legGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 16);
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x6bcf7f, roughness: 0.4 });
+  const leftLeg = new THREE.Mesh(legGeo, legMat);
+  leftLeg.position.set(-0.4, 0.2, 0);
+  group.add(leftLeg);
+  const rightLeg = new THREE.Mesh(legGeo, legMat);
+  rightLeg.position.set(0.4, 0.2, 0);
+  group.add(rightLeg);
+  
+  return group;
+}
+
+// ==================== 创建描边 ====================
+function createOutline(characterGroup, outlineWidth) {
+  const outlineGroup = new THREE.Group();
+  
+  characterGroup.children.forEach(child => {
+    if (child.isMesh) {
+      // 复制几何体
+      const outlineGeo = child.geometry.clone();
+      
+      // 描边材质：黑色 + 背面渲染
+      const outlineMat = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.BackSide,
+      });
+      
+      const outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
+      
+      // 复制变换
+      outlineMesh.position.copy(child.position);
+      outlineMesh.rotation.copy(child.rotation);
+      outlineMesh.scale.copy(child.scale).multiplyScalar(1 + outlineWidth);
+      
+      outlineGroup.add(outlineMesh);
+    }
+  });
+  
+  return outlineGroup;
+}
+
+// 左边：正常渲染（无描边）
+const characterLeft = createCharacter();
+characterLeft.position.x = -2.5;
+scene.add(characterLeft);
+
+// 右边：带描边
+const characterRight = createCharacter();
+characterRight.position.x = 2.5;
+scene.add(characterRight);
+
+let outlineRight = createOutline(characterRight, 0.02);  // 2% 描边
+outlineRight.position.x = 2.5;
+scene.add(outlineRight);
+
+// 标签
+function makeLabel(text, x, y, z, color = '#58a6ff') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = color;
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 128, 42);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: texture, transparent: true })
+  );
+  sprite.position.set(x, y, z);
+  sprite.scale.set(2.5, 0.6, 1);
+  scene.add(sprite);
+}
+
+makeLabel('正常渲染', -2.5, 3.5, 0, '#ff6b6b');
+makeLabel('Inverted Hull 描边', 2.5, 3.5, 0, '#58a6ff');
+
+// ==================== 控制逻辑 ====================
+const outlineWidthSlider = document.getElementById('outlineWidth');
+const outlineValue = document.getElementById('outlineValue');
+const toggleOutlineBtn = document.getElementById('toggleOutline');
+let outlineVisible = true;
+
+outlineWidthSlider.addEventListener('input', (e) => {
+  const width = parseFloat(e.target.value);
+  outlineValue.textContent = width + '%';
+  
+  // 移除旧描边，创建新描边
+  scene.remove(outlineRight);
+  outlineRight = createOutline(characterRight, width / 100);
+  outlineRight.position.x = 2.5;
+  scene.add(outlineRight);
+});
+
+toggleOutlineBtn.addEventListener('click', () => {
+  outlineVisible = !outlineVisible;
+  outlineRight.visible = outlineVisible;
+  toggleOutlineBtn.textContent = outlineVisible ? '隐藏描边' : '显示描边';
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  controls.update();
+  
+  // 角色轻微上下浮动（生动感）
+  characterLeft.position.y = Math.sin(t * 2) * 0.1;
+  characterRight.position.y = Math.sin(t * 2) * 0.1;
+  outlineRight.position.y = Math.sin(t * 2) * 0.1;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>010 — 色阶：三渲二的明暗</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.cel-level { display: flex; gap: 0.5rem; margin: 0.8rem 0; }
+.cel-level .level { flex: 1; text-align: center; padding: 0.8rem 0.4rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); }
+.cel-level .level .name { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.3rem; }
+.cel-level .level .color { width: 100%; height: 40px; border-radius: 6px; margin-bottom: 0.3rem; }
+.cel-level .level .value { font-size: 0.8rem; font-weight: 600; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0009-outline.html">← 上一课</a>
+  <span>第 10 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">010</span>色阶：三渲二的明暗</h1>
+
+<p>上节课讲了描边——三渲二的轮廓。这节课讲另一个核心：<strong>色阶（Cel Shading）</strong>——让光照变成"色块"而不是"渐变"。这是动漫风格的关键。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">色阶 <span class="en">Cel Shading / Toon Shading</span></div>
+  <p>把连续的光照强度离散化成几个等级。现实光照是平滑渐变（0.0 → 1.0），色阶是跳跃变化（0.2 / 0.5 / 0.8 / 1.0）。看起来像手绘动画的色块。</p>
+</div>
+
+<div class="concept">
+  <div class="term">色阶级数 <span class="en">Cel Levels / Steps</span></div>
+  <p>分几档亮度。常见 2~5 级：2 级（亮/暗）最简化，3 级（亮/中/暗）最经典，5 级接近真实但仍有色块感。</p>
+</div>
+
+<div class="concept">
+  <div class="term">过渡硬度 <span class="en">Transition Hardness</span></div>
+  <p>色阶之间的边界是硬切（一条线）还是软过渡（渐变带）。硬切更动漫，软过渡更自然。</p>
+</div>
+
+<h2>色阶的直觉</h2>
+
+<pre>现实光照（平滑渐变）：
+  亮 ←————————————————————→ 暗
+  ████████████████████████████████  ← 无限多灰度
+
+色阶（3 级离散）：
+  亮 ←—————→ 中 ←—————→ 暗
+  ██████████  ██████████  ██████████  ← 只有 3 种灰度
+
+  ↑ 亮部（受光面）
+        ↑ 中间调（半受光）
+              ↑ 暗部（背光面）</pre>
+
+<div class="tip">
+  <strong>动漫 vs 写实</strong>：写实渲染追求"无限细节"，动漫渲染追求"概括归纳"。色阶就是把复杂光照概括成几个色块——像画家用有限的颜色表现光影。
+</div>
+
+<h2>色阶级数对比</h2>
+
+<div class="cel-level">
+  <div class="level">
+    <div class="name">2 级（极简）</div>
+    <div class="color" style="background: linear-gradient(90deg, #fff 50%, #333 50%);"></div>
+    <div class="value">亮 / 暗</div>
+  </div>
+  <div class="level">
+    <div class="name">3 级（经典）</div>
+    <div class="color" style="background: linear-gradient(90deg, #fff 33%, #999 33%, #999 66%, #333 66%);"></div>
+    <div class="value">亮 / 中 / 暗</div>
+  </div>
+  <div class="level">
+    <div class="name">4 级</div>
+    <div class="color" style="background: linear-gradient(90deg, #fff 25%, #ccc 25%, #ccc 50%, #666 50%, #666 75%, #222 75%);"></div>
+    <div class="value">亮 / 中亮 / 中暗 / 暗</div>
+  </div>
+  <div class="level">
+    <div class="name">5 级（接近真实）</div>
+    <div class="color" style="background: linear-gradient(90deg, #fff 20%, #ddd 20%, #ddd 40%, #aaa 40%, #aaa 60%, #666 60%, #666 80%, #222 80%);"></div>
+    <div class="value">亮 / 亮中 / 中 / 暗中 / 暗</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>级数</th><th>风格</th><th>适用</th><th>例子</th></tr>
+  <tr><td><strong>2 级</strong></td><td>极简、海报风</td><td>Logo、图标、极简游戏</td><td>《纪念碑谷》</td></tr>
+  <tr><td><strong>3 级</strong></td><td>经典动漫</td><td>大多数三渲二游戏</td><td>《塞尔达传说：旷野之息》</td></tr>
+  <tr><td><strong>4 级</strong></td><td>细腻动漫</td><td>角色特写、剧情动画</td><td>《龙珠 FighterZ》</td></tr>
+  <tr><td><strong>5 级</strong></td><td>半写实</td><td>风格化但保留细节</td><td>《英雄联盟》部分皮肤</td></tr>
+</table>
+
+<h2>色阶的实现原理</h2>
+
+<h3>标准光照 vs 色阶光照</h3>
+
+<pre>// 标准光照（Lambert）
+float NdotL = dot(normal, lightDir);  // -1 ~ 1
+float intensity = max(NdotL, 0.0);    // 0 ~ 1，连续渐变
+
+// 色阶光照（3 级）
+float NdotL = dot(normal, lightDir);
+float intensity = max(NdotL, 0.0);
+
+// 离散化：floor(x * n) / n
+float levels = 3.0;
+float celIntensity = floor(intensity * levels) / levels;
+// 结果：0, 0.33, 0.66, 1.0（只有 4 个可能值）</pre>
+
+<h3>关键：floor() 函数</h3>
+
+<pre>floor(x * 3) / 3 的作用：
+
+  x = 0.0 ~ 0.33  → floor(0.0~0.99) / 3 = 0/3 = 0.0
+  x = 0.33 ~ 0.66 → floor(0.99~1.98) / 3 = 1/3 ≈ 0.33
+  x = 0.66 ~ 1.0  → floor(1.98~3.0) / 3 = 2/3 ≈ 0.66
+  x = 1.0         → floor(3.0) / 3 = 3/3 = 1.0
+
+连续输入 → 离散输出，这就是色阶！</pre>
+
+<h2>过渡硬度控制</h2>
+
+<h3>硬切（Hard Edge）</h3>
+
+<pre>// 硬切：floor() 直接离散化，边界锐利
+float celIntensity = floor(intensity * levels) / levels;
+
+效果：
+  亮 |████████| 中 |████████| 暗
+     ↑ 硬边界（一条线分开）</pre>
+
+<h3>软过渡（Soft Edge）</h3>
+
+<pre>// 软过渡：smoothstep 平滑边界
+float edge = 0.05;  // 过渡带宽度
+float celIntensity = floor(intensity * levels) / levels;
+float nextLevel = (floor(intensity * levels) + 1.0) / levels;
+celIntensity = mix(celIntensity, nextLevel, 
+                   smoothstep(nextLevel - edge, nextLevel, intensity));
+
+效果：
+  亮 |████░░░░| 中 |████░░░░| 暗
+     ↑ 软边界（渐变带过渡）</pre>
+
+<h3>对比</h3>
+
+<table>
+  <tr><th>过渡</th><th>视觉</th><th>风格</th><th>适用</th></tr>
+  <tr><td><strong>硬切</strong></td><td>边界锐利，色块分明</td><td>经典动漫、赛璐璐</td><td>大多数三渲二</td></tr>
+  <tr><td><strong>软过渡</strong></td><td>边界柔和，自然过渡</td><td>现代动漫、半写实</td><td>角色特写、细腻表现</td></tr>
+</table>
+
+<h2>阴影风格</h2>
+
+<p>色阶的"暗部"不一定是黑色——可以是任何颜色，创造不同氛围：</p>
+
+<table>
+  <tr><th>阴影色</th><th>氛围</th><th>例子</th></tr>
+  <tr><td><strong>纯黑</strong></td><td>经典、强烈对比</td><td>老式动画、漫画</td></tr>
+  <tr><td><strong>深蓝/紫</strong></td><td>夜晚、神秘</td><td>《幽灵公主》</td></tr>
+  <tr><td><strong>深棕/暖色</strong></td><td>黄昏、温暖</td><td>《千与千寻》</td></tr>
+  <tr><td><strong>互补色</strong></td><td>艺术感、风格化</td><td>《蜘蛛侠：平行宇宙》</td></tr>
+</table>
+
+<pre>// Godot Shader：自定义阴影色
+uniform vec4 shadow_color : source_color = vec4(0.1, 0.1, 0.2, 1.0);  // 深蓝阴影
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float intensity = max(NdotL, 0.0);
+    
+    // 3 级色阶
+    float cel = floor(intensity * 3.0) / 3.0;
+    
+    // 阴影处混合自定义阴影色
+    vec3 final_color = mix(shadow_color.rgb, ALBEDO, cel);
+    DIFFUSE_LIGHT += final_color * LIGHT_COLOR;
+}</pre>
+
+<h2>Three.js 实现</h2>
+
+<pre>// 自定义 ShaderMaterial 实现色阶
+const celMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    levels: { value: 3.0 },           // 色阶级数
+    shadowColor: { value: new THREE.Color(0x1a1a2e) },  // 阴影色
+    lightDir: { value: new THREE.Vector3(1, 1, 1).normalize() }
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float levels;
+    uniform vec3 shadowColor;
+    uniform vec3 lightDir;
+    varying vec3 vNormal;
+    
+    void main() {
+      float intensity = max(dot(vNormal, lightDir), 0.0);
+      
+      // 色阶离散化
+      float cel = floor(intensity * levels) / levels;
+      
+      // 混合阴影色和固有色
+      vec3 color = mix(shadowColor, vec3(1.0), cel);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+});</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：内置 Toon Shader
+# StandardMaterial3D → Shading → Shading Mode → Cel
+# 调整 Cel Levels 和 Cel Threshold
+
+# 或自定义 Shader
+shader_type spatial;
+render_mode diffuse_toon, specular_toon;  # 内置卡通渲染
+
+uniform float cel_levels : hint_range(2, 8) = 3.0;
+uniform vec4 shadow_color : source_color = vec4(0.2, 0.2, 0.3, 1.0);
+
+void light() {
+    float NdotL = dot(NORMAL, LIGHT);
+    float intensity = max(NdotL, 0.0);
+    
+    // 色阶
+    float cel = floor(intensity * cel_levels) / cel_levels;
+    
+    // 阴影色混合
+    vec3 base = mix(shadow_color.rgb, ALBEDO, cel);
+    DIFFUSE_LIGHT += base * LIGHT_COLOR * ATTENUATION;
+}</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">色阶（Cel Shading）的核心操作是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">增加光照强度</button>
+    <button class="opt" data-correct="false">减少材质细节</button>
+    <button class="opt" data-correct="true">把连续光照强度离散化成几个等级（floor 函数）</button>
+    <button class="opt" data-correct="false">给物体加黑色描边</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！色阶的核心是离散化——用 floor(intensity * levels) / levels 把 0~1 的连续光照变成 0, 0.33, 0.66, 1.0 这样的离散值。这就是"色块感"的来源。"
+    data-wrong="色阶的核心是<strong>离散化</strong>。连续光照（0.0~1.0 平滑渐变）通过 floor(x * n) / n 变成离散值（如 0, 0.33, 0.66, 1.0）。描边是 Outline，不是 Cel Shading。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">3 级色阶和 5 级色阶的区别是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">3 级更亮，5 级更暗</button>
+    <button class="opt" data-correct="true">3 级色块感强（经典动漫），5 级过渡更细腻（半写实）</button>
+    <button class="opt" data-correct="false">3 级性能更好，5 级性能差</button>
+    <button class="opt" data-correct="false">3 级只能黑白，5 级可以彩色</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！级数越少色块感越强（2 级最极简），级数越多越接近真实（5 级仍有色块但过渡细腻）。3 级是经典平衡点——《塞尔达传说：旷野之息》就是 3 级。"
+    data-wrong="级数决定<strong>色块感</strong>。2 级最极简（亮/暗），3 级经典动漫（亮/中/暗），5 级半写实（过渡更细腻）。性能差别不大，主要是风格选择。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么色阶的暗部不一定是黑色？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">技术限制，不能纯黑</button>
+    <button class="opt" data-correct="false">黑色太暗，看不清</button>
+    <button class="opt" data-correct="true">自定义阴影色可以创造不同氛围（夜晚用深蓝，黄昏用深棕）</button>
+    <button class="opt" data-correct="false">引擎 bug，颜色随机</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！阴影色是艺术选择——深蓝=夜晚神秘，深棕=黄昏温暖，互补色=艺术感。《蜘蛛侠：平行宇宙》用互补色阴影创造独特风格。"
+    data-wrong="阴影色是<strong>艺术表达</strong>的一部分。纯黑是经典选择，但深蓝（夜晚）、深棕（黄昏）、互补色（艺术感）都能创造特定氛围。宫崎骏电影常用有色阴影。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个经典动漫风格的角色，怎么描述色阶需求？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"用 3 级色阶，硬切过渡，阴影色用深蓝紫（#2a2a4a）不用纯黑——这样暗部有细节不死黑。高光部分加一级额外提亮（specular 也做色阶）。整体效果：受光面亮白，中间调固有色，背光面深蓝紫，边界锐利像赛璐璐动画。参考《龙珠 FighterZ》的角色渲染。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了色阶级数、过渡硬度、自定义阴影色、高光色阶、参考案例。这就是专业级的色阶描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Godot Spatial Shader — Toon Shading</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 内置卡通渲染文档</span></li>
+    <li><a href="https://www.youtube.com/watch?v=3qG3X5Y5Z5Y">GDC: The Art of Guilty Gear Xrd</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">《罪恶装备》三渲二技术详解（Arc System Works）</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："色阶和描边怎么配合？""动态色阶（根据情绪变色）怎么做？""半色调（Halftone）是什么？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 10 课 / 系统性 3D 进阶 · <a href="../reference/cel-shading.html" style="color: var(--accent);">📖 色阶速查卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

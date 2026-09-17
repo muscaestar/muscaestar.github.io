@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>火焰粒子实验室</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(0,0,0,0.7); padding: 8px 12px;
+    font-size: 12px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+  }
+  #info strong { color: #ff9a3c; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(10,10,12,0.95); padding: 10px;
+    border-top: 1px solid #30363d;
+    max-height: 45vh; overflow-y: auto;
+  }
+  .control-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #ff9a3c; }
+  input[type="range"] {
+    width: 100%; accent-color: #ff9a3c; height: 24px;
+  }
+  .btn-row { display: flex; gap: 4px; }
+  .btn {
+    padding: 8px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 12px; cursor: pointer;
+    transition: all 0.2s; flex: 1; text-align: center;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #ff9a3c; color: #000; border-color: #ff9a3c; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #ff9a3c; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+  #stats {
+    position: fixed; top: 60px; right: 10px; z-index: 20;
+    background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 6px;
+    font-size: 11px; color: #8b949e; font-family: Menlo, monospace;
+  }
+  #stats span { color: #ff9a3c; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>火焰粒子实验室</strong> — 调参数看"假圆点"变"真火焰"
+</div>
+<div id="stats">粒子数: <span id="pcount">0</span></div>
+<div id="controls">
+  <div class="control-grid">
+    <div class="section-title">发射</div>
+    
+    <div class="control-group">
+      <label>发射速率 <span class="value" id="rateValue">40/s</span></label>
+      <input type="range" id="rate" min="5" max="150" value="40">
+    </div>
+    
+    <div class="control-group">
+      <label>寿命 <span class="value" id="lifeValue">1.5s</span></label>
+      <input type="range" id="life" min="5" max="40" value="15">
+    </div>
+    
+    <div class="section-title">运动</div>
+    
+    <div class="control-group">
+      <label>上升速度 <span class="value" id="speedValue">2.5</span></label>
+      <input type="range" id="speed" min="0" max="80" value="25">
+    </div>
+    
+    <div class="control-group">
+      <label>扩散 <span class="value" id="spreadValue">0.4</span></label>
+      <input type="range" id="spread" min="0" max="100" value="40">
+    </div>
+    
+    <div class="control-group">
+      <label>噪声扰动 <span class="value" id="noiseValue">0.5</span></label>
+      <input type="range" id="noise" min="0" max="100" value="50">
+    </div>
+    
+    <div class="control-group">
+      <label>风（横向） <span class="value" id="windValue">0</span></label>
+      <input type="range" id="wind" min="-50" max="50" value="0">
+    </div>
+    
+    <div class="section-title">形态（生命周期曲线）</div>
+    
+    <div class="control-group">
+      <label>初始大小 <span class="value" id="sizeValue">0.35</span></label>
+      <input type="range" id="size" min="5" max="100" value="35">
+    </div>
+    
+    <div class="control-group">
+      <label>涨大倍数 <span class="value" id="growValue">1.5x</span></label>
+      <input type="range" id="grow" min="0" max="40" value="15">
+    </div>
+    
+    <div class="section-title">层</div>
+    
+    <div class="control-group">
+      <label>内焰（亮黄核心）</label>
+      <div class="btn-row">
+        <button class="btn active" id="innerOn">开</button>
+        <button class="btn" id="innerOff">关</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>烟雾（顶部残留）</label>
+      <div class="btn-row">
+        <button class="btn" id="smokeOn">开</button>
+        <button class="btn active" id="smokeOff">关</button>
+      </div>
+    </div>
+    
+    <div class="section-title">预设</div>
+    
+    <div class="control-group" style="grid-column: span 2;">
+      <div class="btn-row">
+        <button class="btn" data-preset="campfire">🔥 篝火</button>
+        <button class="btn" data-preset="torch">🕯️ 火把</button>
+        <button class="btn" data-preset="jet">🚀 喷射</button>
+        <button class="btn" data-preset="magic">✨ 魔法</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ==================== 场景 ====================
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050508);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2.2, 5.5);
+camera.lookAt(0, 1.5, 0);
+
+// 地面（简单圆盘）
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(3, 32),
+  new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.9 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+// 木柴堆
+const logMat = new THREE.MeshStandardMaterial({ color: 0x3a2415, roughness: 0.9 });
+for (let i = 0; i < 4; i++) {
+  const log = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8), logMat);
+  const a = (i / 4) * Math.PI;
+  log.rotation.z = Math.PI / 2;
+  log.rotation.y = a;
+  log.position.y = 0.1 + i * 0.03;
+  scene.add(log);
+}
+
+// 火堆点光（让火焰照亮周围）
+const fireLight = new THREE.PointLight(0xff7733, 2.0, 12);
+fireLight.position.set(0, 1.2, 0);
+scene.add(fireLight);
+scene.add(new THREE.AmbientLight(0x223344, 0.4));
+
+// ==================== 火焰贴图（程序生成） ====================
+function makeFlameTexture(hue) {
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  if (hue === 'inner') {
+    g.addColorStop(0, 'rgba(255,255,220,1)');
+    g.addColorStop(0.3, 'rgba(255,220,120,0.9)');
+    g.addColorStop(0.7, 'rgba(255,150,40,0.4)');
+    g.addColorStop(1, 'rgba(255,100,20,0)');
+  } else if (hue === 'outer') {
+    g.addColorStop(0, 'rgba(255,200,100,0.9)');
+    g.addColorStop(0.4, 'rgba(255,120,30,0.7)');
+    g.addColorStop(0.8, 'rgba(200,50,10,0.25)');
+    g.addColorStop(1, 'rgba(150,20,0,0)');
+  } else {  // smoke
+    g.addColorStop(0, 'rgba(120,120,120,0.5)');
+    g.addColorStop(0.5, 'rgba(90,90,90,0.25)');
+    g.addColorStop(1, 'rgba(60,60,60,0)');
+  }
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(cv);
+}
+
+const texInner = makeFlameTexture('inner');
+const texOuter = makeFlameTexture('outer');
+const texSmoke = makeFlameTexture('smoke');
+
+// ==================== 粒子系统（CPU，简单实现） ====================
+const MAX_PARTICLES = 500;
+
+class ParticleLayer {
+  constructor(texture, blending) {
+    this.positions = new Float32Array(MAX_PARTICLES * 3);
+    this.sizes = new Float32Array(MAX_PARTICLES);
+    this.alphas = new Float32Array(MAX_PARTICLES);
+    this.particles = [];  // {x,y,z, vx,vy,vz, age, life, size0, seed}
+    
+    this.geo = new THREE.BufferGeometry();
+    this.geo.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+    this.geo.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
+    this.geo.setAttribute('alpha', new THREE.BufferAttribute(this.alphas, 1));
+    
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: texture } },
+      vertexShader: `
+        attribute float size;
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+          vAlpha = alpha;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * 300.0 / -mv.z;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D map;
+        varying float vAlpha;
+        void main() {
+          vec4 c = texture2D(map, gl_PointCoord);
+          gl_FragColor = vec4(c.rgb, c.a * vAlpha);
+          if (gl_FragColor.a < 0.01) discard;
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: blending,
+    });
+    
+    this.points = new THREE.Points(this.geo, this.mat);
+    this.points.frustumCulled = false;
+    scene.add(this.points);
+    this.enabled = true;
+  }
+  
+  emit(p) {
+    if (this.particles.length < MAX_PARTICLES) this.particles.push(p);
+  }
+  
+  update(dt, params, colorFn) {
+    const ps = this.particles;
+    for (let i = ps.length - 1; i >= 0; i--) {
+      const p = ps[i];
+      p.age += dt;
+      if (p.age >= p.life) {
+        ps.splice(i, 1);
+        continue;
+      }
+      // 噪声扰动（简单正弦伪噪声）
+      const t = p.age * 3 + p.seed * 10;
+      const nx = Math.sin(t * 1.3) * Math.cos(t * 0.7);
+      const nz = Math.cos(t * 1.1) * Math.sin(t * 0.9);
+      p.vx += nx * params.noise * dt * 2;
+      p.vz += nz * params.noise * dt * 2;
+      p.vy += params.buoyancy * dt;
+      p.vx += params.wind * dt;
+      // 阻力
+      p.vx *= (1 - dt * 1.5);
+      p.vz *= (1 - dt * 1.5);
+      
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.z += p.vz * dt;
+    }
+    
+    // 写入 buffer
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      const t = p.age / p.life;  // 0~1
+      const col = colorFn(t, p);
+      this.positions[i * 3] = p.x;
+      this.positions[i * 3 + 1] = p.y;
+      this.positions[i * 3 + 2] = p.z;
+      this.sizes[i] = col.size;
+      this.alphas[i] = col.alpha;
+    }
+    this.geo.setDrawRange(0, ps.length);
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.attributes.size.needsUpdate = true;
+    this.geo.attributes.alpha.needsUpdate = true;
+  }
+}
+
+// ==================== 参数 ====================
+const params = {
+  rate: 40, life: 1.5, speed: 2.5, spread: 0.4,
+  noise: 0.5, wind: 0, buoyancy: 1.0,
+  size: 0.35, grow: 1.5,
+  inner: true, smoke: false,
+};
+
+// 三层粒子
+const layerInner = new ParticleLayer(texInner, THREE.AdditiveBlending);
+const layerOuter = new ParticleLayer(texOuter, THREE.AdditiveBlending);
+const layerSmoke = new ParticleLayer(texSmoke, THREE.NormalBlending);
+layerSmoke.points.visible = false;
+
+// 颜色曲线：火焰大小先涨后缩，透明度后段淡出
+function flameCurve(t, p) {
+  // 大小：0 → grow倍(0.3) → 0(1.0)
+  let sizeMul;
+  if (t < 0.3) sizeMul = 1 + (params.grow - 1) * (t / 0.3);
+  else sizeMul = params.grow * (1 - (t - 0.3) / 0.7);
+  // 透明度：前 60% 满，后 40% 淡出
+  const alpha = t < 0.6 ? 1.0 : 1.0 - (t - 0.6) / 0.4;
+  return { size: p.size0 * sizeMul, alpha };
+}
+
+function smokeCurve(t, p) {
+  const sizeMul = 1 + t * 3;  // 持续涨 3 倍
+  const alpha = 0.5 * (1 - t);  // 慢淡出
+  return { size: p.size0 * sizeMul, alpha };
+}
+
+// 发射逻辑
+let emitAcc = 0;
+function emitParticles(dt) {
+  emitAcc += params.rate * dt;
+  while (emitAcc >= 1) {
+    emitAcc -= 1;
+    // 外焰
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.random() * 0.15;
+    layerOuter.emit({
+      x: Math.cos(a) * r, y: 0.15, z: Math.sin(a) * r,
+      vx: (Math.random() - 0.5) * params.spread,
+      vy: params.speed * (0.8 + Math.random() * 0.4),
+      vz: (Math.random() - 0.5) * params.spread,
+      age: 0, life: params.life * (0.8 + Math.random() * 0.4),
+      size0: params.size * (0.8 + Math.random() * 0.4),
+      seed: Math.random(),
+    });
+    // 内焰（更小更亮，中心）
+    if (params.inner) {
+      const r2 = Math.random() * 0.08;
+      layerInner.emit({
+        x: Math.cos(a) * r2, y: 0.15, z: Math.sin(a) * r2,
+        vx: (Math.random() - 0.5) * params.spread * 0.5,
+        vy: params.speed * 0.9 * (0.8 + Math.random() * 0.4),
+        vz: (Math.random() - 0.5) * params.spread * 0.5,
+        age: 0, life: params.life * 0.6,
+        size0: params.size * 0.5,
+        seed: Math.random(),
+      });
+    }
+    // 烟（少量，从火焰顶部生）
+    if (params.smoke && Math.random() < 0.3) {
+      layerSmoke.emit({
+        x: (Math.random() - 0.5) * 0.1, y: 1.0, z: (Math.random() - 0.5) * 0.1,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: 0.8 + Math.random() * 0.4,
+        vz: (Math.random() - 0.5) * 0.2,
+        age: 0, life: params.life * 2.5,
+        size0: params.size * 1.5,
+        seed: Math.random(),
+      });
+    }
+  }
+}
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+
+function bindSlider(id, key, fmt, scale = 1) {
+  $(id).addEventListener('input', e => {
+    params[key] = parseFloat(e.target.value) / scale;
+    $(id + 'Value').textContent = fmt(params[key]);
+  });
+}
+
+bindSlider('rate', 'rate', v => v + '/s');
+bindSlider('life', 'life', v => v.toFixed(1) + 's', 10);
+bindSlider('speed', 'speed', v => v.toFixed(1), 10);
+bindSlider('spread', 'spread', v => v.toFixed(2), 100);
+bindSlider('noise', 'noise', v => v.toFixed(2), 100);
+bindSlider('wind', 'wind', v => v.toFixed(1), 10);
+bindSlider('size', 'size', v => v.toFixed(2), 100);
+bindSlider('grow', 'grow', v => v.toFixed(1) + 'x', 10);
+
+function bindToggle(onId, offId, key, onChange) {
+  $(onId).addEventListener('click', () => {
+    params[key] = true;
+    $(onId).classList.add('active');
+    $(offId).classList.remove('active');
+    if (onChange) onChange(true);
+  });
+  $(offId).addEventListener('click', () => {
+    params[key] = false;
+    $(offId).classList.add('active');
+    $(onId).classList.remove('active');
+    if (onChange) onChange(false);
+  });
+}
+
+bindToggle('innerOn', 'innerOff', 'inner');
+bindToggle('smokeOn', 'smokeOff', 'smoke', v => {
+  layerSmoke.points.visible = v;
+});
+
+// 预设
+const presets = {
+  campfire: { rate: 40, life: 1.5, speed: 2.5, spread: 0.4, noise: 0.5, wind: 0, size: 0.35, grow: 1.5, inner: true, smoke: false },
+  torch:    { rate: 25, life: 1.0, speed: 1.8, spread: 0.2, noise: 0.3, wind: 0, size: 0.25, grow: 1.2, inner: true, smoke: false },
+  jet:      { rate: 120, life: 0.8, speed: 6.0, spread: 0.1, noise: 0.2, wind: 0, size: 0.4, grow: 0.8, inner: true, smoke: false },
+  magic:    { rate: 30, life: 2.5, speed: 1.0, spread: 0.8, noise: 1.0, wind: 0, size: 0.2, grow: 2.5, inner: false, smoke: true },
+};
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = presets[btn.dataset.preset];
+    Object.assign(params, p);
+    // 同步 UI
+    $('rate').value = p.rate; $('rateValue').textContent = p.rate + '/s';
+    $('life').value = p.life * 10; $('lifeValue').textContent = p.life.toFixed(1) + 's';
+    $('speed').value = p.speed * 10; $('speedValue').textContent = p.speed.toFixed(1);
+    $('spread').value = p.spread * 100; $('spreadValue').textContent = p.spread.toFixed(2);
+    $('noise').value = p.noise * 100; $('noiseValue').textContent = p.noise.toFixed(2);
+    $('wind').value = p.wind * 10; $('windValue').textContent = p.wind.toFixed(1);
+    $('size').value = p.size * 100; $('sizeValue').textContent = p.size.toFixed(2);
+    $('grow').value = p.grow * 10; $('growValue').textContent = p.grow.toFixed(1) + 'x';
+    layerSmoke.points.visible = p.smoke;
+  });
+});
+
+// ==================== 主循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+  
+  emitParticles(dt);
+  layerInner.update(dt, params, flameCurve);
+  layerOuter.update(dt, params, flameCurve);
+  layerSmoke.update(dt, params, smokeCurve);
+  
+  // 火光闪烁
+  fireLight.intensity = 2.0 + Math.sin(t * 9) * 0.3 + Math.sin(t * 23) * 0.15;
+  
+  // 粒子计数
+  $('pcount').textContent = 
+    layerInner.particles.length + layerOuter.particles.length + layerSmoke.particles.length;
+  
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

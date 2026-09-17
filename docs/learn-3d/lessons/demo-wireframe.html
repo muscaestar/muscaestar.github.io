@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>线框模式演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; }
+  #app { position: fixed; inset: 0; }
+  #app canvas { transform-origin: 0 0; }
+  canvas { display: block; }
+
+  #ui {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; flex-direction: column; gap: 10px;
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    align-items: center; width: 90%; max-width: 400px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  button {
+    padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(120,160,255,.3);
+    background: rgba(50, 80, 140, 0.5); color: #cfe3ff;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+  }
+  button:active { transform: scale(0.95); }
+  button.on {
+    background: linear-gradient(135deg, #3a7bd5, #2f9e7d);
+    border-color: transparent; color: #fff;
+  }
+  #label {
+    font-size: 12px; color: rgba(255,255,255,.5);
+    background: rgba(0,0,0,.4); padding: 4px 12px; border-radius: 16px;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="ui">
+  <div id="label">SphereGeometry(1, 32, 32) — 线框 vs 实体</div>
+  <div class="row">
+    <button id="btnGeo">🔴 球体</button>
+    <button id="btnSeg">段数: 32</button>
+    <button id="btnWire" class="on">🔲 线框: 开</button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// iSH WebView 兼容
+const S = 0.5;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+function fitRenderer() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  const el = renderer.domElement;
+  el.style.width = innerWidth + 'px';
+  el.style.height = innerHeight + 'px';
+  el.style.transform = `translate(${innerWidth * 0.25}px, ${innerHeight * 0.25}px) scale(${S})`;
+}
+fitRenderer();
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 0.8, 3.5);
+
+// 光照
+scene.add(new THREE.AmbientLight(0x8899bb, 1.5));
+const sun = new THREE.DirectionalLight(0xffffff, 2.5);
+sun.position.set(3, 4, 5);
+scene.add(sun);
+
+// 控制器
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 1.5;
+controls.maxDistance = 8;
+controls.enablePan = false;
+
+// 几何体类型和分段
+const geoTypes = [
+  { name: '🔴 球体', label: 'SphereGeometry', make: s => new THREE.SphereGeometry(1, s, s) },
+  { name: '🟦 立方体', label: 'BoxGeometry', make: s => new THREE.BoxGeometry(1.2, 1.2, 1.2, Math.max(1, s/8), Math.max(1, s/8), Math.max(1, s/8)) },
+  { name: '🛢️ 圆柱', label: 'CylinderGeometry', make: s => new THREE.CylinderGeometry(0.6, 0.6, 1.5, s, 1) },
+  { name: '🍩 圆环', label: 'TorusGeometry', make: s => new THREE.TorusGeometry(0.8, 0.3, s, s * 2) },
+];
+const segLevels = [4, 8, 16, 32, 64];
+
+let geoIdx = 0, segIdx = 3; // 默认球体 32 段
+let wireframe = true;
+
+// 材质
+const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true });
+const solidMat = new THREE.MeshPhongMaterial({
+  color: 0x3a7bd5, emissive: 0x3a7bd5, emissiveIntensity: 0.4, shininess: 30
+});
+
+let mesh = null;
+
+function rebuild() {
+  if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); }
+  const seg = segLevels[segIdx];
+  const geo = geoTypes[geoIdx];
+  mesh = new THREE.Mesh(geo.make(seg), wireframe ? wireMat : solidMat);
+  scene.add(mesh);
+
+  document.getElementById('label').textContent =
+    `${geo.label}(..., ${seg}) — ${wireframe ? '线框' : '实体'}`;
+  document.getElementById('btnGeo').textContent = geo.name;
+  document.getElementById('btnSeg').textContent = `段数: ${seg}`;
+  document.getElementById('btnWire').textContent = wireframe ? '🔲 线框: 开' : '🔲 线框: 关';
+  document.getElementById('btnWire').classList.toggle('on', wireframe);
+}
+
+rebuild();
+
+// UI
+document.getElementById('btnGeo').onclick = () => { geoIdx = (geoIdx + 1) % geoTypes.length; rebuild(); };
+document.getElementById('btnSeg').onclick = () => { segIdx = (segIdx + 1) % segLevels.length; rebuild(); };
+document.getElementById('btnWire').onclick = () => { wireframe = !wireframe; rebuild(); };
+
+// 动画
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  if (mesh) mesh.rotation.y += dt * 0.4;
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  fitRenderer();
+});
+</script>
+</body>
+</html>

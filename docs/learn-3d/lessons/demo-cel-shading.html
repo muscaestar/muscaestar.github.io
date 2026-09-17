@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>色阶演示：实时调节</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.95); padding: 12px;
+    border-top: 1px solid #30363d;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    max-height: 40vh; overflow-y: auto;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 10px; background: #161b27; border-radius: 8px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 11px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .control-group .value {
+    font-size: 13px; color: #58a6ff; font-weight: 700;
+  }
+  .btn-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 8px 12px; border: 1px solid #30363d; border-radius: 6px;
+    background: #0d1117; color: #c9d1d9; font-size: 12px; cursor: pointer;
+    transition: all 0.2s; flex: 1; min-width: 0;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  input[type="range"] {
+    width: 100%; accent-color: #58a6ff; height: 28px;
+  }
+  input[type="color"] {
+    width: 100%; height: 36px; border: 1px solid #30363d; border-radius: 6px;
+    background: #0d1117; cursor: pointer;
+  }
+  .toggle-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .toggle-row span { font-size: 12px; color: #c9d1d9; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>色阶实时调节</strong>：级数 / 过渡硬度 / 阴影色 / 高光色阶<br>
+  拖动旋转视角，下方调节参数
+</div>
+<div id="controls">
+  <div class="control-group">
+    <label>色阶级数 <span class="value" id="levelsValue">3</span></label>
+    <div class="btn-row">
+      <button class="btn" data-levels="2">2级</button>
+      <button class="btn active" data-levels="3">3级</button>
+      <button class="btn" data-levels="4">4级</button>
+      <button class="btn" data-levels="5">5级</button>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>过渡硬度 <span class="value" id="hardnessValue">100%</span></label>
+    <input type="range" id="hardness" min="0" max="100" value="100">
+    <div style="display:flex; justify-content:space-between; font-size:10px; color:#8b949e;">
+      <span>软</span>
+      <span>硬</span>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>阴影色</label>
+    <input type="color" id="shadowColor" value="#2a2a4a">
+    <div class="btn-row" style="margin-top:6px;">
+      <button class="btn" data-color="#000000">纯黑</button>
+      <button class="btn" data-color="#2a2a4a">深蓝</button>
+      <button class="btn" data-color="#4a2a2a">深棕</button>
+      <button class="btn" data-color="#4a4a2a">深绿</button>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>高光色阶</label>
+    <div class="toggle-row">
+      <button class="btn" id="specularToggle">开启高光</button>
+      <span id="specularStatus">关闭</span>
+    </div>
+    <div style="font-size:11px; color:#8b949e; margin-top:4px;">
+      高光也做色阶（额外一级提亮）
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// 场景设置
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2, 6);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1, 0);
+
+// 灯光
+scene.add(new THREE.AmbientLight(0x404040, 0.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(5, 5, 5);
+scene.add(dirLight);
+
+// 地面
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x1a1f2e, roughness: 0.9 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+// ==================== 色阶 Shader ====================
+const celVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vWorldPos = worldPos.xyz;
+    vViewDir = normalize(cameraPosition - worldPos.xyz);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const celFragmentShader = `
+  uniform float levels;
+  uniform float hardness;
+  uniform vec3 shadowColor;
+  uniform bool specularCel;
+  uniform vec3 lightDir;
+  uniform vec3 baseColor;
+  
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vec3 normal = normalize(vNormal);
+    vec3 viewDir = normalize(vViewDir);
+    vec3 light = normalize(lightDir);
+    
+    // 漫反射色阶
+    float NdotL = max(dot(normal, light), 0.0);
+    
+    // 基础色阶
+    float cel = floor(NdotL * levels) / levels;
+    
+    // 软过渡（hardness < 1 时）
+    if (hardness < 1.0) {
+      float nextLevel = (floor(NdotL * levels) + 1.0) / levels;
+      float edge = (1.0 - hardness) * 0.5;
+      cel = mix(cel, nextLevel, smoothstep(nextLevel - edge, nextLevel, NdotL));
+    }
+    
+    // 高光色阶
+    float specular = 0.0;
+    if (specularCel) {
+      vec3 halfDir = normalize(light + viewDir);
+      float NdotH = max(dot(normal, halfDir), 0.0);
+      float spec = pow(NdotH, 32.0);
+      // 高光也做色阶：要么 0，要么 1（额外一级）
+      specular = floor(spec + 0.5) * 0.3;  // 提亮 30%
+    }
+    
+    // 混合阴影色和固有色
+    vec3 color = mix(shadowColor, baseColor, cel);
+    color += specular;
+    
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// 创建色阶材质
+function createCelMaterial(baseColor) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      levels: { value: 3.0 },
+      hardness: { value: 1.0 },
+      shadowColor: { value: new THREE.Color(0x2a2a4a) },
+      specularCel: { value: false },
+      lightDir: { value: new THREE.Vector3(1, 1, 1).normalize() },
+      baseColor: { value: new THREE.Color(baseColor) }
+    },
+    vertexShader: celVertexShader,
+    fragmentShader: celFragmentShader
+  });
+}
+
+// ==================== 创建角色 ====================
+// 球体（展示色阶效果最佳）
+const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
+const sphereMat = createCelMaterial(0xff6b6b);
+const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+sphere.position.set(0, 1.2, 0);
+scene.add(sphere);
+
+// 立方体（展示棱角色阶）
+const boxGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+const boxMat = createCelMaterial(0x4ecdc4);
+const box = new THREE.Mesh(boxGeo, boxMat);
+box.position.set(-2, 0.6, 0);
+box.rotation.y = Math.PI / 6;
+scene.add(box);
+
+// 圆环（展示曲面）
+const torusGeo = new THREE.TorusGeometry(0.8, 0.3, 32, 64);
+const torusMat = createCelMaterial(0xffd93d);
+const torus = new THREE.Mesh(torusGeo, torusMat);
+torus.position.set(2, 0.8, 0);
+torus.rotation.x = Math.PI / 4;
+scene.add(torus);
+
+// 标签
+function makeLabel(text, x, y, z, color = '#58a6ff') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = color;
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 128, 42);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: texture, transparent: true })
+  );
+  sprite.position.set(x, y, z);
+  sprite.scale.set(2.5, 0.6, 1);
+  scene.add(sprite);
+}
+
+makeLabel('球体：标准色阶', 0, 2.8, 0, '#ff6b6b');
+makeLabel('立方体：棱角', -2, 2.2, 0, '#4ecdc4');
+makeLabel('圆环：曲面', 2, 2.2, 0, '#ffd93d');
+
+// ==================== 控制逻辑 ====================
+const materials = [sphereMat, boxMat, torusMat];
+
+// 级数按钮
+document.querySelectorAll('[data-levels]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-levels]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const levels = parseFloat(btn.dataset.levels);
+    document.getElementById('levelsValue').textContent = levels;
+    materials.forEach(mat => mat.uniforms.levels.value = levels);
+  });
+});
+
+// 过渡硬度滑块
+const hardnessSlider = document.getElementById('hardness');
+const hardnessValue = document.getElementById('hardnessValue');
+hardnessSlider.addEventListener('input', (e) => {
+  const val = parseInt(e.target.value);
+  hardnessValue.textContent = val + '%';
+  materials.forEach(mat => mat.uniforms.hardness.value = val / 100);
+});
+
+// 阴影色选择
+const shadowColorPicker = document.getElementById('shadowColor');
+shadowColorPicker.addEventListener('input', (e) => {
+  const color = new THREE.Color(e.target.value);
+  materials.forEach(mat => mat.uniforms.shadowColor.value = color);
+});
+
+// 预设阴影色按钮
+document.querySelectorAll('[data-color]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const color = btn.dataset.color;
+    shadowColorPicker.value = color;
+    materials.forEach(mat => mat.uniforms.shadowColor.value = new THREE.Color(color));
+  });
+});
+
+// 高光色阶开关
+const specularToggle = document.getElementById('specularToggle');
+const specularStatus = document.getElementById('specularStatus');
+let specularEnabled = false;
+
+specularToggle.addEventListener('click', () => {
+  specularEnabled = !specularEnabled;
+  specularStatus.textContent = specularEnabled ? '开启' : '关闭';
+  specularToggle.classList.toggle('active', specularEnabled);
+  materials.forEach(mat => mat.uniforms.specularCel.value = specularEnabled);
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  controls.update();
+  
+  // 物体缓慢旋转
+  sphere.rotation.y = t * 0.3;
+  box.rotation.y = Math.PI / 6 + t * 0.2;
+  torus.rotation.y = t * 0.4;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

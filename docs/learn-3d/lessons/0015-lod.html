@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>015 — LOD：远处的东西不用那么精细</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0014-shadows.html">← 上一课</a>
+  <span>第 15 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">015</span>LOD：远处的东西不用那么精细</h1>
+
+<p>一个角色模型 5 万三角形，站在你面前时每个细节都清晰。但他跑到 500 米外，屏幕上只占 20 个像素——你还在为他算 5 万个三角形。<strong>LOD（Level of Detail）</strong>就是解决这个问题：远看用低模，近看用高模。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">LOD <span class="en">Level of Detail（细节层次）</span></div>
+  <p>同一个物体准备多套精度的模型，根据离相机的距离自动切换。近处用高模（细节多），远处用低模（三角形少），极远处用广告牌（一张贴图）甚至不渲染。</p>
+</div>
+
+<div class="concept">
+  <div class="term">LOD 级别 <span class="en">LOD0 / LOD1 / LOD2...</span></div>
+  <p>LOD0 是最高精度（原始模型），LOD1 减面版，LOD2 再减，最后一级通常是 billboard（面向相机的贴片）。每级三角形数大约减半。</p>
+</div>
+
+<div class="concept">
+  <div class="term">切换距离 <span class="en">Transition Distance</span></div>
+  <p>多远换哪级。太近切换会"跳变"（popping）——模型突然变样被玩家察觉。太远切换浪费性能。调这个距离是 LOD 配置的核心工作。</p>
+</div>
+
+<h2>LOD 的直觉</h2>
+
+<pre>一棵树（LOD0：5000 三角形）：
+
+  距离 10m   → 屏幕上 500 像素高 → 每片叶子都看得清 → LOD0（5000 三角形）
+  距离 50m   → 屏幕上 100 像素高 → 只能看清树形轮廓 → LOD1（1500 三角形）
+  距离 200m  → 屏幕上 25 像素高  → 就是一团绿       → LOD2（400 三角形）
+  距离 500m  → 屏幕上 10 像素高  → 一个色点         → Billboard（2 个三角形）
+
+关键洞察：屏幕上 20 个像素的东西，5000 个三角形和 400 个看起来一样。
+省下的 4600 个三角形可以花在近处的东西上。</pre>
+
+<h2>LOD 级别设计</h2>
+
+<table>
+  <tr><th>级别</th><th>三角形比例</th><th>内容</th><th>典型距离</th></tr>
+  <tr><td><strong>LOD0</strong></td><td>100%</td><td>原始模型，全部细节</td><td>0 ~ 20m</td></tr>
+  <tr><td><strong>LOD1</strong></td><td>~50%</td><td>去掉小细节（纽扣、细纹）</td><td>20 ~ 50m</td></tr>
+  <tr><td><strong>LOD2</strong></td><td>~25%</td><td>只保留大形体</td><td>50 ~ 150m</td></tr>
+  <tr><td><strong>LOD3</strong></td><td>~10%</td><td>剪影级别</td><td>150 ~ 400m</td></tr>
+  <tr><td><strong>Billboard</strong></td><td>2 个三角形</td><td>面向相机的贴图片</td><td>400m+</td></tr>
+</table>
+
+<div class="tip">
+  <strong>经验法则</strong>：每级三角形减半，切换距离加倍。低模不需要手做——Blender 的 Decimate 修改器、Simplygon、InstaLOD 都能自动减面。
+</div>
+
+<h2>切换的艺术：不让玩家察觉</h2>
+
+<h3>问题：跳变（Popping）</h3>
+
+<p>直接切换 LOD，模型会突然变样——玩家余光一扫就发现"那棵树闪了一下"。三种解决方案：</p>
+
+<table>
+  <tr><th>方案</th><th>原理</th><th>适用</th></tr>
+  <tr><td><strong>硬切换</strong></td><td>直接换模型</td><td>距离远、变化小、或者玩家注意力在别处</td></tr>
+  <tr><td><strong>交叉淡化（Crossfade）</strong></td><td>新旧两个模型同时渲染几秒，透明度渐变过渡</td><td>主流方案，成本是过渡期渲染两份</td></tr>
+  <tr><td><strong>抖动过渡（Dithering）</strong></td><td>用噪点图案逐像素替换，没有透明混合</td><td>比 crossfade 便宜，现代游戏常用</td></tr>
+</table>
+
+<h3>切换距离怎么定</h3>
+
+<pre>依据：模型在屏幕上的高度（像素）
+
+  屏幕高度 1080px，FOV 60°：
+  2m 高的树在距离 d 处的像素高度 ≈ (2 / d) × 1000
+
+  像素高度 > 400px → LOD0（细节可见）
+  100 ~ 400px     → LOD1
+  30 ~ 100px      → LOD2
+  < 30px          → LOD3 / billboard
+
+原则：切换发生在"差别看不出来"的距离</pre>
+
+<h2>LOD 不只用于几何体</h2>
+
+<table>
+  <tr><th>资源</th><th>LOD 策略</th></tr>
+  <tr><td><strong>几何体</strong></td><td>减面（本课主题）</td></tr>
+  <tr><td><strong>纹理</strong></td><td>Mipmap 就是纹理的 LOD——远处自动用小图</td></tr>
+  <tr><td><strong>动画</strong></td><td>远处角色降低骨骼更新频率（30fps → 10fps）</td></tr>
+  <tr><td><strong>阴影</strong></td><td>远处物体不投影（castShadow = false）</td></tr>
+  <tr><td><strong>粒子</strong></td><td>远处减少粒子数量或关闭</td></tr>
+  <tr><td><strong>物理</strong></td><td>远处物体休眠，不做碰撞检测</td></tr>
+</table>
+
+<div class="tip">
+  <strong>LOD 是一种思想</strong>：任何"远处感知不到"的计算都可以降级或跳过。这是性能优化的通用原则——只为你能看到的东西付钱了。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>// Three.js 内置 THREE.LOD
+const lod = new THREE.LOD();
+
+// 添加各级模型和切换距离
+lod.addLevel(highPolyMesh, 0);      // LOD0：0m 起
+lod.addLevel(midPolyMesh, 50);      // LOD1：50m 起
+lod.addLevel(lowPolyMesh, 150);     // LOD2：150m 起
+lod.addLevel(billboardSprite, 400); // 贴片：400m 起
+
+scene.add(lod);
+
+// 渲染时自动根据相机距离切换，不需要手动干预</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：自动 LOD（最简单）
+# 导入模型时在 Import 面板勾选 "Generate → LOD"
+# 引擎自动生成减面版本，运行时自动切换
+
+# 手动控制：Project Settings → Rendering →
+#   mesh_lod_threshold（屏幕像素阈值）
+
+# 可见距离裁剪（配合 LOD 的最后一级）：
+# MeshInstance3D → Visibility Range
+visibility_range_begin = 0.0        # 多远开始显示
+visibility_range_end = 500.0        # 多远彻底隐藏
+visibility_range_fade_mode = 1      # 淡出而非硬切</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">LOD 的核心依据是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">物体的重要程度——主角永远用高模</button>
+    <button class="opt" data-correct="true">物体在屏幕上占的像素大小——小东西用低模看不出区别</button>
+    <button class="opt" data-correct="false">物体的运动速度——动得快的用低模</button>
+    <button class="opt" data-correct="false">物体的材质复杂度——PBR 材质用低模</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！LOD 的本质是"屏幕空间性价比"：20 像素高的东西，5000 三角形和 400 三角形渲染结果一样，那就用 400。距离只是像素大小的近似指标。"
+    data-wrong="LOD 的依据是<strong>屏幕像素占比</strong>。物体再重要，1000m 外只占 5 像素时高模就是浪费；物体再次要，怼脸时低模也会穿帮。距离切换是像素大小的近似实现。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">LOD 切换时的"跳变"（popping）问题怎么解决？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">切换距离设远一点，玩家看不到</button>
+    <button class="opt" data-correct="false">只用一级 LOD 不切换</button>
+    <button class="opt" data-correct="true">交叉淡化或抖动过渡——新旧模型短暂共存渐变，而不是瞬间替换</button>
+    <button class="opt" data-correct="false">玩家看到跳变也没办法，只能接受</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Crossfade（透明度渐变）和 Dithering（噪点逐像素替换）是主流方案——让新旧模型在几帧内平滑过渡。代价是过渡期渲染两份或视觉噪点。"
+    data-wrong="跳变的根源是"瞬间替换"。解决思路是<strong>渐变过渡</strong>：crossfade 透明度混合，dithering 噪点替换。调远距离只是掩耳盗铃——总有人在切换距离附近。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">除了几何体减面，LOD 思想还可以用在哪些地方？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">只能用于几何体，其他地方不适用</button>
+    <button class="opt" data-correct="true">纹理（mipmap）、动画更新频率、阴影投射、粒子数量、物理休眠——任何远处感知不到的计算都可降级</button>
+    <button class="opt" data-correct="false">只能用于纹理和阴影</button>
+    <button class="opt" data-correct="false">只能用于静态物体</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！LOD 是通用思想："只为能看到的东西付钱"。远处角色动画降帧、远处物体不投影、远处粒子减量、mipmap 自动小图、远处物理休眠——全是同一个原则。"
+    data-wrong="LOD 是<strong>思想</strong>不是具体技术。核心是"感知不到的计算就降级"：mipmap（纹理 LOD）、动画降帧、阴影裁剪、粒子减量、物理休眠都是应用。掌握这个思想比记住某个 API 重要。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 开放世界游戏的植被 LOD 方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"树木做 4 级 LOD：LOD0 是 3000 面的高模（20m 内），LOD1 减到 1200 面（50m 内），LOD2 是 400 面剪影（150m 内），150m 外用 billboard 十字交叉贴片。切换用 dithering 抖动过渡避免跳变。草不做 LOD 直接按距离密度衰减——50m 外不种草。所有树木 200m 外停止阴影投射，billboard 级不做动画（不摇摆）。visibility_range_end 设 800m，再远彻底剔除。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了分级减面、billboard 终极简化、抖动过渡、密度衰减、阴影裁剪、动画降级、距离剔除。这就是完整的植被 LOD 方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/mesh_lod.html">Godot — Mesh LOD</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 自动 LOD 官方文档</span></li>
+    <li><a href="https://threejs.org/docs/#api/en/objects/LOD">Three.js — LOD</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">THREE.LOD API 文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："地形 LOD 和普通模型有什么区别（geomipmap/clipmap）？""imposter 技术和 billboard 什么关系？""LOD 会增加多少内存开销？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 15 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>008 — 动画：让场景动起来</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.anim-type { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.anim-type .name { font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.anim-type .desc { font-size: 0.88rem; margin: 0.3rem 0; }
+.anim-type .example { font-size: 0.8rem; color: var(--accent3); margin-top: 0.4rem; }
+.ease-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0.8rem 0; }
+.ease-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; text-align: center; font-size: 0.8rem; }
+.ease-item .name { font-weight: 700; color: var(--accent); margin-bottom: 0.2rem; }
+.ease-item .curve { font-size: 0.7rem; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0007-texture.html">← 上一课</a>
+  <span>第 8 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">008</span>动画：让场景动起来</h1>
+
+<p>前面 7 课搭好了静态场景——几何体、材质、光照、相机、纹理。但游戏不是幻灯片，<strong>东西要动起来</strong>。这节课讲动画的三种基本方式：关键帧、补间、骨骼动画。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">动画 <span class="en">Animation</span></div>
+  <p>属性随时间变化。位置、旋转、缩放、颜色、透明度——任何属性都可以动。动画系统就是"告诉 GPU：这个值在 t=0 时是 A，t=1 时是 B，中间自动算"。</p>
+</div>
+
+<div class="concept">
+  <div class="term">关键帧 <span class="en">Keyframe</span></div>
+  <p>你在某些时间点手动设置属性值（"t=0 时位置在 (0,0,0)，t=2 时在 (5,0,0)"），中间由引擎插值。最基础的动画方式。</p>
+</div>
+
+<div class="concept">
+  <div class="term">补间 <span class="en">Tween / Interpolation</span></div>
+  <p>两个关键帧之间的自动过渡。你只管起点和终点，中间引擎帮你算。可以控制缓动曲线（先快后慢、弹跳等）。</p>
+</div>
+
+<div class="concept">
+  <div class="term">骨骼动画 <span class="en">Skeletal Animation</span></div>
+  <p>给模型绑一套"骨骼"，移动骨骼带动皮肤变形。角色走路、挥手、表情都是骨骼动画。游戏角色动画的标准做法。</p>
+</div>
+
+<h2>三种动画方式对比</h2>
+
+<table>
+  <tr><th>方式</th><th>原理</th><th>适用</th><th>例子</th></tr>
+  <tr><td><strong>关键帧动画</strong></td><td>逐帧设置属性</td><td>简单机械运动</td><td>门开关、平台移动</td></tr>
+  <tr><td><strong>补间动画</strong></td><td>起点→终点自动插值</td><td>UI、镜头、简单物体</td><td>按钮弹入、相机推拉</td></tr>
+  <tr><td><strong>骨骼动画</strong></td><td>骨骼带动皮肤变形</td><td>角色、生物、复杂机械</td><td>人走路、龙飞翔</td></tr>
+</table>
+
+<h2>关键帧动画</h2>
+
+<p>最原始的动画方式——你在时间轴上打几个点，引擎连起来：</p>
+
+<pre>时间轴：
+  t=0s    t=1s    t=2s    t=3s
+   │       │       │       │
+   ▼       ▼       ▼       ▼
+  位置=(0,0,0)  位置=(2,1,0)  位置=(4,0,0)  位置=(6,1,0)
+  旋转=0°      旋转=90°     旋转=180°    旋转=270°
+
+引擎自动插值中间帧：
+  t=0.5s 时位置 ≈ (1,0.5,0)，旋转 ≈ 45°</pre>
+
+<pre>// Three.js 关键帧动画（手动实现）
+const keyframes = [
+  { time: 0,   pos: new THREE.Vector3(0, 0, 0), rot: 0 },
+  { time: 1,   pos: new THREE.Vector3(2, 1, 0), rot: Math.PI/2 },
+  { time: 2,   pos: new THREE.Vector3(4, 0, 0), rot: Math.PI },
+];
+
+function updateAnimation(time) {
+  // 找到当前时间在哪两个关键帧之间
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    const kf1 = keyframes[i];
+    const kf2 = keyframes[i + 1];
+    if (time >= kf1.time && time <= kf2.time) {
+      const t = (time - kf1.time) / (kf2.time - kf1.time);
+      mesh.position.lerpVectors(kf1.pos, kf2.pos, t);
+      mesh.rotation.z = kf1.rot + (kf2.rot - kf1.rot) * t;
+      break;
+    }
+  }
+}</pre>
+
+<div class="tip">
+  <strong>Godot 里的关键帧</strong>：AnimationPlayer 节点，时间轴上右键"插入关键帧"，可以 anim 任何属性——位置、旋转、缩放、材质颜色、甚至自定义脚本变量。
+</div>
+
+<h2>补间动画与缓动曲线</h2>
+
+<p>补间（Tween）是"从 A 到 B"的自动化。关键是<strong>缓动曲线</strong>——控制中间怎么过渡：</p>
+
+<div class="ease-grid">
+  <div class="ease-item">
+    <div class="name">Linear</div>
+    <div class="curve">匀速</div>
+  </div>
+  <div class="ease-item">
+    <div class="name">Ease In</div>
+    <div class="curve">先慢后快</div>
+  </div>
+  <div class="ease-item">
+    <div class="name">Ease Out</div>
+    <div class="curve">先快后慢</div>
+  </div>
+  <div class="ease-item">
+    <div class="name">Ease InOut</div>
+    <div class="curve">两头慢中间快</div>
+  </div>
+  <div class="ease-item">
+    <div class="name">Bounce</div>
+    <div class="curve">弹跳</div>
+  </div>
+  <div class="ease-item">
+    <div class="name">Elastic</div>
+    <div class="curve">橡皮筋</div>
+  </div>
+</div>
+
+<pre>// Three.js 用 GSAP 库做补间
+gsap.to(mesh.position, {
+  x: 5,
+  duration: 2,
+  ease: "bounce.out"  // 弹跳结束
+});
+
+// 或者手动实现 easing
+function easeOutQuad(t) {
+  return t * (2 - t);  // 先快后慢
+}
+
+// 应用到动画
+const easedT = easeOutQuad(rawT);
+mesh.position.lerpVectors(startPos, endPos, easedT);</pre>
+
+<div class="tip">
+  <strong>缓动曲线是"感觉"的关键</strong>：UI 按钮用 Ease Out 显得轻快，相机移动用 Ease InOut 显得平滑，掉落物体用 Bounce 显得真实。Godot 的 Tween 节点内置所有标准缓动。
+</div>
+
+<h2>骨骼动画</h2>
+
+<p>角色动画不能用"整体移动"——手臂要弯、腿要迈、手指要动。解决方案：<strong>骨骼</strong>。</p>
+
+<pre>骨骼层级：
+  脊柱
+   ├── 头
+   ├── 左肩
+   │    └── 左臂
+   │         └── 左手
+   └── 右肩
+        └── 右臂
+             └── 右手
+
+移动"左臂"骨骼 → 左手跟着动（层级变换）
+弯曲"脊柱" → 整个上半身前倾</pre>
+
+<p>每个顶点绑定到一根或多根骨骼，骨骼移动时顶点跟着动（带权重混合）：</p>
+
+<pre>顶点权重示例（膝盖部位）：
+  顶点 A：大腿骨权重 70%，小腿骨权重 30%
+  顶点 B：大腿骨权重 50%，小腿骨权重 50%
+  
+  → 弯曲膝盖时，A 更多跟着大腿动，B 均匀过渡
+  → 皮肤不会撕裂，平滑变形</pre>
+
+<div class="warn">
+  <strong>骨骼动画是游戏角色动画的唯一标准</strong>。2D 游戏用序列帧（Sprite Sheet），3D 游戏全部用骨骼。Godot 的 Skeleton3D + AnimationPlayer 是完整解决方案。
+</div>
+
+<h2>动画状态机</h2>
+
+<p>角色不能只有"走路"一个动画——待机、跑步、跳跃、攻击、死亡……怎么切换？</p>
+
+<pre>状态机（State Machine）：
+  
+  [待机] ←→ [走路] ←→ [跑步]
+     ↑         ↑
+     ↓         ↓
+   [跳跃]    [攻击]
+     ↑
+     ↓
+   [死亡]（终态）
+
+规则：
+  - 待机时按方向键 → 切换到走路
+  - 走路时按 Shift → 切换到跑步
+  - 任何状态按空格 → 切换到跳跃
+  - 跳跃落地 → 回到待机/走路/跑步</pre>
+
+<pre>// Godot 动画状态机（AnimationTree）
+// 参数：speed (0=待机, 1=走路, 2=跑步)
+// 状态：idle, walk, run, jump
+
+func _process(delta):
+    var speed = Input.get_action_strength("move_right")
+    if is_on_floor() and Input.is_action_just_pressed("jump"):
+        $AnimationTree.set("parameters/state/current", "jump")
+    elif speed > 0:
+        $AnimationTree.set("parameters/speed/blend_amount", speed)</pre>
+
+<h2>你已经用过动画</h2>
+
+<pre>// 地球 demo — 简单旋转动画
+function animate() {
+  requestAnimationFrame(animate);
+  earth.rotation.y += rotationSpeed;  // 每帧转一点
+  renderer.render(scene, camera);
+}
+
+// 这是<strong>程序动画</strong>——代码直接控制属性，每帧更新
+// 适合：无限循环、物理模拟、交互响应</pre>
+
+<h2>Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td><code>requestAnimationFrame</code></td><td><code>_process(delta)</code></td><td>每帧更新</td></tr>
+  <tr><td>手动插值</td><td><code>Tween</code> 节点</td><td>补间动画</td></tr>
+  <tr><td>GSAP / 自研</td><td><code>AnimationPlayer</code></td><td>关键帧动画</td></tr>
+  <tr><td><code>SkinnedMesh</code></td><td><code>Skeleton3D</code> + <code>MeshInstance3D</code></td><td>骨骼动画</td></tr>
+  <tr><td>—</td><td><code>AnimationTree</code></td><td>动画状态机</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想让一个按钮点击后弹出来，带一点弹跳感，应该用什么动画方式？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">骨骼动画</button>
+    <button class="opt" data-correct="true">补间动画 + Bounce 缓动曲线</button>
+    <button class="opt" data-correct="false">关键帧动画，逐帧手绘</button>
+    <button class="opt" data-correct="false">物理模拟</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！UI 动画用补间最合适——起点终点明确，加个 Bounce 或 Elastic 缓动就有弹跳感。骨骼动画是给角色用的，手绘关键帧太慢。"
+    data-wrong="UI 弹窗用补间动画（Tween）+ 弹跳缓动最合适。骨骼动画是给角色用的，逐帧手绘太麻烦，物理模拟对 UI 来说太重了。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">角色从"待机"切换到"跑步"时，直接硬切会看起来很突兀，应该怎么处理？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">没办法，只能硬切</button>
+    <button class="opt" data-correct="false">把两个动画同时播放</button>
+    <button class="opt" data-correct="true">用动画混合（Crossfade），在几帧内从旧动画渐变到新动画</button>
+    <button class="opt" data-correct="false">先播一个过渡动画再硬切</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！动画混合（Animation Blending / Crossfade）让两个动画在短暂时间内同时播放，权重从 100%:0% 渐变到 0%:100%，看起来平滑过渡。Godot 的 AnimationTree 自动处理。"
+    data-wrong="直接硬切会跳变。正确做法是<strong>动画混合</strong>——两个动画同时播放几帧，权重渐变。比如从 idle 到 run：第 1 帧 100% idle + 0% run，第 10 帧 0% idle + 100% run。AnimationTree 自动处理。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">骨骼动画中，膝盖部位的顶点绑定到"大腿骨"和"小腿骨"的权重分别是 50% 和 50%，这意味着什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">这个顶点属于两根骨骼，会撕裂</button>
+    <button class="opt" data-correct="false">权重必须一个是 100%，一个是 0%</button>
+    <button class="opt" data-correct="true">弯曲膝盖时，这个顶点会同时受两根骨骼影响，平滑过渡不撕裂</button>
+    <button class="opt" data-correct="false">这是错误的绑定，应该只绑一根骨骼</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！多骨骼权重混合是皮肤变形的关键。50%/50% 表示顶点受两根骨骼同等影响，弯曲时平滑过渡。如果 100% 绑大腿骨，弯曲时膝盖会凸出来；100% 绑小腿骨，会凹进去。"
+    data-wrong="多骨骼权重混合是皮肤变形的核心。50%/50% 表示顶点同时受两根骨骼影响，弯曲时平滑过渡。如果全绑一根，关节处会撕裂或凸出。这就是蒙皮（Skinning）。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个主角从待机到跑步的动画切换，怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"用 AnimationTree 做动画状态机。根节点是 BlendSpace2D，横轴是速度（0=待机，1=走路，2=跑步），自动根据速度混合 idle/walk/run 三个动画。跳跃用 OneShot 节点，触发时覆盖下半身。攻击也是 OneShot，全身覆盖。所有过渡用 Crossfade 0.2 秒，避免硬切。速度参数从脚本传入：_process 里读 Input.get_axis，映射到 0~2 范围，用 lerp 平滑变化避免抖动。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 BlendSpace（速度混合）、OneShot（覆盖动作）、Crossfade（平滑过渡）、参数驱动（脚本控制）。这就是专业级的角色动画方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/animation">Three.js Fundamentals — Animation</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 动画系统详解</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/animation/index.html">Godot — Animation</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 动画完整教程（AnimationPlayer / AnimationTree / Tween）</span></li>
+    <li><a href="https://easings.net/">Easing Functions Cheat Sheet</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">所有缓动曲线的可视化和公式</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："什么是逆运动学（IK）？""动画重定向（Retargeting）是什么？""根运动（Root Motion）怎么处理？" 直接问 agent。
+</div>
+
+<h2>🎮 互动演示</h2>
+
+<p>三种动画方式同时播放，拖动旋转视角对比：</p>
+
+<p style="text-align:center; margin: 1rem 0;">
+  <a href="http://127.0.0.1:8765/lessons/demo-animation.html" style="display:inline-block; padding: 0.8rem 1.5rem; background: var(--accent); color: #fff; text-decoration:none; border-radius: 8px; font-weight: 600;">🎬 打开动画演示</a>
+</p>
+
+<table>
+  <tr><th>位置</th><th>动画方式</th><th>特点</th></tr>
+  <tr><td><strong>左（红球）</strong></td><td>关键帧</td><td>按预设时间点跳跃，线性插值，机械感</td></tr>
+  <tr><td><strong>中（青方块）</strong></td><td>补间 + Bounce</td><td>Ease Out Bounce 缓动，落地弹跳，Q弹感</td></tr>
+  <tr><td><strong>右（手臂）</strong></td><td>骨骼（层级变换）</td><td>上臂摆→前臂弯→手腕转，关节联动</td></tr>
+</table>
+
+<div class="tip">
+  <strong>补间的 Q 弹秘密</strong>：不是匀速（Linear），而是 <code>easeOutBounce(t)</code>——分阶段弹跳，像球掉地上弹起越来越低。公式里的 <code>7.5625</code> 和 <code>2.75</code> 是物理模拟的魔法数字，让弹跳看起来真实。
+</div>
+
+<div class="lesson-footer">
+  <p>第 8 课 / 3D 图形概念入门 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

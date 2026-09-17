@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>006 — 相机：观察世界的眼睛</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.cam-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1rem 0; }
+.cam-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; text-align: center; }
+.cam-item .icon { font-size: 2rem; margin-bottom: 0.3rem; }
+.cam-item .name { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+.cam-item .desc { font-size: 0.82rem; color: var(--text); margin-top: 0.3rem; }
+.cam-item .use { font-size: 0.75rem; color: var(--accent3); margin-top: 0.3rem; }
+.fov-bar { display: flex; gap: 4px; margin: 0.8rem 0; }
+.fov-seg { flex: 1; text-align: center; padding: 0.5rem 0.2rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+.fov-narrow { background: rgba(88,166,255,.15); color: var(--accent); }
+.fov-normal { background: rgba(63,185,80,.15); color: var(--accent2); }
+.fov-wide { background: rgba(210,153,34,.15); color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0005-light.html">← 上一课</a>
+  <span>第 6 课</span>
+  <a href="./0007-texture.html">下一课 →</a>
+</div>
+
+<h1><span class="num">006</span>相机：观察世界的眼睛</h1>
+
+<p>你已经做了很多 demo——地球、走廊、篝火。每个都用了相机，但你有没有注意到：篝火 demo 的相机 FOV 是 50，走廊是 60，地球是 45？这节课讲清楚相机到底在干什么。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">透视相机 <span class="en">PerspectiveCamera</span></div>
+  <p>模拟人眼——近的物体大，远的物体小。绝大多数 3D 游戏和场景都用这个。Three.js 和 Godot 的默认相机都是透视相机。</p>
+</div>
+
+<div class="concept">
+  <div class="term">正交相机 <span class="en">OrthographicCamera</span></div>
+  <p>没有透视效果——不管远近，物体大小不变。像 CAD 软件、2.5D 游戏（SimCity、纪念碑谷）用的那种"等轴测"视角。</p>
+</div>
+
+<div class="concept">
+  <div class="term">视场角 <span class="en">FOV (Field of View)</span></div>
+  <p>相机能看到的范围，用角度表示。FOV 小 = 望远镜（放大远景），FOV 大 = 广角镜头（视野宽但边缘变形）。</p>
+</div>
+
+<div class="concept">
+  <div class="term">视锥 <span class="en">Frustum</span></div>
+  <p>相机能看到的 3D 空间范围——一个截顶的金字塔形。只有视锥内的物体才会被渲染。由近裁剪面（near）和远裁剪面（far）定义。</p>
+</div>
+
+<h2>透视 vs 正交</h2>
+
+<div class="cam-compare">
+  <div class="cam-item">
+    <div class="icon">🔭</div>
+    <div class="name">透视相机</div>
+    <div class="desc">近大远小，有深度感</div>
+    <div class="use">FPS、RPG、大部分 3D 游戏</div>
+  </div>
+  <div class="cam-item">
+    <div class="icon">📐</div>
+    <div class="name">正交相机</div>
+    <div class="desc">远近一样大，无透视</div>
+    <div class="use">2.5D、等轴测、UI、CAD</div>
+  </div>
+</div>
+
+<pre>// Three.js — 透视相机（最常用）
+const camera = new THREE.PerspectiveCamera(
+  50,                          // FOV（视场角，度）
+  innerWidth / innerHeight,    // 宽高比
+  0.1,                         // 近裁剪面
+  1000                         // 远裁剪面
+);
+
+// Three.js — 正交相机
+const frustumSize = 10;
+const aspect = innerWidth / innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -frustumSize * aspect / 2,  // 左
+   frustumSize * aspect / 2,  // 右
+   frustumSize / 2,           // 上
+  -frustumSize / 2,           // 下
+  0.1, 1000                   // 近/远裁剪面
+);</pre>
+
+<h2>FOV 的影响</h2>
+
+<div class="fov-bar">
+  <div class="fov-seg fov-narrow">30°<br>望远镜</div>
+  <div class="fov-seg fov-normal">50-60°<br>自然视角</div>
+  <div class="fov-seg fov-wide">90-120°<br>广角/FPS</div>
+</div>
+
+<table>
+  <tr><th>FOV</th><th>效果</th><th>用途</th></tr>
+  <tr><td>20-35°</td><td>窄视角，放大远景，压缩空间</td><td>狙击镜、 cinematic 特写</td></tr>
+  <tr><td>45-60°</td><td>接近人眼，自然</td><td>RPG、探索、过场动画</td></tr>
+  <tr><td>70-90°</td><td>视野宽，速度感强</td><td>FPS、竞速</td></tr>
+  <tr><td>100°+</td><td>鱼眼效果，边缘变形</td><td>VR、特殊效果</td></tr>
+</table>
+
+<p>回顾你的 demo：</p>
+<table>
+  <tr><th>Demo</th><th>FOV</th><th>为什么</th></tr>
+  <tr><td>地球</td><td>45°</td><td>特写镜头，聚焦星球</td></tr>
+  <tr><td>篝火</td><td>50°</td><td>自然视角，静坐旁观</td></tr>
+  <tr><td>走廊</td><td>60°</td><td>稍宽，增加走廊纵深感</td></tr>
+</table>
+
+<h2>近裁剪面和远裁剪面</h2>
+
+<pre>new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+//                                       ↑      ↑
+//                                     near    far</pre>
+
+<p>相机只渲染 near 到 far 之间的物体：</p>
+
+<ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.92rem;">
+  <li><strong>near 太大</strong>：近处物体被裁掉（穿模时看不见）</li>
+  <li><strong>far 太小</strong>：远处物体消失（山体、天空盒不见了）</li>
+  <li><strong>far / near 比值太大</strong>：深度精度不够，出现 z-fighting（两个面闪烁）</li>
+</ul>
+
+<div class="tip">
+  <strong>经验值</strong>：near = 0.1，far 根据场景大小设（室内 50，户外 500-2000）。far/near 比值控制在 10000 以内。
+</div>
+
+<h2>第一人称 vs 第三人称</h2>
+
+<div class="cam-compare">
+  <div class="cam-item">
+    <div class="icon">👁️</div>
+    <div class="name">第一人称</div>
+    <div class="desc">相机就是玩家的眼睛，FOV 通常 70-90°</div>
+    <div class="use">FPS、VR、恐怖游戏</div>
+  </div>
+  <div class="cam-item">
+    <div class="icon">🎥</div>
+    <div class="name">第三人称</div>
+    <div class="desc">相机跟随角色背后，FOV 通常 50-60°</div>
+    <div class="use">RPG、动作冒险、平台跳跃</div>
+  </div>
+</div>
+
+<pre>// 第一人称 — 相机绑在角色头上
+camera.position = player.position + Vector3(0, 1.7, 0)
+
+// 第三人称 — 相机在角色后方偏移
+camera.position = player.position
+  + Vector3(0, 2, -4)    // 后上方偏移
+camera.look_at(player.position)</pre>
+
+<h2>你已经用过的相机控制</h2>
+
+<p>OrbitControls 是最常用的相机控制器——拖拽旋转、滚轮缩放、自动环绕：</p>
+
+<pre>// Three.js
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;      // 阻尼（惯性）
+controls.dampingFactor = 0.06;
+controls.minDistance = 1.5;         // 最近距离
+controls.maxDistance = 10;          // 最远距离
+controls.enablePan = false;         // 禁用平移
+controls.target.set(0, 0.5, 0);    // 看向的点</pre>
+
+<p>篝火 demo 里你用过两种模式：<strong>静坐</strong>（自动漂移相机）和<strong>自由</strong>（OrbitControls）。静坐模式的相机就是每帧手动设置 position 和 lookAt。</p>
+
+<h2>Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td><code>PerspectiveCamera</code></td><td><code>Camera3D</code>（默认透视）</td><td>透视相机</td></tr>
+  <tr><td><code>OrthographicCamera</code></td><td><code>Camera3D.projection = PROJECTION_ORTHOGONAL</code></td><td>正交相机</td></tr>
+  <tr><td><code>camera.fov</code></td><td><code>camera.fov</code></td><td>视场角（度）</td></tr>
+  <tr><td><code>camera.near</code></td><td><code>camera.near</code></td><td>近裁剪面</td></tr>
+  <tr><td><code>camera.far</code></td><td><code>camera.far</code></td><td>远裁剪面</td></tr>
+  <tr><td><code>camera.lookAt()</code></td><td><code>camera.look_at()</code></td><td>看向目标</td></tr>
+  <tr><td><code>OrbitControls</code></td><td>需自己写或用插件</td><td>轨道相机</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">做一个 FPS 射击游戏，相机 FOV 应该设多少？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">30° — 看得远</button>
+    <button class="opt" data-correct="false">45° — 自然</button>
+    <button class="opt" data-correct="true">75-90° — 视野宽有速度感</button>
+    <button class="opt" data-correct="false">120° — 看得最全</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！FPS 需要宽视野感知周围威胁，75-90° 是标准。CS:GO 默认 90°，Valorant 约 103°。太窄会晕，太宽会变形。"
+    data-wrong="FPS 用 75-90° FOV。窄 FOV（30-45°）视野太窄容易晕，120° 边缘变形严重。FPS 需要宽视野感知周围。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">在 Godot 里做一个纪念碑谷风格的 2.5D 解谜游戏，相机应该怎么设？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">Camera3D，透视模式，FOV 90°</button>
+    <button class="opt" data-correct="false">Camera3D，透视模式，FOV 45°</button>
+    <button class="opt" data-correct="true">Camera3D，正交模式，固定角度</button>
+    <button class="opt" data-correct="false">Camera3D，透视模式，FOV 120°</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！纪念碑谷用正交相机（无透视）+ 固定等轴测角度，营造"平面但立体"的视觉错觉。正交模式下远近物体一样大。"
+    data-wrong="纪念碑谷风格用正交相机（Orthographic），不是透视。正交模式下没有近大远小，配合固定等轴测角度，产生独特的 2.5D 视觉效果。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你发现游戏里两个重叠的面在闪烁（z-fighting），最可能的原因是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">FOV 太大</button>
+    <button class="opt" data-correct="false">光照太强</button>
+    <button class="opt" data-correct="true">far/near 比值太大，深度精度不够</button>
+    <button class="opt" data-correct="false">材质透明</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！far/near 比值太大（比如 0.01 到 10000）会导致深度缓冲精度不足，两个距离很近的面无法区分谁前谁后，就交替闪烁。减小比值可解决。"
+    data-wrong="z-fighting 是深度精度问题。far/near 比值太大时，深度缓冲无法区分很近的两个面。把 near 从 0.01 改到 0.1，或缩小 far，就能解决。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个恐怖游戏，主角在废弃医院里探索，相机怎么设计？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"第一人称视角，Camera3D 透视模式，FOV 70°——比标准 FPS 略窄，增加幽闭感。near=0.05，far=50——far 故意设小，远处自然被黑暗吞没。相机绑在角色头部位置（position.y + 1.6），加轻微的头部摆动（走路时 position.y 上下浮动 0.02，rotation.z 左右微倾 0.5°）。开门时相机缓慢转向（0.5 秒 lerp 到新角度），增加紧张感。不开 OrbitControls——玩家只能通过 WASD 和鼠标控制视角。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用 FOV、near/far、相机绑定、头部摆动、lerp 过渡描述了完整的恐怖游戏相机方案。"FOV 略窄增加幽闭感"说明你已经理解了 FOV 对情绪的影响。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/cameras">Three.js Fundamentals — Cameras</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方相机教程，有 FOV 互动示例</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/using_camera3d.html">Godot — Camera3D</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 相机文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："FOV 和焦距是什么关系？""怎么实现相机震动效果？""第一人称相机怎么做头部摆动？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 6 课 / 3D 图形概念入门 · <a href="../reference/camera.html" style="color: var(--accent);">📖 相机参考卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initQuizzes);
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>023 — 渲染管线：Forward vs Deferred</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0022-stylized.html">← 上一课</a>
+  <span>第 23 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">023</span>渲染管线：Forward vs Deferred</h1>
+
+<p>你写的每个 draw call 背后，引擎都在做选择：<strong>先画什么？光照在哪一步算？透明物体怎么处理？</strong>这些选择的组合就是渲染管线。Forward 和 Deferred 是两大主流方案，决定了引擎能支持多少灯、多复杂的效果。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">渲染管线 <span class="en">Render Pipeline</span></div>
+  <p>从场景数据到最终像素的完整流程：几何 → 光栅化 → 光照 → 后处理。不同管线的区别在于"光照在哪个阶段算"——这决定了性能特性和效果上限。</p>
+</div>
+
+<div class="concept">
+  <div class="term">Forward Rendering <span class="en">前向渲染</span></div>
+  <p>传统方案：每个物体画一遍，画的时候就算光照。简单直接，但灯多了性能爆炸——每多一盏灯，每个像素都要多算一次。</p>
+</div>
+
+<div class="concept">
+  <div class="term">Deferred Rendering <span class="en">延迟渲染</span></div>
+  <p>现代方案：先把所有几何画到 G-Buffer（位置/法线/颜色/材质参数），再统一做光照。灯多不怕——光照只算一次，和灯数量无关。代价：内存大、透明物体难处理。</p>
+</div>
+
+<h2>Forward：一个物体一个物体画</h2>
+
+<pre>// Forward 的流程
+for 每个物体:
+  for 每个像素:
+    颜色 = 0
+    for 每盏灯:
+      颜色 += 计算光照(灯, 像素)  // ← 灯越多，这里越慢
+    输出颜色
+
+// 问题：10 盏灯 × 100 个物体 = 1000 次光照计算</pre>
+
+<table>
+  <tr><th>优点</th><th>缺点</th></tr>
+  <tr><td>简单直观，好调试</td><td>灯多性能爆炸</td></tr>
+  <tr><td>透明物体好处理</td><td>每像素重复算光照</td></tr>
+  <tr><td>支持 MSAA 抗锯齿</td><td>无法高效做屏幕空间效果</td></tr>
+  <tr><td>内存小</td><td>不适合复杂光照场景</td></tr>
+</table>
+
+<div class="tip">
+  <strong>手机平台几乎都是 Forward</strong>：灯少（通常 2-4 盏）、透明多（UI/特效）、内存宝贵。Unity URP、Unreal Mobile、Godot Mobile 都是 Forward。
+</div>
+
+<h2>Deferred：先画几何，再统一光照</h2>
+
+<pre>// Deferred 的流程
+// Pass 1：几何 pass，把信息写到 G-Buffer
+for 每个物体:
+  G-Buffer.位置 = 像素世界位置
+  G-Buffer.法线 = 像素法线
+  G-Buffer.颜色 = 材质颜色
+  G-Buffer.金属度 = 材质金属度
+  G-Buffer.粗糙度 = 材质粗糙度
+
+// Pass 2：光照 pass，只算一次
+for 每个像素:
+  颜色 = 0
+  for 每盏灯:
+    颜色 += 计算光照(灯, G-Buffer[像素])  // ← 和物体数量无关
+  输出颜色</pre>
+
+<table>
+  <tr><th>优点</th><th>缺点</th></tr>
+  <tr><td>灯多性能稳定</td><td>G-Buffer 内存大（多通道高分辨率纹理）</td></tr>
+  <tr><td>光照只算一次，不重复</td><td>透明物体难处理（G-Buffer 只能存一层）</td></tr>
+  <tr><td>天然支持屏幕空间效果（SSAO/SSR）</td><td>不支持 MSAA（G-Buffer 是纹理）</td></tr>
+  <tr><td>适合复杂光照场景</td><td>调试困难（看不到中间结果）</td></tr>
+</table>
+
+<div class="warn">
+  <strong>Deferred 的透明问题</strong>：玻璃、水面、粒子特效——这些透明物体在 Deferred 里要单独走 Forward pass 处理，引擎自动帮你做（Forward+），但性能会退化。所以 Deferred 不是"透明免费"。
+</div>
+
+<h2>现代变体：Forward+ 和 Tile-Based</h2>
+
+<table>
+  <tr><th>方案</th><th>原理</th><th>解决什么</th><th>代表</th></tr>
+  <tr><td><strong>Forward+</strong></td><td>屏幕分块，每块只算受影响的灯</td><td>Forward 灯多爆炸</td><td>Unreal 4/5、Unity URP</td></tr>
+  <tr><td><strong>Tile-Based Deferred</strong></td><td>屏幕分块，G-Buffer 也分块，减少内存带宽</td><td>Deferred 内存大</td><td>现代主机/PC</td></tr>
+  <tr><td><strong>Clustered</strong></td><td>3D 空间分块，视锥内灯可见性</td><td>更精确的灯剔除</td><td>UE5、Unity HDRP</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Forward+ 是手机平台的未来</strong>：分块剔除让 Forward 也能扛住 100+ 盏灯，同时保留透明友好、内存小的优势。Unity URP 和 Unreal Mobile 都在向这个方向演进。
+</div>
+
+<h2>URP vs HDRP vs Built-in（Unity）</h2>
+
+<table>
+  <tr><th></th><th>Built-in</th><th>URP</th><th>HDRP</th></tr>
+  <tr><td><strong>管线</strong></td><td>Forward（老）</td><td>Forward+（新）</td><td>Deferred + Forward+</td></tr>
+  <tr><td><strong>目标平台</strong></td><td>全平台（维护模式）</td><td>手机/中端 PC</td><td>高端 PC/主机</td></tr>
+  <tr><td><strong>灯数量</strong></td><td>少（4-8）</td><td>中（32-64）</td><td>多（100+）</td></tr>
+  <tr><td><strong>屏幕空间效果</strong></td><td>基础</td><td>中等</td><td>完整（SSAO/SSR/体积雾）</td></tr>
+  <tr><td><strong>上手难度</strong></td><td>简单</td><td>简单</td><td>复杂</td></tr>
+  <tr><td><strong>现状</strong></td><td>维护模式</td><td>主推</td><td>高端项目</td></tr>
+</table>
+
+<h2>Godot 的渲染管线</h2>
+
+<table>
+  <tr><th>渲染器</th><th>管线</th><th>目标</th></tr>
+  <tr><td><strong>Forward+</strong></td><td>Forward+</td><td>PC/主机，Godot 4 默认</td></tr>
+  <tr><td><strong>Mobile</strong></td><td>Forward+（简化）</td><td>手机，优化版</td></tr>
+  <tr><td><strong>Compatibility</strong></td><td>Forward（老）</td><td>旧设备，Web</td></tr>
+</table>
+
+<pre># Godot 4：切换渲染器
+# 项目设置 → Rendering → Renderer
+# Forward+：完整特性，PC/主机
+# Mobile：手机优化，特性精简
+# Compatibility：老设备，OpenGL ES 3.0
+
+# 运行时查询当前渲染器
+var rendering_method = RenderingServer.get_current_rendering_method()
+print(rendering_method)  # "forward_plus" / "mobile" / "gl_compatibility"</pre>
+
+<h2>什么时候用什么管线</h2>
+
+<table>
+  <tr><th>场景</th><th>推荐</th><th>原因</th></tr>
+  <tr><td>手机游戏</td><td>Forward / Forward+</td><td>灯少、透明多、内存宝贵</td></tr>
+  <tr><td>PC/主机 3A</td><td>Deferred / Forward+</td><td>灯多、复杂光照、屏幕空间效果</td></tr>
+  <tr><td>独立游戏</td><td>Forward+</td><td>平衡性能和效果</td></tr>
+  <tr><td>Web 游戏</td><td>Forward（Compatibility）</td><td>兼容性优先</td></tr>
+  <tr><td>VR</td><td>Forward+</td><td>高帧率要求，透明多</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Forward 渲染管线在灯多的时候性能为什么会爆炸？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">灯多了内存不够</button>
+    <button class="opt" data-correct="true">每个物体每个像素都要遍历所有灯算光照——灯数 × 物体数 × 像素数，乘法爆炸</button>
+    <button class="opt" data-correct="false">灯多了 GPU 过热降频</button>
+    <button class="opt" data-correct="false">Forward 不支持多灯</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Forward 的光照计算量 = 灯数 × 物体数 × 像素数。10 盏灯 × 100 个物体 × 100 万像素 = 10 亿次光照计算。这就是为什么手机平台灯少——不是不想多，是 Forward 扛不住。"
+    data-wrong="关键在<strong>乘法</strong>：Forward 是"每个物体画一遍，画的时候算光照"。10 盏灯每个像素算 10 次，100 个物体每个像素算 1000 次。灯和物体数量相乘，性能指数下降。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Deferred 渲染为什么"灯多不怕"？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">Deferred 用更少的内存</button>
+    <button class="opt" data-correct="true">几何和光照分离——G-Buffer 先存所有几何信息，光照只算一次，和物体数量无关</button>
+    <button class="opt" data-correct="false">Deferred 自动降低画质</button>
+    <button class="opt" data-correct="false">Deferred 不支持透明物体所以快</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Deferred 的核心：几何 pass 和光照 pass 分离。G-Buffer 存好位置/法线/材质后，光照只算一次——100 盏灯也是一次，和场景里有多少物体无关。代价是 G-Buffer 内存大、透明难处理。"
+    data-wrong="想想流程：Deferred 先把所有几何画到 G-Buffer（位置/法线/颜色），然后统一做光照。光照 pass 只跑一遍，不管场景里有多少物体。这就是为什么 3A 游戏用 Deferred——灯多、物体多，光照成本不变。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么手机平台几乎都是 Forward 而不是 Deferred？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">手机 GPU 性能太弱跑不动 Deferred</button>
+    <button class="opt" data-correct="true">Deferred 的 G-Buffer 内存大、透明处理复杂——手机内存宝贵、透明特效多</button>
+    <button class="opt" data-correct="false">手机屏幕太小看不出 Deferred 的优势</button>
+    <button class="opt" data-correct="false">Forward 效果比 Deferred 好</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！手机的两个硬约束：内存小（G-Buffer 多通道高分辨率纹理存不下）、透明多（UI/粒子/水面全是透明）。Deferred 的两大劣势正好撞上手机的核心需求。所以 Unity URP、Unreal Mobile、Godot Mobile 全是 Forward。"
+    data-wrong="不是性能问题，是<strong>架构不匹配</strong>。Deferred 的 G-Buffer 要存多通道高分辨率纹理，手机内存根本不够。而且手机特效（UI/粒子/水面）全是透明，Deferred 处理透明要退化到 Forward，优势全没了。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 手游项目的渲染管线选型怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"选 Forward+（Unity URP）。原因：手机平台灯少（主平行光+2-4 盏点光）、透明特效多（技能/UI/水面）、内存宝贵（G-Buffer 存不下）。Forward+ 的分块灯剔除让我们在关键场景（主城/副本）也能放 20-30 盏装饰灯。Godot 项目用 Mobile 渲染器——Forward+ 的手机优化版，特性精简但性能最好。Compatibility 只在 Web 版用。不考虑 Deferred：G-Buffer 内存太大，透明处理复杂，手机平台的优势（灯多稳定）我们用不上——我们的灯本来就少。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了平台约束分析（灯少/透明多/内存小）、Forward+ 分块优势、Godot Mobile/Compatibility 分工、Deferred 排除理由。这就是完整的管线选型思路。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/rendering/index.html">Godot — Rendering</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 渲染器官方文档</span></li>
+    <li><a href="https://docs.unity3d.com/Manual/render-pipelines.html">Unity — Render Pipelines</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Unity 渲染管线对比</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："Forward+ 的分块大小怎么定？""Deferred 的 G-Buffer 具体存哪些通道？""Clustered 和 Forward+ 的区别？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 23 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

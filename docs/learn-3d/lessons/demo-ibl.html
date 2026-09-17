@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IBL 演示：哑光 vs 金属的环境反应</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.95); padding: 12px;
+    border-top: 1px solid #30363d;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 16px; border: 1px solid #30363d; border-radius: 8px;
+    background: #161b27; color: #c9d1d9; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>IBL 演示</strong>：上排金属 / 下排哑光，粗糙度从左到右递增<br>
+  看同一张环境图，不同材质的反射差异
+</div>
+<div id="controls">
+  <button class="btn active" id="envOn">环境光：开</button>
+  <button class="btn" id="bgToggle">背景：环境图</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// ==================== 渲染器和主场景 ====================
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1117);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2, 7.5);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.2, 0);
+
+// ==================== 程序生成"天空环境" ====================
+// 用一个独立场景模拟 360° 环境：蓝天 + 太阳 + 暖色地面
+function createSkyScene() {
+  const skyScene = new THREE.Scene();
+  
+  // 天空球：渐变贴图（上蓝下暖）
+  const cv = document.createElement('canvas');
+  cv.width = 512; cv.height = 256;
+  const ctx = cv.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, '#4a90d9');    // 天顶：深蓝
+  grad.addColorStop(0.45, '#87ceeb'); // 中天：浅蓝
+  grad.addColorStop(0.55, '#e8d5a3'); // 地平线：暖白
+  grad.addColorStop(0.65, '#9a7b4f'); // 地面交界：棕
+  grad.addColorStop(1, '#5a4632');    // 正下方：深棕
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 256);
+  
+  const skyTex = new THREE.CanvasTexture(cv);
+  skyTex.mapping = THREE.EquirectangularReflectionMapping;
+  
+  const skyGeo = new THREE.SphereGeometry(50, 32, 32);
+  const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide });
+  skyScene.add(new THREE.Mesh(skyGeo, skyMat));
+  
+  // 太阳：超亮球体（HDR 效果）
+  const sunGeo = new THREE.SphereGeometry(3, 16, 16);
+  const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  sunMat.color.multiplyScalar(20);  // 亮度放大 20 倍 → HDR
+  const sun = new THREE.Mesh(sunGeo, sunMat);
+  sun.position.set(20, 18, -30);
+  skyScene.add(sun);
+  
+  // 几个彩色"云团/建筑"，让反射有内容可看
+  const blobColors = [0xff6b6b, 0x4ecdc4, 0xffd93d];
+  blobColors.forEach((c, i) => {
+    const blob = new THREE.Mesh(
+      new THREE.BoxGeometry(6, 8, 1),
+      new THREE.MeshBasicMaterial({ color: c })
+    );
+    blob.material.color.multiplyScalar(2);
+    const angle = (i / blobColors.length) * Math.PI * 2 + 0.5;
+    blob.position.set(Math.cos(angle) * 35, 8, Math.sin(angle) * 35);
+    blob.lookAt(0, 8, 0);
+    skyScene.add(blob);
+  });
+  
+  return skyScene;
+}
+
+// ==================== PMREM 预滤波生成环境贴图 ====================
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+
+const skyScene = createSkyScene();
+const envMap = pmrem.fromScene(skyScene, 0.04).texture;
+
+// 默认开启环境光
+scene.environment = envMap;
+
+// 背景也显示天空（可切换）
+const bgCanvas = document.createElement('canvas');
+bgCanvas.width = 512; bgCanvas.height = 256;
+const bgCtx = bgCanvas.getContext('2d');
+const bgGrad = bgCtx.createLinearGradient(0, 0, 0, 256);
+bgGrad.addColorStop(0, '#4a90d9');
+bgGrad.addColorStop(0.5, '#87ceeb');
+bgGrad.addColorStop(0.62, '#e8d5a3');
+bgGrad.addColorStop(1, '#5a4632');
+bgCtx.fillStyle = bgGrad;
+bgCtx.fillRect(0, 0, 512, 256);
+const bgTex = new THREE.CanvasTexture(bgCanvas);
+bgTex.mapping = THREE.EquirectangularReflectionMapping;
+bgTex.colorSpace = THREE.SRGBColorSpace;
+
+let bgMode = 'env';  // env | dark
+scene.background = bgTex;
+
+// ==================== 球阵：金属 × 哑光，粗糙度递增 ====================
+const sphereGeo = new THREE.SphereGeometry(0.55, 48, 48);
+const roughnessLevels = [0.05, 0.3, 0.6, 1.0];
+const roughLabels = ['镜面', '低粗糙', '高粗糙', '全哑光'];
+
+// 上排：金属（metalness = 1）
+roughnessLevels.forEach((rough, i) => {
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 1.0,
+    roughness: rough,
+  });
+  const ball = new THREE.Mesh(sphereGeo, mat);
+  ball.position.set((i - 1.5) * 1.5, 2.2, 0);
+  scene.add(ball);
+});
+
+// 下排：非金属（metalness = 0）
+roughnessLevels.forEach((rough, i) => {
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xff6b6b,
+    metalness: 0.0,
+    roughness: rough,
+  });
+  const ball = new THREE.Mesh(sphereGeo, mat);
+  ball.position.set((i - 1.5) * 1.5, 0.6, 0);
+  scene.add(ball);
+});
+
+// ==================== 标签 ====================
+function makeLabel(text, x, y, z, color = '#58a6ff') {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 64;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = color;
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 128, 42);
+  const tex = new THREE.CanvasTexture(cv);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+  sprite.position.set(x, y, z);
+  sprite.scale.set(2.2, 0.55, 1);
+  scene.add(sprite);
+}
+
+makeLabel('金属（Specular IBL）', 0, 3.4, 0, '#ffd93d');
+makeLabel('非金属（Diffuse IBL）', 0, -0.5, 0, '#ff6b6b');
+roughnessLevels.forEach((r, i) => {
+  makeLabel(roughLabels[i], (i - 1.5) * 1.5, 1.35, 0, '#8b949e');
+});
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+let envOn = true;
+
+$('envOn').addEventListener('click', () => {
+  envOn = !envOn;
+  scene.environment = envOn ? envMap : null;
+  $('envOn').textContent = envOn ? '环境光：开' : '环境光：关';
+  $('envOn').classList.toggle('active', envOn);
+});
+
+$('bgToggle').addEventListener('click', () => {
+  bgMode = bgMode === 'env' ? 'dark' : 'env';
+  scene.background = bgMode === 'env' ? bgTex : new THREE.Color(0x0d1117);
+  $('bgToggle').textContent = bgMode === 'env' ? '背景：环境图' : '背景：暗色';
+  $('bgToggle').classList.toggle('active', bgMode === 'env');
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

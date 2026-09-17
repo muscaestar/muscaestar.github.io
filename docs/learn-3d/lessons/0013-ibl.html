@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>013 — 环境光照：用一张图照亮整个场景</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.ibl-part { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; margin: 0.7rem 0; }
+.ibl-part .name { font-weight: 700; color: var(--accent); }
+.ibl-part .en { font-weight: 400; font-size: 0.8rem; color: var(--text-dim); margin-left: 0.4rem; }
+.ibl-part .what { font-size: 0.88rem; margin: 0.3rem 0; }
+.ibl-part .how { font-size: 0.8rem; color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0012-post-processing.html">← 上一课</a>
+  <span>第 13 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">013</span>环境光照：用一张图照亮整个场景</h1>
+
+<p>前面学过的光照都是"灯"——方向光、点光、聚光。但真实世界里，物体还被<strong>整个环境</strong>照亮：蓝天的散射光、地面反射的光、墙壁的反弹光。这节课讲怎么把"整个环境"打包成一张图来照明——<strong>IBL（Image-Based Lighting）</strong>。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">环境光照 <span class="en">Image-Based Lighting (IBL)</span></div>
+  <p>用一张 360° 全景图（记录环境里各个方向的光）作为光源。物体表面的每个点，根据自己的朝向去全景图上取对应方向的光。效果：物体"融入"环境，而不是悬浮在虚空里。</p>
+</div>
+
+<div class="concept">
+  <div class="term">HDRI <span class="en">High Dynamic Range Image</span></div>
+  <p>高动态范围全景图。普通照片亮度 0~1，HDRI 可以到 0~10000（太阳真实亮度）。常用的 .hdr / .exr 格式。免费资源站：Poly Haven。</p>
+</div>
+
+<div class="concept">
+  <div class="term">反射探针 <span class="en">Reflection Probe</span></div>
+  <p>在场景某个位置拍一张 360°"照片"，附近的物体用它来做反射和环境光。室内多房间场景每个房间放一个，比全局一张图更准确。</p>
+</div>
+
+<h2>为什么需要 IBL</h2>
+
+<pre>没有 IBL 的场景：
+  方向光 + 环境光（单色）
+  → 物体被"主光"照亮，背光面是均匀的死色
+  → 金属球反射的是虚空（黑色或纯色）
+  → 物体看起来"贴"在场景上，不真实
+
+有 IBL 的场景：
+  360° 全景图提供各方向的光
+  → 朝上的面被蓝天照亮（淡蓝）
+  → 朝下的面被地面反射照亮（暖色）
+  → 金属球反射出真实的环境（天空、建筑）
+  → 物体"长"在环境里</pre>
+
+<div class="tip">
+  <strong>直觉</strong>：你站在户外，头顶的天是蓝的，所以你的头顶被蓝光照亮；脚下的地是绿的，所以你的下巴被绿光微微照亮。IBL 就是模拟这种"四面八方都有光"的效果。
+</div>
+
+<h2>IBL 的两个部分</h2>
+
+<div class="ibl-part">
+  <div class="name">漫反射环境光 <span class="en">Diffuse IBL / Irradiance</span></div>
+  <div class="what">环境对哑光表面的照明。把全景图"糊化"（预积分），每个方向的光是周围一片区域的平均。哑光物体只关心"这个方向大概多亮"。</div>
+  <div class="how">→ 实现：全景图预滤波成极低分辨率（ irradiance map），哑光材质查一次就完事</div>
+</div>
+
+<div class="ibl-part">
+  <div class="name">镜面反射 <span class="en">Specular IBL / Reflection</span></div>
+  <div class="what">环境在光滑表面的反射。不是糊的，是清晰的镜像——金属球能照出周围的景物。粗糙度越高，反射越糊。</div>
+  <div class="how">→ 实现：全景图预滤波成多级 mipmap（不同模糊度），根据粗糙度选对应级别</div>
+</div>
+
+<pre>同一个全景图，两种用法：
+
+  哑光球 → 查 irradiance map（糊） → 均匀的环境色
+  金属球 → 查 mipmap 反射（清晰） → 映出天空和建筑
+  半粗糙球 → 查中间级 mipmap → 模糊的反射</pre>
+
+<h2>IBL vs 传统光照</h2>
+
+<table>
+  <tr><th></th><th>传统光照（灯）</th><th>IBL（环境图）</th></tr>
+  <tr><td><strong>光源</strong></td><td>几个点/方向</td><td>整个 360° 环境</td></tr>
+  <tr><td><strong>反射</strong></td><td>只有高光点</td><td>反射出真实景物</td></tr>
+  <tr><td><strong>设置成本</strong></td><td>调多盏灯</td><td>丢一张图</td></tr>
+  <tr><td><strong>真实感</strong></td><td>物体"悬浮"</td><td>物体"融入"环境</td></tr>
+  <tr><td><strong>性能</strong></td><td>每盏灯都计算</td><td>预滤波，查表就行</td></tr>
+</table>
+
+<div class="tip">
+  <strong>实战搭配</strong>：IBL 管"环境基础光"（物体融入场景），方向光管"主光造型"（阴影、明暗对比）。两者结合是现代 PBR 渲染的标配——几乎所有 3D 展示网站（Sketchfab）都这么做。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+// 1. 加载 HDRI
+const hdr = await new RGBELoader().loadAsync('studio.hdr');
+
+// 2. 预滤波（PMREM：预计算 mipmap 反射）
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envMap = pmrem.fromEquirectangular(hdr).texture;
+
+// 3. 设为场景环境
+scene.environment = envMap;   // 所有 PBR 材质自动获得 IBL
+scene.background = envMap;    // 可选：背景也显示全景图
+
+// 完事。MeshStandardMaterial 自动使用：
+// - 哑光部分 → irradiance
+// - 金属/光滑部分 → 反射</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：WorldEnvironment → Environment
+# 拖入全景图就行
+
+environment.background_mode = Environment.BG_SKY
+environment.sky = Sky.new()
+environment.sky.sky_material = PanoramaSkyMaterial.new()
+environment.sky.sky_material.panorama = load("res://sky.hdr")
+
+# 环境光自动生效
+environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+
+# 反射探针（室内局部反射）：ReflectionProbe 节点
+# 摆到房间里，附近的物体用它做反射</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">IBL 相比"方向光 + 单色环境光"的最大优势是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">IBL 渲染速度更快</button>
+    <button class="opt" data-correct="true">物体各方向获得来自真实环境的光照和反射，看起来融入场景而不是悬浮</button>
+    <button class="opt" data-correct="false">IBL 可以产生更清晰的阴影</button>
+    <button class="opt" data-correct="false">IBL 支持更多灯光数量</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！IBL 的核心价值是"融入感"——朝上的面被天空照亮、朝下的面被地面反射照亮、金属反射出真实景物。单色环境光只能给一个均匀的死色。"
+    data-wrong="IBL 的优势不是速度或阴影，是<strong>真实的环境包裹感</strong>。全景图记录 360° 各方向的光，物体每个朝向都被"正确的"光照亮，金属还能反射出环境景物。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">同一个环境全景图，哑光球和金属球的查询方式有什么区别？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">没有区别，查同一张图同一个位置</button>
+    <button class="opt" data-correct="false">哑光球不查环境图，金属球才查</button>
+    <button class="opt" data-correct="true">哑光球查糊化的 irradiance（环境平均色），金属球查清晰的 mipmap 反射（映出景物）</button>
+    <button class="opt" data-correct="false">哑光球查高清图，金属球查模糊图</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！这就是 Diffuse IBL vs Specular IBL。哑光表面把周围一片光平均化（irradiance），光滑表面按粗糙度选 mipmap 级别——越光滑反射越清晰。"
+    data-wrong="哑光 = <strong>irradiance</strong>（全景图预糊化，取平均环境色）；光滑 = <strong>mipmap 反射</strong>（按粗糙度选模糊级别，镜面用清晰级）。同一张全景图预滤波成两套数据。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">室内多房间场景，为什么要在每个房间放反射探针（Reflection Probe），而不是全局共用一张环境图？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">反射探针渲染速度更快</button>
+    <button class="opt" data-correct="true">每个房间的反射内容不同——客厅应反射客厅，浴室应反射浴室，全局一张图会反射错误的景物</button>
+    <button class="opt" data-correct="false">引擎强制要求每房间一个</button>
+    <button class="opt" data-correct="false">反射探针可以增加灯光数量</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！反射是"位置相关"的——浴室镜子里的像是浴室，不是客厅。反射探针在自己的位置拍 360° 照片，附近物体用它反射，内容才正确。"
+    data-wrong="反射内容是<strong>位置相关</strong>的。全局一张图意味着浴室也反射客厅的景象，穿帮。反射探针在各房间本地拍摄，物体反射出自己所在房间的环境。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个产品展示场景（手表特写），怎么描述光照需求？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"光照用 IBL + 主光。环境用一张摄影棚 HDRI（softbox 灯光），提供基础照明和金属表壳的反射——表壳要能映出柔和的长条灯影，这是高端手表广告的标志性反射。然后加一盏聚光灯做主光，从左上 45° 打下来，产生明确的阴影和表盘高光。背景用纯色（不是 HDRI 背景），突出产品。ACES 色调映射，曝光 1.1。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 IBL、HDRI、反射内容控制、主光造型、背景分离、色调映射。这就是专业产品渲染的描述方式。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://polyhaven.com/hdris">Poly Haven — 免费 HDRI 库</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">CC0 高质量 HDRI，可直接商用</span></li>
+    <li><a href="https://threejs.org/manual/#en/backgrounds-and-environment-maps">Three.js — Backgrounds and Environment Maps</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 环境贴图官方教程</span></li>
+    <li><a href="https://learnopengl.com/PBR/IBL/Diffuse-irradiance">LearnOpenGL — IBL</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">IBL 原理深度讲解（含数学）</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："HDRI 怎么自己拍？""立方体贴图（Cubemap）和全景图什么关系？""预滤波具体怎么算？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 13 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>
