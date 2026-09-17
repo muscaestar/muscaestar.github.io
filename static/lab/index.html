@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实验室 · Musca's Blog</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    overflow: hidden;
+  }
+  /* 背景漂浮的光斑 */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: .35;
+    animation: float 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .b1 { width: 40vmin; height: 40vmin; background: #7d2ae8; top: -10vmin; left: -10vmin; }
+  .b2 { width: 35vmin; height: 35vmin; background: #0969da; bottom: -8vmin; right: -6vmin; animation-delay: -4s; }
+  .b3 { width: 25vmin; height: 25vmin; background: #d03801; top: 55%; left: 60%; animation-delay: -8s; }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(6vmin, -4vmin) scale(1.15); }
+    66% { transform: translate(-5vmin, 5vmin) scale(.9); }
+  }
+  main { position: relative; text-align: center; padding: 2rem; }
+  .badge {
+    display: inline-block;
+    font-size: .8rem;
+    letter-spacing: .25em;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: .35em 1.1em .35em 1.35em;
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(90deg, #a371f7, #58a6ff, #f778ba);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 6s linear infinite;
+  }
+  @keyframes shine { to { background-position: 200% 0; } }
+  p.sub { margin-top: 1rem; color: #8b949e; font-size: .95rem; }
+  .links { margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  a.btn {
+    text-decoration: none;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    background: rgba(33, 38, 45, .6);
+    backdrop-filter: blur(6px);
+    padding: .7em 1.4em;
+    border-radius: 10px;
+    font-size: .9rem;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  a.btn:hover { transform: translateY(-2px); border-color: #58a6ff; }
+  #clock { margin-top: 3rem; font-variant-numeric: tabular-nums; color: #6e7681; font-size: .8rem; }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <main>
+    <span class="badge">LAB · 实验室</span>
+    <h1>独立页面部署测试</h1>
+    <p class="sub">这个页面不走 issue 工作流 —— 它是 <code>static/lab/</code> 下的静态 HTML，随每次构建原样部署。</p>
+    <div class="links">
+      <a class="btn" href="/">← 回博客首页</a>
+      <a class="btn" href="/tag.html">文章标签</a>
+    </div>
+    <div id="clock"></div>
+  </main>
+<script>
+  const el = document.getElementById('clock');
+  function tick() {
+    el.textContent = '部署存活确认 · 当前时间 ' + new Date().toLocaleString('zh-CN', { hour12: false });
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
