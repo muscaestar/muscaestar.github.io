@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>001 — 场景图：3D 世界的骨架</title>
+<style>
+/* 3D 学习工作区 — 共享样式表
+   为手机小屏优化，深色主题，Tufte 风格的简洁排版 */
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b27;
+  --bg-code: #0a0e14;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #3fb950;
+  --accent3: #d29922;
+  --border: #30363d;
+  --red: #f85149;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 1.2rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 标题 --- */
+h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 2rem 0 0.6rem;
+}
+h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.4rem 0 0.4rem;
+}
+p { margin: 0.5rem 0; }
+
+/* --- 导航 --- */
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+}
+.lesson-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+
+/* --- 概念卡片 --- */
+.concept {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+}
+.concept .term {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.concept .term .en {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-left: 0.5rem;
+}
+.concept p { font-size: 0.92rem; }
+
+/* --- 代码块 --- */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0.8rem 0;
+  font-family: "SF Mono", Menlo, monospace;
+  -webkit-overflow-scrolling: touch;
+}
+code {
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(88,166,255,.12);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre code { background: none; padding: 0; }
+
+/* --- 测验 --- */
+.quiz {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+.quiz .q-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+.quiz .q-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.7rem;
+}
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct {
+  border-color: var(--accent2);
+  background: rgba(63,185,80,.12);
+  color: var(--accent2);
+}
+.quiz .opt.wrong {
+  border-color: var(--red);
+  background: rgba(248,81,73,.12);
+  color: var(--red);
+}
+.quiz .feedback {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: none;
+}
+.quiz .feedback.show { display: block; }
+
+/* --- 互动演示 --- */
+.demo-frame {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.demo-frame iframe {
+  width: 100%;
+  height: 280px;
+  border: none;
+  display: block;
+}
+.demo-caption {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 0.5rem 0.8rem;
+  background: var(--bg-card);
+}
+
+/* --- 对照表 --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+th, td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+td { color: var(--text); }
+
+/* --- 提示框 --- */
+.tip {
+  background: rgba(88,166,255,.08);
+  border: 1px solid rgba(88,166,255,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.tip::before {
+  content: "💡 ";
+}
+.tip strong { color: var(--accent); }
+
+.warn {
+  background: rgba(210,153,34,.08);
+  border: 1px solid rgba(210,153,34,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.warn::before {
+  content: "⚠️ ";
+}
+.warn strong { color: var(--accent3); }
+
+/* --- 资源链接 --- */
+.resources {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.resources h3 { margin-top: 0; }
+.resources ul {
+  list-style: none;
+  padding: 0;
+}
+.resources li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+
+/* --- 底部 --- */
+.lesson-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./index.html">📋 目录</a>
+  <span>第 1 课</span>
+  <a href="./0002-transform.html">下一课 →</a>
+</div>
+
+<h1><span class="num">001</span>场景图：3D 世界的骨架</h1>
+
+<p>你在旋转地球 demo 中已经写过 <code>scene.add(earth)</code>、<code>earthGroup.add(clouds)</code>。这节课讲清楚：<strong>为什么是这样组织的？</strong></p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">场景 <span class="en">Scene</span></div>
+  <p>3D 世界的容器。所有可见的物体、光照、相机都生活在场景里。想象一个摄影棚：场景就是那个棚子。</p>
+</div>
+
+<div class="concept">
+  <div class="term">场景图 <span class="en">Scene Graph</span></div>
+  <p>场景内部的组织方式——一棵<strong>树状结构</strong>。每个物体（节点）可以有子节点，子节点跟随父节点移动、旋转、缩放。就像人体：手是手臂的子节点，手臂一动，手跟着动。</p>
+</div>
+
+<div class="concept">
+  <div class="term">节点 <span class="en">Node / Object3D</span></div>
+  <p>场景图中的每一个成员。Three.js 里叫 <code>Object3D</code>，Godot 里叫 <code>Node3D</code>。Mesh、Light、Camera、Group 都是节点。</p>
+</div>
+
+<div class="concept">
+  <div class="term">层级关系 <span class="en">Hierarchy / Parent-Child</span></div>
+  <p>节点之间的父子关系。<strong>子节点继承父节点的变换</strong>——父节点移动，所有子孙跟着动。这是组织复杂场景的核心机制。</p>
+</div>
+
+<h2>你已经用过的场景图</h2>
+
+<p>回顾旋转地球的代码结构：</p>
+
+<pre>Scene
+├── Points (星空)
+├── AmbientLight
+├── DirectionalLight (主光)
+├── DirectionalLight (补光)
+├── earthGroup (Group)
+│   ├── earth (Mesh — 地球本体)
+│   └── clouds (Mesh — 云层)
+└── glow (Mesh — 大气辉光)</pre>
+
+<p>注意 <code>earthGroup</code>：地球和云层是它的子节点。当你写 <code>earthGroup.rotation.y += dt * speed</code> 时，<strong>地球和云层一起转</strong>——这就是层级继承。</p>
+
+<div class="tip">
+  <strong>Godot 对照</strong>：Godot 的场景树（Scene Tree）和 Three.js 的场景图是同一个概念。Godot 的 <code>Node3D</code> 对应 Three.js 的 <code>Object3D</code>，<code>Node3D.add_child()</code> 对应 <code>object.add()</code>。
+</div>
+
+<h2>为什么需要 Group？</h2>
+
+<p>Group 是一个"空"节点——它本身不可见，但可以把多个物体组织在一起。在地球 demo 里：</p>
+
+<pre>// 不用 Group：要分别旋转两个物体
+earth.rotation.y += dt * speed;
+clouds.rotation.y += dt * speed * 0.35;
+
+// 用 Group：转父节点就行，子节点自动跟随
+earthGroup.rotation.y += dt * speed;
+clouds.rotation.y += dt * speed * 0.35; // 额外独立漂移</pre>
+
+<p>云层在 Group 内还有自己的旋转（比地球慢一点），这就是<strong>局部变换叠加在父级变换之上</strong>的效果。</p>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">在 Godot 中，你想让一个角色（CharacterBody3D）手里拿一把剑。剑应该是角色的什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">角色的子节点（Child Node）</button>
+    <button class="opt" data-correct="false">场景的根节点（Root Node）</button>
+    <button class="opt" data-correct="false">相机的子节点（Camera Child）</button>
+    <button class="opt" data-correct="false">独立节点，每帧手动同步</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！剑作为角色的子节点，角色移动/旋转时剑自动跟随。这就是场景图层级关系的典型应用。"
+    data-wrong="剑应该是角色的子节点。这样角色移动时剑自动跟随，不需要每帧手动同步位置。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Three.js 的 <code>Group</code> 在 Godot 中最接近什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">Node3D — 纯组织用的空节点</button>
+    <button class="opt" data-correct="false">MeshInstance3D — 可见的网格</button>
+    <button class="opt" data-correct="false">WorldEnvironment — 环境设置</button>
+    <button class="opt" data-correct="false">PackedScene — 预制场景</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Godot 的 Node3D 就是一个纯变换节点，本身不可见，用来组织子节点，和 Three.js 的 Group 完全对应。"
+    data-wrong="Group 本身不可见，只用于组织子节点。Godot 中的 Node3D 就是这样的空节点。"
+  >
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<p>试着用今天学的术语描述这个场景（先自己想，再展开对照）：</p>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 我想做一个太阳系模型，怎么说？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"场景里有一个 Group 作为太阳系的中心，太阳 Mesh 是它的子节点。地球 Group 也是它的子节点，地球 Mesh 和月球 Mesh 是地球 Group 的子节点。太阳 Group 自转带动所有行星公转，地球 Group 自转带动月球绕地球转。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你刚才用场景图描述了一个完整的层级结构，这就是将来指挥 agent 的方式。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/scenegraph">Three.js Fundamentals — Scene Graph</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方场景图教程，有太阳系示例（和上面练习完全对应）</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/scripting/scene_tree.html">Godot — Scene Tree</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 场景树文档，对照理解</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>：任何不清楚的概念，直接问 agent——它就是你的老师。"Group 和 Node3D 有什么区别？""为什么子节点会跟随父节点？" 都可以问。
+</div>
+
+<div class="lesson-footer">
+  <p>第 1 课 / 3D 图形概念入门 · <a href="../reference/scene-graph.html" style="color: var(--accent);">📖 场景图参考卡</a></p>
+</div>
+
+<script>
+/* 测验组件 — 点击选项即时反馈 + 选项随机排序 */
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+
+    // Fisher-Yates 洗牌，随机打乱选项顺序
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    // 重新插入 DOM
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+
+        // 标记正确答案
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initQuizzes);
+
+</script>
+</body>
+</html>

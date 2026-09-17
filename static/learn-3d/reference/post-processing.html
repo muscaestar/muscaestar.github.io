@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后处理速查卡</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 1rem; max-width: 42rem; margin: 0 auto; font-size: 0.9rem;
+}
+h1 { font-size: 1.2rem; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin: 0.6rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.1em 0.3em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.back { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>✨ 后处理速查卡</h1>
+
+<h2>原理</h2>
+
+<pre>场景 → Render Target 纹理
+     → pass 1（Bloom）
+     → pass 2（色调映射）
+     → pass 3（暗角）
+     → 屏幕
+
+每个 pass = 一次全屏 shader</pre>
+
+<h2>效果清单</h2>
+
+<table>
+  <tr><th>效果</th><th>作用</th><th>成本</th><th>手机</th></tr>
+  <tr><td><strong>Bloom</strong></td><td>亮部光晕</td><td>中</td><td>✅ 低分辨率做</td></tr>
+  <tr><td><strong>色调映射</strong></td><td>HDR→LDR</td><td>极低</td><td>✅ 必用</td></tr>
+  <tr><td><strong>暗角</strong></td><td>四角变暗</td><td>极低</td><td>✅ 随便用</td></tr>
+  <tr><td><strong>色差</strong></td><td>RGB 错位</td><td>低</td><td>✅ 可用</td></tr>
+  <tr><td><strong>颜色分级</strong></td><td>LUT 调色</td><td>低</td><td>✅ 可用</td></tr>
+  <tr><td><strong>SSAO</strong></td><td>缝隙变暗</td><td>高</td><td>⚠️ 用烘焙 AO 替代</td></tr>
+  <tr><td><strong>景深</strong></td><td>焦点外模糊</td><td>高</td><td>⚠️ 只过场用</td></tr>
+  <tr><td><strong>运动模糊</strong></td><td>拖影</td><td>中高</td><td>❌ 一般不用</td></tr>
+</table>
+
+<h2>Bloom 三参数</h2>
+
+<table>
+  <tr><th>参数</th><th>作用</th><th>调大效果</th></tr>
+  <tr><td>threshold</td><td>多亮才发光</td><td>更少东西发光</td></tr>
+  <tr><td>strength</td><td>光晕强度</td><td>光更亮更溢</td></tr>
+  <tr><td>radius</td><td>光晕扩散范围</td><td>光晕更大更糊</td></tr>
+</table>
+
+<h2>色调映射曲线</h2>
+
+<table>
+  <tr><th>曲线</th><th>特点</th><th>场景</th></tr>
+  <tr><td><strong>ACES</strong></td><td>电影工业标准，色彩好</td><td>默认选择</td></tr>
+  <tr><td>Reinhard</td><td>简单，亮部压缩狠</td><td>简单场景</td></tr>
+  <tr><td>AgX</td><td>新版，暗部更好</td><td>Blender 默认</td></tr>
+</table>
+
+<h2>Three.js</h2>
+
+<pre>const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(res, 0.5, 0.4, 0.85));
+composer.render();  // 替代 renderer.render()
+
+renderer.toneMapping = THREE.ACESFilmicToneMapping;</pre>
+
+<h2>Godot</h2>
+
+<pre># WorldEnvironment → Environment 资源
+glow_enabled = true           # Bloom
+tonemap_mode = TONE_MAPPER_ACES
+ssao_enabled = true
+adjustment_enabled = true     # 颜色分级</pre>
+
+<div class="back">
+  <a href="../lessons/0012-post-processing.html">← 返回第 12 课</a> | 
+  <a href="../lessons/index.html">📚 课程目录</a>
+</div>
+
+</body>
+</html>

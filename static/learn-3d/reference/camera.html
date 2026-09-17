@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 相机速查</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>📖 相机速查卡</h1>
+
+<h2>相机类型</h2>
+
+<table>
+  <tr><th>类型</th><th>特点</th><th>用途</th></tr>
+  <tr><td><strong>透视 Perspective</strong></td><td>近大远小，有深度感</td><td>大部分 3D 游戏</td></tr>
+  <tr><td><strong>正交 Orthographic</strong></td><td>远近一样大，无透视</td><td>2.5D、等轴测、UI</td></tr>
+</table>
+
+<h2>FOV 参考</h2>
+
+<table>
+  <tr><th>FOV</th><th>效果</th><th>场景</th></tr>
+  <tr><td>20-35°</td><td>望远镜，压缩空间</td><td>狙击镜、特写</td></tr>
+  <tr><td>45-60°</td><td>接近人眼，自然</td><td>RPG、探索</td></tr>
+  <tr><td>70-90°</td><td>宽视野，速度感</td><td>FPS、竞速</td></tr>
+  <tr><td>100°+</td><td>鱼眼变形</td><td>VR、特效</td></tr>
+</table>
+
+<h2>常用参数</h2>
+
+<pre>// Three.js
+new THREE.PerspectiveCamera(fov, aspect, near, far)
+// 推荐: fov=50, near=0.1, far=场景大小
+// far/near 比值 < 10000（防 z-fighting）
+
+// Godot
+Camera3D.fov = 50.0
+Camera3D.near = 0.1
+Camera3D.far = 500.0</pre>
+
+<h2>视角模式</h2>
+
+<table>
+  <tr><th>模式</th><th>FOV</th><th>相机位置</th></tr>
+  <tr><td>第一人称</td><td>70-90°</td><td>角色头部 (y+1.6)</td></tr>
+  <tr><td>第三人称</td><td>50-60°</td><td>角色后上方 (y+2, z-4)</td></tr>
+  <tr><td>俯视/RTS</td><td>30-45°</td><td>高空向下</td></tr>
+  <tr><td>等轴测</td><td>正交</td><td>固定 45° 角</td></tr>
+</table>
+
+<h2>常见问题</h2>
+
+<table>
+  <tr><th>问题</th><th>原因</th><th>解决</th></tr>
+  <tr><td>近处物体消失</td><td>near 太大</td><td>near 改 0.1</td></tr>
+  <tr><td>远处物体消失</td><td>far 太小</td><td>增大 far</td></tr>
+  <tr><td>面闪烁 z-fighting</td><td>far/near 比值太大</td><td>增大 near 或减小 far</td></tr>
+  <tr><td>画面变形</td><td>FOV 太大</td><td>FOV 降到 60-90°</td></tr>
+</table>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0006-camera.html">← 返回第 6 课</a></p>
+</div>
+
+</body>
+</html>

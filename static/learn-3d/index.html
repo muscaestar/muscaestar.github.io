@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 图形概念入门 — 课程目录</title>
+<style>
+/* 3D 学习工作区 — 共享样式表
+   为手机小屏优化，深色主题，Tufte 风格的简洁排版 */
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b27;
+  --bg-code: #0a0e14;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent2: #3fb950;
+  --accent3: #d29922;
+  --border: #30363d;
+  --red: #f85149;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 1.2rem 1rem 3rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 标题 --- */
+h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin: 2rem 0 0.6rem;
+}
+h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.4rem 0 0.4rem;
+}
+p { margin: 0.5rem 0; }
+
+/* --- 导航 --- */
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+}
+.lesson-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+
+/* --- 概念卡片 --- */
+.concept {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+}
+.concept .term {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.concept .term .en {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-left: 0.5rem;
+}
+.concept p { font-size: 0.92rem; }
+
+/* --- 代码块 --- */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0.8rem 0;
+  font-family: "SF Mono", Menlo, monospace;
+  -webkit-overflow-scrolling: touch;
+}
+code {
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(88,166,255,.12);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre code { background: none; padding: 0; }
+
+/* --- 测验 --- */
+.quiz {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+.quiz .q-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+.quiz .q-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.7rem;
+}
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct {
+  border-color: var(--accent2);
+  background: rgba(63,185,80,.12);
+  color: var(--accent2);
+}
+.quiz .opt.wrong {
+  border-color: var(--red);
+  background: rgba(248,81,73,.12);
+  color: var(--red);
+}
+.quiz .feedback {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: none;
+}
+.quiz .feedback.show { display: block; }
+
+/* --- 互动演示 --- */
+.demo-frame {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.demo-frame iframe {
+  width: 100%;
+  height: 280px;
+  border: none;
+  display: block;
+}
+.demo-caption {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 0.5rem 0.8rem;
+  background: var(--bg-card);
+}
+
+/* --- 对照表 --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+th, td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+td { color: var(--text); }
+
+/* --- 提示框 --- */
+.tip {
+  background: rgba(88,166,255,.08);
+  border: 1px solid rgba(88,166,255,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.tip::before {
+  content: "💡 ";
+}
+.tip strong { color: var(--accent); }
+
+.warn {
+  background: rgba(210,153,34,.08);
+  border: 1px solid rgba(210,153,34,.2);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.warn::before {
+  content: "⚠️ ";
+}
+.warn strong { color: var(--accent3); }
+
+/* --- 资源链接 --- */
+.resources {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.resources h3 { margin-top: 0; }
+.resources ul {
+  list-style: none;
+  padding: 0;
+}
+.resources li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+
+/* --- 底部 --- */
+.lesson-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+</style>
+<style>
+  .lesson-list { list-style: none; padding: 0; }
+  .lesson-list li { margin: 0.6rem 0; }
+  .lesson-list a {
+    display: block;
+    padding: 1rem 1.2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .lesson-list a:active { border-color: var(--accent); }
+  .lesson-list .lesson-num {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 0.6rem;
+  }
+  .lesson-list .lesson-title { font-weight: 600; color: #e6edf3; }
+  .lesson-list .lesson-desc {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+  }
+  .done-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    background: rgba(63,185,80,.15);
+    color: var(--accent2);
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+  }
+
+  .lesson-soon {
+    display: block;
+    padding: 1rem 1.2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    opacity: 0.45;
+  }
+  .lesson-soon .lesson-num { color: var(--text-dim); font-weight: 700; margin-right: 0.6rem; }
+  .lesson-soon .lesson-title { font-weight: 600; color: var(--text); }
+  .lesson-soon .lesson-desc { display: block; font-size: 0.82rem; color: var(--text-dim); margin-top: 0.3rem; }
+  .soon-badge {
+    display: inline-block; font-size: 0.72rem;
+    background: rgba(139,148,158,.15); color: var(--text-dim);
+    padding: 0.1rem 0.5rem; border-radius: 10px; margin-left: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎓 3D 图形概念课</h1>
+
+<p style="color: var(--text-dim); font-size: 0.88rem;">目标：掌握 3D 图形概念，为口头指挥 agent 做 Godot 游戏打基础。入门 8 课已完成，进阶 4 大模块进行中。</p>
+
+<h2>入门课程（已完成）</h2>
+
+<ul class="lesson-list">
+  <li>
+    <a href="./0001-scene-graph.html">
+      <span class="lesson-num">001</span>
+      <span class="lesson-title">场景图：3D 世界的骨架</span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">Scene / Object3D / Group / 层级关系 — 万物皆节点</span>
+    </a>
+  </li>
+  <li>
+    <a href="./0002-transform.html">
+      <span class="lesson-num">002</span>
+      <span class="lesson-title">变换：位置、旋转、缩放</span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">Position / Rotation / Scale / 局部坐标 vs 世界坐标</span>
+    </a>
+  </li>
+  <li>
+    <a href="./0003-mesh.html">
+      <span class="lesson-num">003</span>
+      <span class="lesson-title">网格：3D 物体的形状</span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">Geometry / Mesh / 顶点、面、法线 / 内置几何体</span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">004</span>
+      <span class="lesson-title">材质：物体的表面</span>
+      
+      <span class="lesson-desc">Material / PBR / 颜色、金属度、粗糙度 / 贴图通道</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">005</span>
+      <span class="lesson-title">光照：让场景活起来</span>
+      
+      <span class="lesson-desc">点光 / 平行光 / 环境光 / 阴影</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">006</span>
+      <span class="lesson-title">相机：观察世界的眼睛</span>
+      
+      <span class="lesson-desc">透视 vs 正交 / FOV / 视锥 / 第一人称 vs 第三人称</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">007</span>
+      <span class="lesson-title">纹理与 UV：给物体穿皮肤</span>
+      <span class="lesson-desc">Texture / UV 映射 / 颜色贴图、法线贴图、金属粗糙度贴图</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">008</span>
+      <span class="lesson-title">动画：让一切动起来</span>
+      <span class="lesson-desc">帧动画 / 关键帧 / 补间 / 骨骼动画基础</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+</ul>
+
+<h2>参考文档</h2>
+
+<ul class="lesson-list">
+  <li>
+    <a href="../reference/scene-graph.html">
+      <span class="lesson-num">📖</span>
+      <span class="lesson-title">场景图速查卡</span>
+      <span class="lesson-desc">Three.js ↔ Godot 对照表、常见模式</span>
+    </a>
+  </li>
+</ul>
+
+<h2>进阶课程 · 模块一：渲染进阶</h2>
+
+<ul class="lesson-list">
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">009</span>
+      <span class="lesson-title">描边（Outline）</span>
+      
+      <span class="lesson-desc">Inverted Hull / 后处理 / 粗细控制 — 三渲二的轮廓 · <a href="./demo-outline.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">010</span>
+      <span class="lesson-title">色阶（Cel Shading）</span>
+      
+      <span class="lesson-desc">离散光照 / 色阶级数 / 过渡硬度 — 三渲二的明暗 · <a href="./demo-cel-shading.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">011</span>
+      <span class="lesson-title">完整三渲二</span>
+      
+      <span class="lesson-desc">描边+色阶+材质简化 — 实战配方 · <a href="./demo-toon-lab.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">012</span>
+      <span class="lesson-title">后处理（Post-processing）</span>
+      
+      <span class="lesson-desc">Bloom / 色调映射 / 暗角 — 画面最后的润色 · <a href="./demo-post-processing.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">013</span>
+      <span class="lesson-title">环境光照（IBL）</span>
+      
+      <span class="lesson-desc">HDRI / 反射探针 — 用一张图照亮整个场景 · <a href="./demo-ibl.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+    </a>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">014</span>
+      <span class="lesson-title">阴影进阶</span>
+      
+      <span class="lesson-desc">级联阴影 / 软硬阴影 / bias 调参 — 大场景的阴影方案</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+</ul>
+
+<h2>进阶课程 · 模块二：几何与模型</h2>
+
+<ul class="lesson-list">
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">015</span>
+      <span class="lesson-title">LOD（细节层次）</span>
+      
+      <span class="lesson-desc">距离简化 / 交叉淡化 / 通用 LOD 思想 — 远处的东西不用那么精细</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">016</span>
+      <span class="lesson-title">遮挡剔除</span>
+      
+      <span class="lesson-desc">三层剔除体系 / 房间-门户 / PVS — 看不见的就不渲染</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">017</span>
+      <span class="lesson-title">程序化生成</span>
+      
+      <span class="lesson-desc">噪声函数 / fBm 分形 / 种子 — 用算法种出世界</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">018</span>
+      <span class="lesson-title">网格变形</span>
+      
+      <span class="lesson-desc">Morph target / 顶点动画 — 表情、口型、草摇摆</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+</ul>
+
+<h2>进阶课程 · 模块三：特效与氛围</h2>
+
+<ul class="lesson-list">
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">019</span>
+      <span class="lesson-title">粒子系统</span>
+      
+      <span class="lesson-desc">发射器 / 生命周期曲线 / 分层叠加 — 火、烟、魔法</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">020</span>
+      <span class="lesson-title">体积效果</span>
+      
+      <span class="lesson-desc">距离雾 / 体积光 / 体积云 — 分层近似方案</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">021</span>
+      <span class="lesson-title">屏幕空间效果</span>
+      
+      <span class="lesson-desc">SSAO / SSR / 折射 — 用屏幕信息造假</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">022</span>
+      <span class="lesson-title">风格化特效</span>
+      
+      <span class="lesson-desc">卡通水 / 速度线 / 像素化 — 表现力优先</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+</ul>
+
+<h2>进阶课程 · 模块四：管线与优化</h2>
+
+<ul class="lesson-list">
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">023</span>
+      <span class="lesson-title">渲染管线</span>
+      
+      <span class="lesson-desc">Forward vs Deferred / Forward+ — 光照在哪一步算</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">024</span>
+      <span class="lesson-title">批处理与实例化</span>
+      
+      <span class="lesson-desc">Draw Call / GPU 实例化 — 一万棵草怎么画</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">025</span>
+      <span class="lesson-title">纹理流送</span>
+      
+      <span class="lesson-desc">Mipmap / 纹理压缩 / 流送策略 — 4K 贴图怎么装进手机</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+  <li>
+    <div class="lesson-soon">
+      <span class="lesson-num">026</span>
+      <span class="lesson-title">总结与工具箱</span>
+      
+      <span class="lesson-desc">技术地图完整版 + 性能预算 + 风格化方向</span>
+    <span class="soon-badge">待上线</span></div>
+  </li>
+</ul>
+
+<div class="lesson-footer">
+  <p>教学工作区 · 3D 图形概念入门</p>
+</div>
+
+</body>
+</html>

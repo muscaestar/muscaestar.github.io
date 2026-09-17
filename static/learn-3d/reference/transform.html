@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 变换速查</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>📖 变换速查卡</h1>
+
+<h2>三大属性</h2>
+
+<table>
+  <tr><th>属性</th><th>作用</th><th>示例</th></tr>
+  <tr><td><code>position</code></td><td>位置 (x, y, z)</td><td><code>(0, 1.5, -3)</code></td></tr>
+  <tr><td><code>rotation</code></td><td>旋转（弧度）</td><td><code>(0, π/4, 0)</code></td></tr>
+  <tr><td><code>scale</code></td><td>缩放倍数</td><td><code>(2, 2, 2)</code></td></tr>
+</table>
+
+<h2>坐标系（右手）</h2>
+
+<table>
+  <tr><th>轴</th><th>方向</th><th>常见用途</th></tr>
+  <tr><td><strong>X</strong></td><td>→ 右</td><td>左右移动</td></tr>
+  <tr><td><strong>Y</strong></td><td>↑ 上</td><td>高度、跳跃</td></tr>
+  <tr><td><strong>Z</strong></td><td>⊙ 朝观察者</td><td>前后移动</td></tr>
+</table>
+
+<h2>弧度 ↔ 角度</h2>
+
+<pre>90°  = π/2   ≈ 1.5708
+180° = π     ≈ 3.1416
+270° = 3π/2  ≈ 4.7124
+360° = 2π    ≈ 6.2832
+
+// Three.js
+THREE.MathUtils.degToRad(90)  // → 1.5708
+THREE.MathUtils.radToDeg(1.5708) // → 90
+
+// Godot
+deg_to_rad(90)   // → 1.5708
+rad_to_deg(1.5708) // → 90</pre>
+
+<h2>局部 vs 世界</h2>
+
+<pre>// Three.js
+obj.position          // 局部坐标（相对父节点）
+obj.getWorldPosition(v) // 世界坐标（写入 v）
+
+// Godot
+obj.position           // 局部坐标
+obj.global_position    // 世界坐标</pre>
+
+<h2>Three.js ↔ Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th></tr>
+  <tr><td><code>obj.position.set(x,y,z)</code></td><td><code>obj.position = Vector3(x,y,z)</code></td></tr>
+  <tr><td><code>obj.rotation.x = rad</code></td><td><code>obj.rotation.x = rad</code></td></tr>
+  <tr><td><code>obj.scale.set(s,s,s)</code></td><td><code>obj.scale = Vector3(s,s,s)</code></td></tr>
+  <tr><td><code>obj.getWorldPosition(v)</code></td><td><code>obj.global_position</code></td></tr>
+  <tr><td><code>obj.translateX(d)</code></td><td><code>obj.translate_object_local(v)</code></td></tr>
+  <tr><td><code>obj.lookAt(target)</code></td><td><code>obj.look_at(target)</code></td></tr>
+</table>
+
+<h2>常用旋转值</h2>
+
+<table>
+  <tr><th>效果</th><th>Three.js / Godot</th></tr>
+  <tr><td>绕 Y 轴转 45°</td><td><code>rotation.y = PI / 4</code></td></tr>
+  <tr><td>绕 X 轴翻转</td><td><code>rotation.x = PI</code></td></tr>
+  <tr><td>绕 Z 轴倾斜 23.4°</td><td><code>rotation.z = deg_to_rad(23.4)</code></td></tr>
+</table>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0002-transform.html">← 返回第 2 课</a></p>
+</div>
+
+</body>
+</html>

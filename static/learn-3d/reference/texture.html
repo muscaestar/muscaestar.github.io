@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 纹理速查</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>📖 纹理速查卡</h1>
+
+<h2>贴图通道对照</h2>
+
+<table>
+  <tr><th>通道</th><th>Three.js</th><th>Godot</th><th>作用</th></tr>
+  <tr><td>颜色</td><td><code>map</code></td><td><code>albedo_texture</code></td><td>表面颜色</td></tr>
+  <tr><td>法线</td><td><code>normalMap</code></td><td><code>normal_texture</code></td><td>模拟凹凸</td></tr>
+  <tr><td>粗糙度</td><td><code>roughnessMap</code></td><td><code>roughness_texture</code></td><td>控制光滑度</td></tr>
+  <tr><td>金属度</td><td><code>metalnessMap</code></td><td><code>metallic_texture</code></td><td>控制金属感</td></tr>
+  <tr><td>AO</td><td><code>aoMap</code></td><td><code>ao_texture</code></td><td>缝隙阴影</td></tr>
+  <tr><td>自发光</td><td><code>emissiveMap</code></td><td><code>emission_texture</code></td><td>发光区域</td></tr>
+</table>
+
+<h2>UV 坐标</h2>
+
+<pre>(0,0) = 纹理左下角
+(1,1) = 纹理右上角
+范围: 0.0 ~ 1.0（归一化）
+
+超出 0~1 时由包裹模式决定：
+  RepeatWrapping  → 平铺重复
+  ClampToEdge     → 边缘拉伸
+  MirroredRepeat  → 镜像平铺</pre>
+
+<h2>法线贴图原理</h2>
+
+<pre>RGB = 法线 XYZ 方向
+R = X（左右）  G = Y（上下）  B = Z（朝向）
+平坦表面 (0,0,1) → RGB(0.5,0.5,1.0) = 蓝紫色</pre>
+
+<h2>纹理尺寸参考</h2>
+
+<table>
+  <tr><th>尺寸</th><th>显存</th><th>适用</th></tr>
+  <tr><td>256²</td><td>0.25 MB</td><td>小物件</td></tr>
+  <tr><td>512²</td><td>1 MB</td><td>一般场景</td></tr>
+  <tr><td>1024²</td><td>4 MB</td><td>主角/近景</td></tr>
+  <tr><td>2048²</td><td>16 MB</td><td>高清特写</td></tr>
+</table>
+
+<p>手机端建议：单张 ≤ 1024，总量 ≤ 50MB</p>
+
+<h2>纹理重复</h2>
+
+<pre>// Three.js
+tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+tex.repeat.set(4, 4);  // 4x4 平铺
+
+// Godot
+# 材质 → UV1 → Scale 设 (4, 4)</pre>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0007-texture.html">← 返回第 7 课</a></p>
+</div>
+
+</body>
+</html>

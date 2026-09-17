@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>描边速查卡</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 1rem; max-width: 42rem; margin: 0 auto; font-size: 0.9rem;
+}
+h1 { font-size: 1.2rem; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin: 0.6rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.1em 0.3em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.back { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>🖊️ 描边速查卡</h1>
+
+<h2>两种方式</h2>
+
+<table>
+  <tr><th>方式</th><th>原理</th><th>适用</th></tr>
+  <tr><td><strong>Inverted Hull</strong></td><td>复制 mesh，顶点外扩，渲染背面</td><td>三渲二角色、卡通风格</td></tr>
+  <tr><td><strong>后处理</strong></td><td>深度/法线图 + 边缘检测</td><td>写实+风格化混合</td></tr>
+</table>
+
+<h2>Inverted Hull 步骤</h2>
+
+<pre>1. 复制几何体
+2. 顶点外扩（沿法线）
+3. 材质：纯黑 + 不受光照 + 只渲染背面
+4. 先渲染描边，再渲染正常模型</pre>
+
+<h2>关键参数</h2>
+
+<table>
+  <tr><th>参数</th><th>作用</th><th>推荐值</th></tr>
+  <tr><td><code>outline_width</code></td><td>描边粗细</td><td>0.01 ~ 0.03（模型单位）</td></tr>
+  <tr><td><code>scale</code></td><td>简单外扩比例</td><td>1.01 ~ 1.05</td></tr>
+  <tr><td><code>cull_mode</code></td><td>面剔除</td><td>Front（只渲染背面）</td></tr>
+  <tr><td><code>shading_mode</code></td><td>光照</td><td>Unshaded（不受光照）</td></tr>
+</table>
+
+<h2>Three.js 代码</h2>
+
+<pre>// 描边材质
+const outlineMat = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  side: THREE.BackSide,  // 只渲染背面
+});
+
+// 描边 mesh（整体放大近似）
+const outline = new THREE.Mesh(geometry.clone(), outlineMat);
+outline.scale.multiplyScalar(1.02);
+scene.add(outline);</pre>
+
+<h2>Godot 代码</h2>
+
+<pre># Next Pass 材质
+outline.albedo_color = Color.BLACK
+outline.cull_mode = BaseMaterial3D.CULL_FRONT
+outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED</pre>
+
+<h2>常见问题</h2>
+
+<table>
+  <tr><th>问题</th><th>解决</th></tr>
+  <tr><td>描边粗细不均</td><td>用顶点着色器沿法线外扩，不要整体 scale</td></tr>
+  <tr><td>远处描边太细</td><td>屏幕空间等宽（根据相机距离调整）</td></tr>
+  <tr><td>透明物体描边错乱</td><td>描边 pass 放在透明 pass 之前</td></tr>
+</table>
+
+<div class="back">
+  <a href="../lessons/0009-outline.html">← 返回第 9 课</a> | 
+  <a href="../lessons/index.html">📚 课程目录</a>
+</div>
+
+</body>
+</html>

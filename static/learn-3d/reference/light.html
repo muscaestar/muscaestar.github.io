@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 光照速查</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>📖 光照速查卡</h1>
+
+<h2>四种光源</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>特点</th><th>类比</th></tr>
+  <tr><td>AmbientLight</td><td>WorldEnvironment</td><td>均匀无方向，无阴影</td><td>阴天</td></tr>
+  <tr><td>DirectionalLight</td><td>DirectionalLight3D</td><td>平行光线，有方向有阴影</td><td>太阳</td></tr>
+  <tr><td>PointLight</td><td>OmniLight3D</td><td>点向四周发光，有衰减</td><td>灯泡</td></tr>
+  <tr><td>SpotLight</td><td>SpotLight3D</td><td>锥形光束，角度可调</td><td>手电筒</td></tr>
+</table>
+
+<h2>三点照明配方</h2>
+
+<table>
+  <tr><th>灯位</th><th>强度</th><th>位置</th><th>作用</th></tr>
+  <tr><td>主光 Key</td><td>最强 (1.0-2.0)</td><td>右上 45°</td><td>主要明暗和阴影</td></tr>
+  <tr><td>补光 Fill</td><td>弱 (0.3-0.8)</td><td>左前 45°</td><td>柔化阴影防死黑</td></tr>
+  <tr><td>轮廓 Rim</td><td>中 (0.8-1.5)</td><td>正后方</td><td>勾勒边缘</td></tr>
+</table>
+
+<h2>色温参考</h2>
+
+<table>
+  <tr><th>场景</th><th>颜色</th><th>色值</th></tr>
+  <tr><td>夕阳/壁炉</td><td>暖橙</td><td><code>0xff8844</code></td></tr>
+  <tr><td>白炽灯</td><td>暖黄</td><td><code>0xffdd88</code></td></tr>
+  <tr><td>正午阳光</td><td>白</td><td><code>0xffffff</code></td></tr>
+  <tr><td>阴天</td><td>灰蓝</td><td><code>0xaabbcc</code></td></tr>
+  <tr><td>科幻/太空</td><td>蓝白</td><td><code>0x88ccff</code></td></tr>
+  <tr><td>夜景/恐怖</td><td>深蓝</td><td><code>0x334466</code></td></tr>
+</table>
+
+<h2>阴影设置</h2>
+
+<pre>// Three.js
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+light.castShadow = true;
+mesh.castShadow = true;
+mesh.receiveShadow = true;
+
+// Godot
+light.shadow_enabled = true
+# 物体默认接收阴影</pre>
+
+<h2>点光源参数</h2>
+
+<pre>// Three.js
+new THREE.PointLight(color, intensity, distance, decay)
+// distance: 照射范围（0=无限）
+// decay: 衰减率（物理正确=2）
+
+// Godot OmniLight3D
+light.omni_range = 5.0      # 照射范围
+light.omni_attenuation = 2.0 # 衰减率</pre>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0005-light.html">← 返回第 5 课</a></p>
+</div>
+
+</body>
+</html>

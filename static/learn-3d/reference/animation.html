@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动画速查卡</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 1rem; max-width: 42rem; margin: 0 auto; font-size: 0.9rem;
+}
+h1 { font-size: 1.2rem; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin: 0.6rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.1em 0.3em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.back { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>🎬 动画速查卡</h1>
+
+<h2>三种动画方式</h2>
+
+<table>
+  <tr><th>方式</th><th>适用</th><th>性能</th></tr>
+  <tr><td><strong>关键帧</strong></td><td>简单机械运动</td><td>便宜</td></tr>
+  <tr><td><strong>补间 (Tween)</strong></td><td>UI、镜头、简单物体</td><td>便宜</td></tr>
+  <tr><td><strong>骨骼动画</strong></td><td>角色、生物</td><td>中等（骨骼数量决定）</td></tr>
+</table>
+
+<h2>缓动曲线</h2>
+
+<table>
+  <tr><th>曲线</th><th>感觉</th><th>适用</th></tr>
+  <tr><td><code>Linear</code></td><td>匀速</td><td>机械运动</td></tr>
+  <tr><td><code>Ease In</code></td><td>先慢后快</td><td>物体启动</td></tr>
+  <tr><td><code>Ease Out</code></td><td>先快后慢</td><td>UI 弹入</td></tr>
+  <tr><td><code>Ease InOut</code></td><td>两头慢</td><td>相机移动</td></tr>
+  <tr><td><code>Bounce</code></td><td>弹跳</td><td>掉落、按钮</td></tr>
+  <tr><td><code>Elastic</code></td><td>橡皮筋</td><td>弹性 UI</td></tr>
+</table>
+
+<h2>动画状态机</h2>
+
+<pre>状态切换 + 动画混合（Crossfade）
+  
+  idle ←→ walk ←→ run
+    ↑       ↑
+    ↓       ↓
+   jump   attack
+
+过渡时间：0.2s（避免硬切）</pre>
+
+<h2>骨骼动画核心</h2>
+
+<pre>顶点权重：
+  膝盖顶点 = 大腿骨 50% + 小腿骨 50%
+  
+  → 弯曲时平滑变形，不撕裂</pre>
+
+<h2>Godot 节点</h2>
+
+<table>
+  <tr><th>节点</th><th>用途</th></tr>
+  <tr><td><code>AnimationPlayer</code></td><td>关键帧动画</td></tr>
+  <tr><td><code>AnimationTree</code></td><td>状态机 + 混合</td></tr>
+  <tr><td><code>Tween</code></td><td>补间动画</td></tr>
+  <tr><td><code>Skeleton3D</code></td><td>骨骼系统</td></tr>
+</table>
+
+<h2>Three.js 动画</h2>
+
+<pre>// 程序动画
+mesh.rotation.y += speed * delta;
+
+// GSAP 补间
+gsap.to(mesh.position, {x: 5, duration: 2, ease: "bounce.out"});
+
+// 骨骼动画
+const mixer = new THREE.AnimationMixer(mesh);
+const action = mixer.clipAction(animations[0]);
+action.play();</pre>
+
+<div class="back">
+  <a href="../lessons/0008-animation.html">← 返回第 8 课</a> | 
+  <a href="../lessons/index.html">📚 课程目录</a>
+</div>
+
+</body>
+</html>

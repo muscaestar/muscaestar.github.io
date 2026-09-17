@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>色阶速查卡</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 1rem; max-width: 42rem; margin: 0 auto; font-size: 0.9rem;
+}
+h1 { font-size: 1.2rem; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin: 0.6rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.1em 0.3em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.back { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.back a { color: var(--accent); text-decoration: none; }
+.cel-demo { display: flex; gap: 0.3rem; margin: 0.5rem 0; }
+.cel-demo .step { flex: 1; height: 30px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>🎨 色阶速查卡</h1>
+
+<h2>核心公式</h2>
+
+<pre>// 色阶离散化
+float cel = floor(intensity * levels) / levels;
+
+// 3 级色阶结果：
+// intensity 0.0~0.33 → cel = 0.0
+// intensity 0.33~0.66 → cel ≈ 0.33
+// intensity 0.66~1.0 → cel ≈ 0.66
+// intensity = 1.0 → cel = 1.0</pre>
+
+<h2>级数选择</h2>
+
+<table>
+  <tr><th>级数</th><th>风格</th><th>适用</th></tr>
+  <tr><td><strong>2 级</strong></td><td>极简海报</td><td>Logo、图标</td></tr>
+  <tr><td><strong>3 级</strong></td><td>经典动漫</td><td>大多数三渲二</td></tr>
+  <tr><td><strong>4 级</strong></td><td>细腻动漫</td><td>角色特写</td></tr>
+  <tr><td><strong>5 级</strong></td><td>半写实</td><td>风格化但保留细节</td></tr>
+</table>
+
+<h2>过渡硬度</h2>
+
+<table>
+  <tr><th>类型</th><th>公式</th><th>风格</th></tr>
+  <tr><td><strong>硬切</strong></td><td><code>floor(x * n) / n</code></td><td>经典赛璐璐</td></tr>
+  <tr><td><strong>软过渡</strong></td><td><code>mix + smoothstep</code></td><td>现代动漫</td></tr>
+</table>
+
+<h2>阴影色选择</h2>
+
+<table>
+  <tr><th>颜色</th><th>氛围</th><th>例子</th></tr>
+  <tr><td>纯黑</td><td>经典强烈</td><td>老式漫画</td></tr>
+  <tr><td>深蓝/紫</td><td>夜晚神秘</td><td>《幽灵公主》</td></tr>
+  <tr><td>深棕/暖色</td><td>黄昏温暖</td><td>《千与千寻》</td></tr>
+  <tr><td>互补色</td><td>艺术风格化</td><td>《蜘蛛侠：平行宇宙》</td></tr>
+</table>
+
+<h2>Godot 快速设置</h2>
+
+<pre># StandardMaterial3D
+shading_mode = SHADING_MODE_CEL
+cel_levels = 3
+cel_threshold = 0.5
+
+# 或 Shader
+render_mode diffuse_toon, specular_toon;</pre>
+
+<h2>Three.js 核心代码</h2>
+
+<pre>float intensity = max(dot(normal, lightDir), 0.0);
+float cel = floor(intensity * levels) / levels;
+vec3 color = mix(shadowColor, albedo, cel);</pre>
+
+<div class="back">
+  <a href="../lessons/0010-cel-shading.html">← 返回第 10 课</a> | 
+  <a href="../lessons/index.html">📚 课程目录</a>
+</div>
+
+</body>
+</html>

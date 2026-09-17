@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考 — 网格速查</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --border: #30363d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>📖 网格速查卡</h1>
+
+<h2>核心公式</h2>
+<p><strong>Mesh = Geometry（形状）+ Material（外观）</strong></p>
+
+<h2>基本组成</h2>
+
+<table>
+  <tr><th>术语</th><th>说明</th></tr>
+  <tr><td><strong>Vertex</strong></td><td>顶点，3D 空间中的一个点 (x,y,z)</td></tr>
+  <tr><td><strong>Triangle / Face</strong></td><td>3 个顶点连成的面，GPU 渲染的基本单位</td></tr>
+  <tr><td><strong>Normal</strong></td><td>法线，顶点/面的朝向，决定光照效果</td></tr>
+  <tr><td><strong>Segments</strong></td><td>分段数，控制几何体精度和圆滑度</td></tr>
+</table>
+
+<h2>内置几何体</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>形状</th><th>用途</th></tr>
+  <tr><td>SphereGeometry</td><td>SphereMesh</td><td>球体</td><td>星球、球</td></tr>
+  <tr><td>BoxGeometry</td><td>BoxMesh</td><td>立方体</td><td>建筑、方块</td></tr>
+  <tr><td>CylinderGeometry</td><td>CylinderMesh</td><td>圆柱</td><td>柱子、树干</td></tr>
+  <tr><td>ConeGeometry</td><td>ConeMesh（用 CylinderMesh 顶半径=0）</td><td>圆锥</td><td>屋顶、山</td></tr>
+  <tr><td>TorusGeometry</td><td>TorusMesh</td><td>圆环</td><td>甜甜圈、戒指</td></tr>
+  <tr><td>PlaneGeometry</td><td>PlaneMesh</td><td>平面</td><td>地面、墙</td></tr>
+</table>
+
+<h2>分段数与精度</h2>
+
+<table>
+  <tr><th>分段</th><th>顶点数</th><th>效果</th><th>场景</th></tr>
+  <tr><td>8</td><td>~100</td><td>低多边形</td><td>远景、风格化</td></tr>
+  <tr><td>32</td><td>~2000</td><td>较圆滑</td><td>一般场景</td></tr>
+  <tr><td>64</td><td>~8000</td><td>很圆滑</td><td>近景特写</td></tr>
+</table>
+
+<h2>模型文件格式</h2>
+
+<table>
+  <tr><th>格式</th><th>推荐度</th><th>说明</th></tr>
+  <tr><td><strong>GLTF/GLB</strong></td><td>⭐⭐⭐</td><td>现代标准，Three.js 和 Godot 都推荐</td></tr>
+  <tr><td>OBJ</td><td>⭐⭐</td><td>简单但老，无动画</td></tr>
+  <tr><td>FBX</td><td>⭐</td><td>Autodesk 格式，需转换</td></tr>
+</table>
+
+<h2>Three.js ↔ Godot</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th></tr>
+  <tr><td><code>Mesh</code></td><td><code>MeshInstance3D</code></td></tr>
+  <tr><td><code>Geometry</code></td><td>mesh 资源（SphereMesh 等）</td></tr>
+  <tr><td><code>GLTFLoader</code></td><td>直接拖 .glb 到场景树</td></tr>
+  <tr><td><code>wireframe: true</code></td><td>材质设 wireframe 模式</td></tr>
+</table>
+
+<div class="lesson-footer">
+  <p><a href="../lessons/0003-mesh.html">← 返回第 3 课</a></p>
+</div>
+
+</body>
+</html>
