@@ -190,7 +190,16 @@ function loadGLB(url, pos, scale = 1, rotY = 0) {
       obj.position.set(...pos);
       obj.scale.setScalar(scale);
       obj.rotation.y = rotY;
-      obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+      obj.traverse(c => { 
+        if (c.isMesh) { 
+          c.castShadow = true; 
+          c.receiveShadow = true;
+          if (c.material?.map && !c.material.map.colorSpace) {
+            c.material.map.colorSpace = THREE.SRGBColorSpace;
+            c.material.needsUpdate = true;
+          }
+        } 
+      });
       scene.add(obj);
       loaded.push(url.split('/').pop());
       tick(url.split('/').pop());
@@ -214,7 +223,16 @@ function loadPlayer() {
     loader.load('./models/character-archer.glb', g => {
       player = g.scene;
       player.position.set(1.5, 0, 0.5);
-      player.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+      player.traverse(c => { 
+        if (c.isMesh) { 
+          c.castShadow = true; 
+          c.receiveShadow = true;
+          if (c.material?.map && !c.material.map.colorSpace) {
+            c.material.map.colorSpace = THREE.SRGBColorSpace;
+            c.material.needsUpdate = true;
+          }
+        } 
+      });
       scene.add(player);
       tick('character-archer.glb (主角)');
       // 动画
