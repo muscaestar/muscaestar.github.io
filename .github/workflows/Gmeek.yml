@@ -73,6 +73,7 @@ jobs:
             --root-dir ${{ github.workspace }}/docs
             --exclude-all-private
             --exclude 'https?://.*'
+            --exclude 'file://.*'
             './docs/**/*.html'
           fail: true
           format: markdown
