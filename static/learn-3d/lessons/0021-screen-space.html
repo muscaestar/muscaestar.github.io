@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>021 — 屏幕空间效果：用屏幕信息造假</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0020-volumetric.html">← 上一课</a>
+  <span>第 21 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">021</span>屏幕空间效果：用屏幕信息造假</h1>
+
+<p>墙角比墙中间暗一点、水面反射天空、地面积水倒映霓虹灯——这些效果的真实模拟都太贵。但有个取巧的思路：<strong>只利用"屏幕上已经画出来的信息"去近似</strong>，这就是屏幕空间（Screen Space）系列技术。</p>
+
+<h2>核心思想</h2>
+
+<div class="concept">
+  <div class="term">屏幕空间 <span class="en">Screen Space</span></div>
+  <p>不重新渲染场景，只用当前帧的图像（颜色/深度/法线）做后处理。优势：一次 pass 全屏生效，性能可控。局限：屏幕外的信息看不到——水面反射不了背后的物体，AO 不知道墙后面是什么。</p>
+</div>
+
+<h2>SSAO：屏幕空间环境光遮蔽</h2>
+
+<p>第 7 课学过 AO 贴图——美术离线烘焙好的遮蔽。SSAO 是实时版：用屏幕深度+法线信息，估算每个像素"被周围几何遮挡的程度"。</p>
+
+<pre>// SSAO 原理（简化）
+// 对每个像素，从相机出发看它周围的半球
+// 采样若干点，查深度图：这些点被挡住的比例 = 遮蔽值
+float ssao(vec2 uv) {
+  float occlusion = 0;
+  for (int i = 0; i < samples; i++) {
+    vec3 samplePos = 像素位置 + 半球随机方向[i] * radius;
+    float depth = texture(depthMap, 投影到屏幕(samplePos)).r;
+    if (samplePos.z > depth) occlusion += 1.0;  // 被挡住
+  }
+  return 1.0 - occlusion / samples;  // 1=无遮蔽，0=全遮蔽
+}</pre>
+
+<table>
+  <tr><th>变体</th><th>特点</th><th>性能</th></tr>
+  <tr><td><strong>SSAO</strong></td><td>经典版，Crytek 2007 首创</td><td>中</td></tr>
+  <tr><td><strong>HBAO</strong></td><td>NVIDIA 改进版，更准，考虑法线方向</td><td>中高</td></tr>
+  <tr><td><strong>GTAO</strong></td><td>Intel 版，基于地平线角度，质量最高</td><td>高</td></tr>
+  <tr><td><strong>SSAO+（半分辨率）</strong></td><td>降采样+上采样，手机常用</td><td>低</td></tr>
+</table>
+
+<div class="tip">
+  <strong>AO 是"假得很有用"</strong>：真实的间接光照太贵，AO 用"遮蔽程度"近似——墙角、缝隙、褶皱自然变暗，画面立刻有了立体感和层次。这就是为什么 2010 年后的游戏几乎都有 SSAO。
+</div>
+
+<h2>SSR：屏幕空间反射</h2>
+
+<p>湿地面倒映霓虹、水面反射天空、大理石地面映出柱子——SSR 用屏幕上的图像做反射：</p>
+
+<pre>// SSR 原理
+// 从像素位置沿反射方向在屏幕空间步进
+// 找到与几何体的交点，取那一点的颜色作为反射色
+vec3 ssr(vec2 uv, vec3 normal, vec3 viewDir) {
+  vec3 reflectDir = reflect(-viewDir, normal);
+  for (float t = 0; t < maxDist; t += step) {
+    vec3 p = 像素位置 + reflectDir * t;
+    vec2 screenUV = 投影到屏幕(p);
+    float depth = texture(depthMap, screenUV).r;
+    if (p.z < depth) {  // 击中几何
+      return texture(colorMap, screenUV).rgb;
+    }
+  }
+  return 天空色;  // 没击中，反射天空
+}</pre>
+
+<table>
+  <tr><th>优点</th><th>局限</th></tr>
+  <tr><td>实时反射，不用预烘焙</td><td><strong>屏幕外的物体反射不了</strong>——相机背后的物体消失</td></tr>
+  <tr><td>一次 pass 全屏生效</td><td>边缘截断——反射到屏幕边缘就断了</td></tr>
+  <tr><td>适合平面（地面/水面/镜子）</td><td>凹凸表面反射会扭曲</td></tr>
+</table>
+
+<div class="warn">
+  <strong>SSR 的经典穿帮</strong>：角色站在水边，水里反射出角色的腿——但角色上半身超出屏幕顶部，水里的倒影到腰部就断了。解决：SSR + 立方体贴图反射探针兜底，或只用 SSR 做近景反射。
+</div>
+
+<h2>屏幕空间折射</h2>
+
+<p>水面、玻璃、热浪扭曲——折射让光线穿过透明物体时偏折：</p>
+
+<pre>// 折射原理：法线扰动 UV
+vec2 refractUV = uv + normal.xy * strength;
+vec3 color = texture(sceneColor, refractUV).rgb;
+// 屏幕图像被法线"扭"了一下，看起来光线弯了</pre>
+
+<p>这就是水面 shader 的核心——不需要真模拟光路，只需要"扭 UV"就能做出波光粼粼。</p>
+
+<h2>屏幕空间阴影</h2>
+
+<p>阴影贴图管不到的细节（自阴影、细小物体阴影），屏幕空间补：</p>
+
+<pre>// 屏幕空间阴影：沿光线方向在屏幕空间步进
+// 查深度图，看这条视线上有没有遮挡
+float screenSpaceShadow(vec2 uv, vec3 lightDir) {
+  for (float t = 0; t < maxDist; t += step) {
+    vec3 p = 像素位置 + lightDir * t;
+    float depth = texture(depthMap, 投影到屏幕(p)).r;
+    if (p.z > depth) return 0.3;  // 在阴影里
+  }
+  return 1.0;  // 被照亮
+}</pre>
+
+<h2>三大屏幕空间效果对比</h2>
+
+<table>
+  <tr><th></th><th>SSAO</th><th>SSR</th><th>折射</th></tr>
+  <tr><td><strong>效果</strong></td><td>角落缝隙变暗</td><td>水面地面反射</td><td>光线弯曲（水/玻璃）</td></tr>
+  <tr><td><strong>输入</strong></td><td>深度+法线</td><td>深度+颜色+法线</td><td>颜色+法线</td></tr>
+  <tr><td><strong>原理</strong></td><td>半球采样查遮挡</td><td>反射方向步进</td><td>法线扰动 UV</td></tr>
+  <tr><td><strong>性能</strong></td><td>中</td><td>中高</td><td>低</td></tr>
+  <tr><td><strong>手机</strong></td><td>半分辨率可用</td><td>谨慎（只给水面）</td><td>便宜，常用</td></tr>
+  <tr><td><strong>穿帮</strong></td><td>远处浮起、边缘光晕</td><td>屏幕外物体消失</td><td>扭曲不真实</td></tr>
+</table>
+
+<h2>为什么"屏幕空间"是性价比之王</h2>
+
+<table>
+  <tr><th>对比</th><th>屏幕空间</th><th>物理精确</th></tr>
+  <tr><td><strong>AO</strong></td><td>SSAO 实时算</td><td>光线追踪 GI（贵几个数量级）</td></tr>
+  <tr><td><strong>反射</strong></td><td>SSR 步进查深度</td><td>光线追踪反射 / 平面反射（再渲染一遍）</td></tr>
+  <tr><td><strong>折射</strong></td><td>UV 扰动</td><td>真实光路模拟</td></tr>
+  <tr><td><strong>成本</strong></td><td>一次后处理 pass</td><td>重新渲染整个场景</td></tr>
+</table>
+
+<div class="tip">
+  <strong>屏幕空间的哲学：80% 效果，20% 成本</strong>。穿帮？玩家不细看就不会注意。这就是为什么从 Crysis 到原神，屏幕空间技术是实时渲染的支柱。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+import { SSRPass } from 'three/addons/postprocessing/SSRPass.js';
+
+// SSAO
+const ssaoPass = new SSAOPass(scene, camera, width, height);
+ssaoPass.kernelRadius = 8;
+composer.addPass(ssaoPass);
+
+// SSR（水面/地面）
+const ssrPass = new SSRPass({ renderer, scene, camera, width, height });
+ssrPass.opacity = 0.5;
+composer.addPass(ssrPass);</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：WorldEnvironment 节点
+extends WorldEnvironment
+
+func _ready():
+    var env = Environment.new()
+    
+    # SSAO
+    env.ssao_enabled = true
+    env.ssao_radius = 1.0
+    env.ssao_intensity = 2.0
+    
+    # SSR
+    env.ssr_enabled = true
+    env.ssr_max_steps = 64
+    env.ssr_fade_in = 0.15
+    env.ssr_fade_out = 2.0
+    
+    environment = env
+
+# 折射：材质开 refraction
+# material.set("refraction/enabled", true)
+# material.set("refraction/scale", 0.05)</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">屏幕空间技术（SSAO/SSR/折射）的共同优势是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">效果比物理精确模拟更好</button>
+    <button class="opt" data-correct="true">只用当前帧的屏幕信息做后处理，一次 pass 全屏生效，性能可控</button>
+    <button class="opt" data-correct="false">可以处理屏幕外的物体</button>
+    <button class="opt" data-correct="false">不需要 GPU 支持</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！屏幕空间的核心优势：不重渲染场景，只用已有图像信息近似。一次后处理 pass 全屏生效，性能完全可控（调采样数就行）。代价：屏幕外信息丢失。"
+    data-wrong="想想实现原理：不重渲染场景，只用当前帧的颜色/深度/法线图做后处理。这就是为什么 SSAO 能在手机上跑而光线追踪 GI 不能——一次 pass vs 重新渲染整个场景，成本差几个数量级。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">SSR 水面反射的经典穿帮是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">屏幕外的物体反射不了——角色上半身超出屏幕，水里倒影到腰部就断了</button>
+    <button class="opt" data-correct="false">反射颜色不对</button>
+    <button class="opt" data-correct="false">水面不动</button>
+    <button class="opt" data-correct="false">反射分辨率太低</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！SSR 只能用屏幕上已有的像素做反射——屏幕外的物体根本没有像素可用。这是屏幕空间的根本局限。解决：SSR + 立方体贴图反射探针兜底。"
+    data-wrong="关键在<strong>屏幕空间</strong>这四个字：只用当前帧屏幕上的图像。角色上半身在屏幕外，屏幕上没有它的像素，水里自然反射不出来。这是所有屏幕空间技术的通病。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么水面 shader 常用折射（法线扰动 UV）而不是真实光路模拟？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">真实光路模拟无法实现</button>
+    <button class="opt" data-correct="true">折射只要扭 UV 就能做出波光粼粼，性能开销极小——80% 效果 20% 成本</button>
+    <button class="opt" data-correct="false">折射效果更真实</button>
+    <button class="opt" data-correct="false">引擎不支持真实折射</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！折射是"假得很有用"的典范：法线扰动 UV，屏幕图像被扭一下，看起来光线就弯了。成本几乎为零，效果足够好。真实光路模拟在实时渲染中根本不可行。"
+    data-wrong="折射不是更真实，是<strong>性价比无敌</strong>。真实光路模拟要追踪每条光线的路径，实时渲染根本跑不动。折射只需要法线扰动 UV 一个操作，成本几乎为零——玩家不细看根本分不出真假。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 手机 RPG 的屏幕空间方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"SSAO 开半分辨率，半径 1 米，强度中等——给墙角、树根、石头缝隙加层次感，性能开销可控。SSR 只给水面——角色场景的水面反射用 SSR，但限制反射距离 20 米，超出部分用天空盒反射探针兜底，避免屏幕边缘截断穿帮。折射用在角色技能特效——水面波纹、热浪扭曲用法线扰动 UV，便宜且效果华丽。阴影用屏幕空间补自阴影——角色头发、衣服褶皱的细节阴影，主阴影贴图分辨率不够的部分。屏幕空间是手机平台的主力——物理精确的 GI 和反射想都不敢想，屏幕空间给了 80% 的效果。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了半分辨率 SSAO、SSR 距离限制+兜底、折射特效应用、屏幕空间阴影补充、性能权衡。这就是手机平台的屏幕空间方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/environment_and_post_processing.html">Godot — Environment & Post Processing</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 环境后处理文档（SSAO/SSR/折射）</span></li>
+    <li><a href="https://threejs.org/manual/#en/postprocessing">Three.js — Post Processing</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 后处理教程</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："SSAO 和 AO 贴图能同时用吗？""SSR 的步进精度怎么调？""屏幕空间阴影和阴影贴图怎么配合？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 21 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

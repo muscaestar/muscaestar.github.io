@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>018 — 网格变形：表情、嘴唇和顶点动画</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0017-procedural.html">← 上一课</a>
+  <span>第 18 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">018</span>网格变形：表情、嘴唇和顶点动画</h1>
+
+<p>第 8 课学过骨骼动画——骨骼带动皮肤。但角色说话时嘴唇的蠕动、眨眼时眼皮的褶皱，用骨骼做又笨又假。这类<strong>精细的局部变形</strong>有专门的技术：Morph Target。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">Morph Target <span class="en">形态目标 / 混合形状（Blend Shape）</span></div>
+  <p>同一个网格做多个"版本"——基础脸、微笑脸、眨眼脸。每个版本只是顶点位置不同（顶点数、拓扑完全一样）。运行时按权重混合：30% 微笑 + 100% 眨眼，顶点位置线性插值。</p>
+</div>
+
+<div class="concept">
+  <div class="term">顶点动画 <span class="en">Vertex Animation</span></div>
+  <p>更广义的概念：直接在顶点级别做动画，不走骨骼。Morph target 是"离散版本间插值"，顶点动画也可以是"每帧用公式算"（水面波动、旗帜飘动）。</p>
+</div>
+
+<h2>骨骼 vs Morph Target：分工</h2>
+
+<table>
+  <tr><th></th><th>骨骼动画</th><th>Morph Target</th></tr>
+  <tr><td><strong>原理</strong></td><td>骨骼变换带动顶点</td><td>预存多个顶点版本，按权重插值</td></tr>
+  <tr><td><strong>适合</strong></td><td>大范围刚体运动（走路、挥手）</td><td>精细局部变形（表情、嘴唇）</td></tr>
+  <tr><td><strong>精度</strong></td><td>关节处容易失真</td><td>美术逐顶点雕刻，完全可控</td></tr>
+  <tr><td><strong>内存</strong></td><td>便宜（只存骨骼）</td><td>贵（每个 target 存一份顶点）</td></tr>
+  <tr><td><strong>典型部位</strong></td><td>四肢、脊柱、颈部</td><td>脸、手指细节、肌肉膨胀</td></tr>
+</table>
+
+<div class="tip">
+  <strong>行业惯例：脸用 morph，身体用骨骼</strong>。一个 AAA 角色通常有 50~100 个脸部 morph target（各种表情、26 个英文字母的口型、viseme 音素口型），身体还是骨骼驱动。两者同时作用，互不干扰。
+</div>
+
+<h2>Morph Target 原理</h2>
+
+<pre>基础网格（neutral face）：顶点 P = (x, y, z)
+Morph target A（smile）：   顶点 P' = P + ΔA
+Morph target B（blink）：    顶点 P'' = P + ΔB
+
+存储：只存偏移量 Δ（比存完整顶点省空间）
+
+运行时混合：
+  final = P + w1×ΔA + w2×ΔB + w3×ΔC + ...
+  
+  例子：w_smile=0.7, w_blink=1.0
+  → 70% 微笑 + 100% 眨眼 = 笑着闭眼
+
+权重通常是 0~1，但可以 >1（夸张化）或 <0（反表情）</pre>
+
+<h3>为什么可以叠加</h3>
+
+<p>因为每个 target 只动一小片区域的顶点：微笑动嘴角，眨眼动眼皮。嘴角的 ΔA 和眼皮的 ΔB 不冲突，直接相加。这就是表情系统的数学基础——<strong>线性叠加近似</strong>。</p>
+
+<div class="warn">
+  <strong>叠加的边界</strong>：两个 target 动同一片顶点时会打架（比如"大笑"和"嘟嘴"都动嘴）。解决：美术做"组合 target"（大笑+嘟嘴的专用修正版），引擎检测到组合时自动叠加修正。这叫 corrective blend shape。
+</div>
+
+<h2>实际应用</h2>
+
+<table>
+  <tr><th>场景</th><th>做法</th></tr>
+  <tr><td><strong>口型同步（Lip Sync）</strong></td><td>音频分析 → 音素序列（a/e/i/o/u）→ 对应 viseme target 权重随时间变化</td></tr>
+  <tr><td><strong>表情系统</strong></td><td>情绪状态机 → 多个 target 权重组合（开心 = 微笑 80% + 眯眼 40%）</td></tr>
+  <tr><td><strong>肌肉膨胀</strong></td><td>弯曲手臂时，肱二头肌 target 权重跟肘关节角度联动</td></tr>
+  <tr><td><strong>伤害变形</strong></td><td>中弹部位凹陷 target，权重 = 伤害程度</td></tr>
+  <tr><td><strong>角色定制</strong></td><td>捏脸系统：鼻子高低、眼睛大小都是 morph target 滑块</td></tr>
+</table>
+
+<h2>顶点动画（公式驱动）</h2>
+
+<p>Morph target 是"预存版本插值"，还有一类是"每帧现算"——适合规则运动：</p>
+
+<pre>// 旗帜飘动：顶点 shader 里用正弦波
+// x 越小（旗杆侧）越不动，x 越大（自由端）摆越大
+pos.z += sin(pos.x * 2.0 + time * 5.0) * pos.x * 0.1;
+
+// 水面波动：多个正弦波叠加（就是廉价的 fBm）
+pos.y += sin(pos.x * 0.5 + time) * 0.3
+       + sin(pos.z * 0.8 + time * 1.3) * 0.2;
+
+// 草地摇摆：顶点越高摆越大
+pos.x += sin(time * 2.0 + worldPos.x) * pos.y * 0.05;</pre>
+
+<div class="tip">
+  <strong>顶点动画在 GPU 上跑</strong>（顶点 shader），CPU 完全不参与——一万棵草同时摇摆也是免费的。这是植被动画的标准做法，比骨骼便宜几个数量级。
+</div>
+
+<h2>Three.js 实现</h2>
+
+<pre>// glTF 模型自带 morph targets，加载即用
+const mesh = gltf.scene.getObjectByName('face');
+
+// 看有哪些 target
+console.log(mesh.morphTargetDictionary);
+// { smile: 0, blink: 1, browUp: 2, ... }
+
+// 设权重
+mesh.morphTargetInfluences[0] = 0.7;  // 70% 微笑
+
+// 动画：配合 GSAP 或 AnimationMixer
+// AnimationMixer 可以播放模型内嵌的 morph 动画轨道</pre>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：MeshInstance3D 的 blend_shape
+var mesh_instance = $Character/Face
+
+# 看有哪些 blend shape
+for i in mesh_instance.get_blend_shape_count():
+    print(mesh_instance.get_blend_shape_name(i))
+
+# 设权重（-1.0 ~ 1.0）
+mesh_instance.set("blend_shapes/Smile", 0.7)
+
+# 口型同步：AnimationPlayer 可以 anim blend_shape 轨道
+# 或音频驱动：AudioStreamPlayer + 脚本实时算权重</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么面部表情用 morph target 而不是骨骼动画？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">骨骼动画不能用在脸上</button>
+    <button class="opt" data-correct="true">表情是精细的局部变形，骨骼做又笨又假；morph target 由美术逐顶点雕刻，精度和表现力完全可控</button>
+    <button class="opt" data-correct="false">morph target 计算更快</button>
+    <button class="opt" data-correct="false">行业标准规定必须用 morph target</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！骨骼适合大范围刚体运动（四肢），但嘴唇褶皱、眼皮弯曲这种精细变形，要给每块肌肉绑骨骼，几十根小骨骼互相打架。morph target 直接存"最终形态"，美术完全控制结果。"
+    data-wrong="不是性能或规定问题，是<strong>表现力</strong>问题。表情是非刚体的精细变形，骨骼层级表达不了"微笑时嘴角的那个弧度"。morph target 让美术直接雕刻最终形态，所见即所得。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">多个 morph target 能叠加（70% 微笑 + 100% 眨眼）的数学基础是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">引擎用神经网络预测组合效果</button>
+    <button class="opt" data-correct="false">每个 target 存在不同的文件里，同时播放</button>
+    <button class="opt" data-correct="true">每个 target 只存顶点偏移量，且各自动不同区域——偏移量直接线性相加不冲突</button>
+    <button class="opt" data-correct="false">叠加是幻觉，实际只播放权重最高的那个</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！final = P + w1×ΔA + w2×ΔB。微笑的 Δ 动嘴角，眨眼的 Δ 动眼皮，区域不同直接相加。动同区域时会冲突——所以美术要做 corrective blend shape 修正组合。"
+    data-wrong="基础是<strong>偏移量线性叠加</strong>：存 Δ 不存绝对位置，权重缩放后相加。前提：各 target 动的顶点区域不重叠。重叠区域的组合需要 corrective target 修正。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">一万棵草同时在风里摇摆，最经济的实现是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">每棵草绑一根骨骼做骨骼动画</button>
+    <button class="opt" data-correct="false">每棵草做 10 个 morph target 循环</button>
+    <button class="opt" data-correct="true">顶点 shader 里用正弦公式每帧现算——GPU 并行，CPU 零开销</button>
+    <button class="opt" data-correct="false">预渲染成序列帧贴图</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！规则运动（摇摆、波动）用公式算最合适——顶点 shader 每帧跑正弦波，GPU 免费并行。骨骼要 CPU 更新矩阵，morph 要存大量顶点数据，序列帧没有交互性。"
+    data-wrong="草摇摆是<strong>规则运动</strong>，不需要预存版本（morph）也不需要骨架（骨骼）。顶点 shader 一行正弦公式，GPU 对每个顶点并行计算——这是植被动画的标准做法。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ RPG 对话系统的表情方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"角色面部用 morph target 系统：美术做 30 个基础 target——6 个情绪（喜怒哀惊厌平）、8 个 viseme 口型、眼部细节（眨眼、眯眼、瞳孔方向）。对话时口型由音频分析驱动：实时提取音量包络映射到张口 target，元音识别映射到对应 viseme。情绪由对话配置表驱动，句子级切换，crossfade 0.3 秒过渡。眨眼用随机计时器（2~6 秒），说话时频率加倍。身体还是骨骼动画，手势和情绪联动——生气的句子自动触发握拳动画。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 target 分类、音频驱动口型、情绪状态机、crossfade、随机眨眼、骨骼+morph 分工。这就是完整的对话表情方案。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/mesh_data_tool.html">Godot — Blend Shapes</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot blend shape 使用文档</span></li>
+    <li><a href="https://threejs.org/manual/#en/morph-targets">Three.js — Morph Targets</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js morph target 官方教程</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："表情捕捉（Facial Capture）怎么映射到 morph target？""皱纹贴图怎么和 morph 联动？""骨骼和 morph 的权重怎么统一做动画？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 18 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

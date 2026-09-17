@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>程序化地形演示：fBm 噪声</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.95); padding: 10px;
+    border-top: 1px solid #30363d;
+    max-height: 42vh; overflow-y: auto;
+  }
+  .control-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #58a6ff; }
+  input[type="range"] {
+    width: 100%; accent-color: #58a6ff; height: 24px;
+  }
+  .btn-row { display: flex; gap: 4px; }
+  .btn {
+    padding: 8px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 12px; cursor: pointer;
+    transition: all 0.2s; flex: 1; text-align: center;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #58a6ff; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>程序化地形</strong>：调 octave 层数看地形从"规则波浪"变"自然山脉"<br>
+  1 层 = 单一尺度 | 5 层 = 大结构 + 小细节
+</div>
+<div id="controls">
+  <div class="control-grid">
+    <div class="control-group">
+      <label>Octaves 层数 <span class="value" id="octavesValue">4</span></label>
+      <input type="range" id="octaves" min="1" max="6" value="4" step="1">
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;">
+        <span>1（规则）</span>
+        <span>6（丰富）</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>基础频率 <span class="value" id="freqValue">0.015</span></label>
+      <input type="range" id="freq" min="5" max="50" value="15">
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;">
+        <span>大起伏</span>
+        <span>小起伏</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>高度振幅 <span class="value" id="ampValue">8</span></label>
+      <input type="range" id="amp" min="1" max="20" value="8">
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;">
+        <span>平缓</span>
+        <span>陡峭</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>随机种子 <span class="value" id="seedValue">42</span></label>
+      <div class="btn-row">
+        <button class="btn" id="newSeed">🎲 换个世界</button>
+        <button class="btn" id="resetSeed">回到 42</button>
+      </div>
+    </div>
+    
+    <div class="section-title">地形着色</div>
+    
+    <div class="control-group">
+      <label>模式</label>
+      <div class="btn-row">
+        <button class="btn active" id="colorHeight">按高度分层</button>
+        <button class="btn" id="colorGray">灰度高度图</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>水面</label>
+      <div class="btn-row">
+        <button class="btn active" id="waterOn">开</button>
+        <button class="btn" id="waterOff">关</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+import { SimplexNoise } from '../assets/SimplexNoise.js';
+
+// 场景
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 60, 160);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(35, 25, 35);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 3, 0);
+
+// 灯光
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const sun = new THREE.DirectionalLight(0xfff4e0, 1.2);
+sun.position.set(30, 50, 20);
+scene.add(sun);
+
+// ==================== 参数 ====================
+const params = {
+  octaves: 4,
+  frequency: 0.015,
+  amplitude: 8,
+  seed: 42,
+  colorMode: 'height',  // height | gray
+  water: true,
+};
+
+let noise = new SimplexNoise({ random: seededRandom(params.seed) });
+window.__dbg = { scene, camera, renderer, params };
+function seededRandom(seed) {
+  // 简单确定性 PRNG
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+// ==================== 地形生成 ====================
+const SIZE = 100, SEG = 128;
+let terrain = null;
+
+function getHeight(x, y) {
+  let h = 0, freq = params.frequency, amp = params.amplitude;
+  for (let o = 0; o < params.octaves; o++) {
+    h += noise.noise(x * freq, y * freq) * amp;
+    freq *= 2;
+    amp *= 0.5;
+  }
+  return h;
+}
+
+// 按高度分层取色
+function getColor(h) {
+  if (h < -1.5) return new THREE.Color(0x1a4a7a);  // 深水
+  if (h < 0.0)  return new THREE.Color(0x2e6b9e);  // 浅水
+  if (h < 0.8)  return new THREE.Color(0xd6c48a);  // 沙滩
+  if (h < 3.0)  return new THREE.Color(0x4a8c3f);  // 草地
+  if (h < 5.5)  return new THREE.Color(0x2d5a27);  // 森林
+  if (h < 7.5)  return new THREE.Color(0x6b5d4f);  // 岩石
+  return new THREE.Color(0xf0f0f0);                // 雪顶
+}
+
+function buildTerrain() {
+  if (terrain) {
+    scene.remove(terrain);
+    terrain.geometry.dispose();
+    terrain.material.dispose();
+  }
+  
+  const geo = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  const colors = new Float32Array(pos.count * 3);
+  
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    const h = getHeight(x, z);
+    pos.setY(i, h);
+    
+    let c;
+    if (params.colorMode === 'height') {
+      c = getColor(h);
+    } else {
+      const g = THREE.MathUtils.clamp((h + 4) / 14, 0, 1);
+      c = new THREE.Color(g, g, g);
+    }
+    colors[i * 3] = c.r;
+    colors[i * 3 + 1] = c.g;
+    colors[i * 3 + 2] = c.b;
+  }
+  
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  
+  const mat = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.9,
+    metalness: 0,
+    flatShading: false,
+  });
+  
+  terrain = new THREE.Mesh(geo, mat);
+  scene.add(terrain);
+}
+
+// 水面
+const waterGeo = new THREE.PlaneGeometry(SIZE * 1.5, SIZE * 1.5);
+waterGeo.rotateX(-Math.PI / 2);
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x2e6b9e,
+  transparent: true,
+  opacity: 0.75,
+  roughness: 0.2,
+  metalness: 0.5,
+});
+const water = new THREE.Mesh(waterGeo, waterMat);
+water.position.y = 0;
+scene.add(water);
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+let rebuildTimer = null;
+
+function scheduleRebuild() {
+  clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(buildTerrain, 150);  // 防抖
+}
+
+$('octaves').addEventListener('input', e => {
+  params.octaves = parseInt(e.target.value);
+  $('octavesValue').textContent = params.octaves;
+  scheduleRebuild();
+});
+
+$('freq').addEventListener('input', e => {
+  params.frequency = parseInt(e.target.value) / 1000;
+  $('freqValue').textContent = params.frequency.toFixed(3);
+  scheduleRebuild();
+});
+
+$('amp').addEventListener('input', e => {
+  params.amplitude = parseInt(e.target.value);
+  $('ampValue').textContent = params.amplitude;
+  scheduleRebuild();
+});
+
+$('newSeed').addEventListener('click', () => {
+  params.seed = Math.floor(Math.random() * 10000);
+  $('seedValue').textContent = params.seed;
+  noise = new SimplexNoise({ random: seededRandom(params.seed) });
+  buildTerrain();
+});
+
+$('resetSeed').addEventListener('click', () => {
+  params.seed = 42;
+  $('seedValue').textContent = 42;
+  noise = new SimplexNoise({ random: seededRandom(params.seed) });
+  buildTerrain();
+});
+
+$('colorHeight').addEventListener('click', () => {
+  params.colorMode = 'height';
+  $('colorHeight').classList.add('active');
+  $('colorGray').classList.remove('active');
+  buildTerrain();
+});
+$('colorGray').addEventListener('click', () => {
+  params.colorMode = 'gray';
+  $('colorGray').classList.add('active');
+  $('colorHeight').classList.remove('active');
+  buildTerrain();
+});
+
+$('waterOn').addEventListener('click', () => {
+  params.water = true;
+  water.visible = true;
+  $('waterOn').classList.add('active');
+  $('waterOff').classList.remove('active');
+});
+$('waterOff').addEventListener('click', () => {
+  params.water = false;
+  water.visible = false;
+  $('waterOff').classList.add('active');
+  $('waterOn').classList.remove('active');
+});
+
+// 初始化
+buildTerrain();
+
+// 动画
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.elapsedTime;
+  controls.update();
+  water.position.y = Math.sin(t * 0.8) * 0.08;  // 轻微波动
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

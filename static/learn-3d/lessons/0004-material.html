@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>004 — 材质：物体的表面</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.pbr-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1rem 0; }
+.pbr-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; text-align: center; }
+.pbr-item .swatch { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 0.5rem; }
+.pbr-item .name { font-size: 0.82rem; font-weight: 600; color: var(--accent); }
+.pbr-item .val { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.2rem; }
+.demo-link {
+  display: block; text-align: center; padding: 1rem;
+  background: linear-gradient(135deg, rgba(58,123,213,.15), rgba(47,158,125,.15));
+  border: 1px solid rgba(88,166,255,.3); border-radius: 10px;
+  color: var(--accent); text-decoration: none; font-weight: 600;
+  margin: 1rem 0;
+}
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0003-mesh.html">← 上一课</a>
+  <span>第 4 课</span>
+  <a href="./0005-light.html">下一课 →</a>
+</div>
+
+<h1><span class="num">004</span>材质：物体的表面</h1>
+
+<p>第 3 课讲了形状（Geometry），这节课讲另一半——<strong>外观（Material）</strong>。同一个球体，披上不同的材质，可以是塑料、金属、玻璃、皮肤。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">材质 <span class="en">Material</span></div>
+  <p>定义物体表面的<strong>视觉属性</strong>——颜色、透明度、反光程度、金属感。Material 决定光线照到物体表面后"长什么样"。</p>
+</div>
+
+<div class="concept">
+  <div class="term">PBR <span class="en">Physically Based Rendering</span></div>
+  <p>基于物理的渲染——现代 3D 引擎的标准。用几个物理参数描述材质，就能在各种光照条件下看起来真实。Three.js 的 <code>MeshStandardMaterial</code> 和 Godot 的 <code>StandardMaterial3D</code> 都是 PBR 材质。</p>
+</div>
+
+<div class="concept">
+  <div class="term">金属度 <span class="en">Metallic / Metalness</span></div>
+  <p>0 到 1 的值。0 = 非金属（塑料、木头、皮肤），1 = 纯金属（金、银、铁）。金属表面的反射特性完全不同——它反射环境光，没有漫反射。</p>
+</div>
+
+<div class="concept">
+  <div class="term">粗糙度 <span class="en">Roughness</span></div>
+  <p>0 到 1 的值。0 = 镜面般光滑（完美反射），1 = 完全粗糙（漫反射）。控制物体表面的"磨砂感"。</p>
+</div>
+
+<h2>常用材质类型</h2>
+
+<table>
+  <tr><th>Three.js</th><th>特点</th><th>适用</th></tr>
+  <tr><td><code>MeshBasicMaterial</code></td><td>不受光照影响，纯色/贴图</td><td>UI、线框、调试</td></tr>
+  <tr><td><code>MeshPhongMaterial</code></td><td>经典光照模型，高光明显</td><td>简单场景、塑料感</td></tr>
+  <tr><td><code>MeshStandardMaterial</code></td><td><strong>PBR 标准</strong>，物理真实</td><td><strong>推荐，通用</strong></td></tr>
+  <tr><td><code>MeshPhysicalMaterial</code></td><td>PBR 扩展，支持透明涂层等</td><td>汽车漆、皮肤</td></tr>
+  <tr><td><code>ShaderMaterial</code></td><td>自定义着色器，完全可控</td><td>特效、辉光、程序化</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Godot 对照</strong>：Godot 的 <code>StandardMaterial3D</code> ≈ Three.js 的 <code>MeshStandardMaterial</code>，都是 PBR。Godot 还有 <code>ORMMaterial3D</code>（遮挡-粗糙-金属打包贴图）。
+</div>
+
+<h2>PBR 两大核心参数</h2>
+
+<p>金属度和粗糙度是 PBR 最重要的两个参数，它们决定了材质的"性格"：</p>
+
+<div class="pbr-demo">
+  <div class="pbr-item">
+    <div class="swatch" style="background: radial-gradient(circle at 35% 35%, #e8e8e8, #888); box-shadow: 0 0 20px rgba(255,255,255,0.3);"></div>
+    <div class="name">金属度=1, 粗糙度=0</div>
+    <div class="val">镜面金属 — 铬球</div>
+  </div>
+  <div class="pbr-item">
+    <div class="swatch" style="background: radial-gradient(circle at 40% 40%, #d4a0a0, #8a6060);"></div>
+    <div class="name">金属度=0, 粗糙度=0</div>
+    <div class="val">光滑塑料 — 瓷球</div>
+  </div>
+  <div class="pbr-item">
+    <div class="swatch" style="background: radial-gradient(circle at 45% 45%, #a89880, #6a5c48);"></div>
+    <div class="name">金属度=1, 粗糙度=1</div>
+    <div class="val">磨砂金属 — 拉丝铝</div>
+  </div>
+  <div class="pbr-item">
+    <div class="swatch" style="background: radial-gradient(circle at 50% 50%, #8a7a5a, #4a3e2a);"></div>
+    <div class="name">金属度=0, 粗糙度=1</div>
+    <div class="val">粗糙哑光 — 橡皮泥</div>
+  </div>
+</div>
+
+<pre>// Three.js — PBR 材质
+const mat = new THREE.MeshStandardMaterial({
+  color: 0xcc8844,      // 基础颜色
+  metalness: 0.9,        // 金属度：接近纯金属
+  roughness: 0.2,        // 粗糙度：比较光滑
+});
+
+// Godot — StandardMaterial3D
+var mat = StandardMaterial3D.new()
+mat.albedo_color = Color(0.8, 0.53, 0.27)
+mat.metallic = 0.9
+mat.roughness = 0.2</pre>
+
+<h2>材质的常用属性</h2>
+
+<table>
+  <tr><th>属性</th><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td>基础颜色</td><td><code>color</code></td><td><code>albedo_color</code></td><td>物体本身的颜色</td></tr>
+  <tr><td>金属度</td><td><code>metalness</code></td><td><code>metallic</code></td><td>0=非金属 1=金属</td></tr>
+  <tr><td>粗糙度</td><td><code>roughness</code></td><td><code>roughness</code></td><td>0=光滑 1=粗糙</td></tr>
+  <tr><td>自发光</td><td><code>emissive</code></td><td><code>emission</code></td><td>物体自身发光的颜色</td></tr>
+  <tr><td>透明度</td><td><code>opacity</code></td><td><code>albedo_color.a</code></td><td>0=全透明 1=不透明</td></tr>
+  <tr><td>颜色贴图</td><td><code>map</code></td><td><code>albedo_texture</code></td><td>用图片代替纯色</td></tr>
+  <tr><td>法线贴图</td><td><code>normalMap</code></td><td><code>normal_texture</code></td><td>模拟表面凹凸细节</td></tr>
+</table>
+
+<h2>你已经用过的材质</h2>
+
+<p>旋转地球 demo 里的三种材质：</p>
+
+<pre>// 1. MeshPhongMaterial — 地球本体（经典光照 + 贴图）
+new THREE.MeshPhongMaterial({
+  map: earthTex,              // 颜色贴图
+  emissive: 0xffffff,         // 自发光（iSH 兼容方案）
+  emissiveMap: earthTex,
+  emissiveIntensity: 1.0,
+  shininess: 15               // 高光锐度
+});
+
+// 2. MeshPhongMaterial + transparent — 云层（半透明）
+new THREE.MeshPhongMaterial({
+  map: cloudTex,
+  transparent: true,           // 开启透明
+  opacity: 0.85,               // 85% 不透明
+  depthWrite: false            // 不写深度（避免遮挡问题）
+});
+
+// 3. ShaderMaterial — 大气辉光（自定义着色器）
+new THREE.ShaderMaterial({
+  transparent: true,
+  side: THREE.BackSide,        // 渲染背面（从内部看）
+  // 自定义 vertex/fragment shader...
+});</pre>
+
+<h2>自发光 <span style="font-size: 0.85rem; color: var(--text-dim);">Emissive</span></h2>
+
+<p>自发光让物体"自己发光"，不需要外部光源。常用于：霓虹灯、屏幕、岩浆、萤火虫。</p>
+
+<pre>// Three.js
+const mat = new THREE.MeshStandardMaterial({
+  color: 0x000000,              // 基础色（黑）
+  emissive: 0x00ff00,           // 自发光绿色
+  emissiveIntensity: 2.0        // 发光强度
+});
+
+// Godot
+mat.emission_enabled = true
+mat.emission = Color(0, 1, 0)
+mat.emission_energy_multiplier = 2.0</pre>
+
+<div class="tip">
+  <strong>技巧</strong>：在地球 demo 里，我们用 emissiveMap 让贴图在 iSH 上正常显示——这就是自发光的一个实际应用（虽然是 workaround）。
+</div>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想做一个金色的金属球，PBR 参数应该怎么设？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">metalness=0, roughness=0</button>
+    <button class="opt" data-correct="false">metalness=0, roughness=1</button>
+    <button class="opt" data-correct="true">metalness=1, roughness=0.2</button>
+    <button class="opt" data-correct="false">metalness=1, roughness=1</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！金属球：metalness=1（纯金属），roughness 低（比较光滑）。roughness=0.2 有一点磨砂感，更像真实的金。"
+    data-wrong="金属球需要 metalness=1（纯金属特性），roughness 较低（光滑反射）。roughness=0.2 比 0 更真实——纯镜面金属很少见。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Godot 的 StandardMaterial3D 对应 Three.js 的什么材质？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">MeshBasicMaterial</button>
+    <button class="opt" data-correct="false">MeshPhongMaterial</button>
+    <button class="opt" data-correct="true">MeshStandardMaterial</button>
+    <button class="opt" data-correct="false">ShaderMaterial</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！两者都是 PBR 材质，参数名几乎一一对应（albedo↔color, metallic↔metalness, roughness↔roughness）。"
+    data-wrong="StandardMaterial3D 和 MeshStandardMaterial 都是 PBR 材质，是各自引擎的标准选择。名字都带 Standard。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想对 agent 说"做一个发光的霓虹灯管"，关键参数是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">把 color 设成亮色</button>
+    <button class="opt" data-correct="false">把 opacity 调到 0.5</button>
+    <button class="opt" data-correct="true">设置 emissive 颜色和强度</button>
+    <button class="opt" data-correct="false">把 roughness 设为 0</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！emissive（自发光）让物体自身发光，不受光照影响。配合 emissiveIntensity 控制亮度。霓虹灯、LED 屏幕都用这个。"
+    data-wrong="发光效果用 emissive（自发光），不是 color（基础色）。emissive 让物体自己发光，配合 emissiveIntensity 控制亮度。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个科幻场景：太空站走廊，怎么描述材质？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"地板用 StandardMaterial3D，albedo 深灰色，metallic=0.9，roughness=0.3——光滑的金属地板，能反射灯光。墙壁 albedo 白色，metallic=0.1，roughness=0.8——哑光塑料面板。天花板上的灯条用 emissive 发出蓝白色光，emission_energy=3.0，作为走廊的主光源。门框的金属边框 metallic=1.0，roughness=0.1——镀铬效果。控制面板屏幕上 emissive 显示绿色数据界面，加一个 albedo_texture 显示 UI 贴图。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用 metallic、roughness、emissive 描述了整个场景的材质方案。这就是指挥 agent 布置场景的方式。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/materials">Three.js Fundamentals — Materials</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方材质教程，有互动示例</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html">Godot — Standard Material 3D</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot PBR 材质完整文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："金属度 0.5 是什么效果？""透明材质为什么有排序问题？""法线贴图是什么原理？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 4 课 / 3D 图形概念入门 · <a href="../reference/material.html" style="color: var(--accent);">📖 材质参考卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initQuizzes);
+</script>
+</body>
+</html>

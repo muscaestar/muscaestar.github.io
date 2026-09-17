@@ -306,23 +306,6 @@ td { color: var(--text); }
     border-radius: 10px;
     margin-left: 0.5rem;
   }
-
-  .lesson-soon {
-    display: block;
-    padding: 1rem 1.2rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    opacity: 0.45;
-  }
-  .lesson-soon .lesson-num { color: var(--text-dim); font-weight: 700; margin-right: 0.6rem; }
-  .lesson-soon .lesson-title { font-weight: 600; color: var(--text); }
-  .lesson-soon .lesson-desc { display: block; font-size: 0.82rem; color: var(--text-dim); margin-top: 0.3rem; }
-  .soon-badge {
-    display: inline-block; font-size: 0.72rem;
-    background: rgba(139,148,158,.15); color: var(--text-dim);
-    padding: 0.1rem 0.5rem; border-radius: 10px; margin-left: 0.5rem;
-  }
 </style>
 </head>
 <body>
@@ -359,42 +342,42 @@ td { color: var(--text); }
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0004-material.html">
       <span class="lesson-num">004</span>
       <span class="lesson-title">材质：物体的表面</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">Material / PBR / 颜色、金属度、粗糙度 / 贴图通道</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0005-light.html">
       <span class="lesson-num">005</span>
       <span class="lesson-title">光照：让场景活起来</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">点光 / 平行光 / 环境光 / 阴影</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0006-camera.html">
       <span class="lesson-num">006</span>
       <span class="lesson-title">相机：观察世界的眼睛</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">透视 vs 正交 / FOV / 视锥 / 第一人称 vs 第三人称</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0007-texture.html">
       <span class="lesson-num">007</span>
       <span class="lesson-title">纹理与 UV：给物体穿皮肤</span>
       <span class="lesson-desc">Texture / UV 映射 / 颜色贴图、法线贴图、金属粗糙度贴图</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0008-animation.html">
       <span class="lesson-num">008</span>
       <span class="lesson-title">动画：让一切动起来</span>
       <span class="lesson-desc">帧动画 / 关键帧 / 补间 / 骨骼动画基础</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
 </ul>
 
@@ -414,52 +397,52 @@ td { color: var(--text); }
 
 <ul class="lesson-list">
   <li>
-    <div class="lesson-soon">
+    <a href="./0009-outline.html">
       <span class="lesson-num">009</span>
       <span class="lesson-title">描边（Outline）</span>
-      
-      <span class="lesson-desc">Inverted Hull / 后处理 / 粗细控制 — 三渲二的轮廓 · <a href="./demo-outline.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">Inverted Hull / 后处理 / 粗细控制 — 三渲二的轮廓 · <a href="./demo-outline.html" style="display:inline;color:var(--accent);">demo</a></span>
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0010-cel-shading.html">
       <span class="lesson-num">010</span>
       <span class="lesson-title">色阶（Cel Shading）</span>
-      
-      <span class="lesson-desc">离散光照 / 色阶级数 / 过渡硬度 — 三渲二的明暗 · <a href="./demo-cel-shading.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">离散光照 / 色阶级数 / 过渡硬度 — 三渲二的明暗 · <a href="./demo-cel-shading.html" style="display:inline;color:var(--accent);">demo</a></span>
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0011-toon-complete.html">
       <span class="lesson-num">011</span>
       <span class="lesson-title">完整三渲二</span>
-      
-      <span class="lesson-desc">描边+色阶+材质简化 — 实战配方 · <a href="./demo-toon-lab.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">描边+色阶+材质简化 — 实战配方 · <a href="./demo-toon-lab.html" style="display:inline;color:var(--accent);">demo</a></span>
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0012-post-processing.html">
       <span class="lesson-num">012</span>
       <span class="lesson-title">后处理（Post-processing）</span>
-      
-      <span class="lesson-desc">Bloom / 色调映射 / 暗角 — 画面最后的润色 · <a href="./demo-post-processing.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">Bloom / 色调映射 / 暗角 — 画面最后的润色 · <a href="./demo-post-processing.html" style="display:inline;color:var(--accent);">demo</a></span>
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0013-ibl.html">
       <span class="lesson-num">013</span>
       <span class="lesson-title">环境光照（IBL）</span>
-      
-      <span class="lesson-desc">HDRI / 反射探针 — 用一张图照亮整个场景 · <a href="./demo-ibl.html" style="display:inline;color:var(--accent);">demo<span class="soon-badge">待上线</span></div></span>
+      <span class="done-badge">已完成</span>
+      <span class="lesson-desc">HDRI / 反射探针 — 用一张图照亮整个场景 · <a href="./demo-ibl.html" style="display:inline;color:var(--accent);">demo</a></span>
     </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0014-shadows.html">
       <span class="lesson-num">014</span>
       <span class="lesson-title">阴影进阶</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">级联阴影 / 软硬阴影 / bias 调参 — 大场景的阴影方案</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
 </ul>
 
@@ -467,36 +450,36 @@ td { color: var(--text); }
 
 <ul class="lesson-list">
   <li>
-    <div class="lesson-soon">
+    <a href="./0015-lod.html">
       <span class="lesson-num">015</span>
       <span class="lesson-title">LOD（细节层次）</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">距离简化 / 交叉淡化 / 通用 LOD 思想 — 远处的东西不用那么精细</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0016-occlusion-culling.html">
       <span class="lesson-num">016</span>
       <span class="lesson-title">遮挡剔除</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">三层剔除体系 / 房间-门户 / PVS — 看不见的就不渲染</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0017-procedural.html">
       <span class="lesson-num">017</span>
       <span class="lesson-title">程序化生成</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">噪声函数 / fBm 分形 / 种子 — 用算法种出世界</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0018-morph-target.html">
       <span class="lesson-num">018</span>
       <span class="lesson-title">网格变形</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">Morph target / 顶点动画 — 表情、口型、草摇摆</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
 </ul>
 
@@ -504,36 +487,36 @@ td { color: var(--text); }
 
 <ul class="lesson-list">
   <li>
-    <div class="lesson-soon">
+    <a href="./0019-particles.html">
       <span class="lesson-num">019</span>
       <span class="lesson-title">粒子系统</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">发射器 / 生命周期曲线 / 分层叠加 — 火、烟、魔法</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0020-volumetric.html">
       <span class="lesson-num">020</span>
       <span class="lesson-title">体积效果</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">距离雾 / 体积光 / 体积云 — 分层近似方案</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0021-screen-space.html">
       <span class="lesson-num">021</span>
       <span class="lesson-title">屏幕空间效果</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">SSAO / SSR / 折射 — 用屏幕信息造假</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0022-stylized.html">
       <span class="lesson-num">022</span>
       <span class="lesson-title">风格化特效</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">卡通水 / 速度线 / 像素化 — 表现力优先</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
 </ul>
 
@@ -541,36 +524,36 @@ td { color: var(--text); }
 
 <ul class="lesson-list">
   <li>
-    <div class="lesson-soon">
+    <a href="./0023-render-pipeline.html">
       <span class="lesson-num">023</span>
       <span class="lesson-title">渲染管线</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">Forward vs Deferred / Forward+ — 光照在哪一步算</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0024-batching.html">
       <span class="lesson-num">024</span>
       <span class="lesson-title">批处理与实例化</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">Draw Call / GPU 实例化 — 一万棵草怎么画</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0025-texture-streaming.html">
       <span class="lesson-num">025</span>
       <span class="lesson-title">纹理流送</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">Mipmap / 纹理压缩 / 流送策略 — 4K 贴图怎么装进手机</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
   <li>
-    <div class="lesson-soon">
+    <a href="./0026-summary.html">
       <span class="lesson-num">026</span>
       <span class="lesson-title">总结与工具箱</span>
-      
+      <span class="done-badge">已完成</span>
       <span class="lesson-desc">技术地图完整版 + 性能预算 + 风格化方向</span>
-    <span class="soon-badge">待上线</span></div>
+    </a>
   </li>
 </ul>
 

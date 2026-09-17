@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>005 — 光照：让场景活起来</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.light-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1rem 0; }
+.light-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; }
+.light-item .icon { font-size: 1.8rem; margin-bottom: 0.3rem; }
+.light-item .name { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+.light-item .en { font-size: 0.75rem; color: var(--text-dim); font-weight: 400; }
+.light-item .desc { font-size: 0.82rem; color: var(--text); margin-top: 0.3rem; }
+.light-item .analogy { font-size: 0.75rem; color: var(--accent3); margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0004-material.html">← 上一课</a>
+  <span>第 5 课</span>
+  <a href="./0006-camera.html">下一课 →</a>
+</div>
+
+<h1><span class="num">005</span>光照：让场景活起来</h1>
+
+<p>上一课走廊 demo 里，你已经看到了光照的威力——灯条照亮走廊、金属地板反射光线、雾效营造纵深。这节课系统讲讲：<strong>3D 场景里有哪些光？怎么用？</strong></p>
+
+<h2>四种基本光源</h2>
+
+<div class="light-grid">
+  <div class="light-item">
+    <div class="icon">🌍</div>
+    <div class="name">环境光 <span class="en">Ambient</span></div>
+    <div class="desc">均匀照亮一切，没有方向、没有阴影。像阴天的自然光——到处都有，但很平。</div>
+    <div class="analogy">类比：阴天 / 室内开灯后的整体亮度</div>
+  </div>
+  <div class="light-item">
+    <div class="icon">☀️</div>
+    <div class="name">平行光 <span class="en">Directional</span></div>
+    <div class="desc">从一个方向打来的平行光线，像太阳光。有方向、有阴影，是最常用的主光源。</div>
+    <div class="analogy">类比：太阳 / 远处的探照灯</div>
+  </div>
+  <div class="light-item">
+    <div class="icon">💡</div>
+    <div class="name">点光源 <span class="en">Point</span></div>
+    <div class="desc">从一个点向四面八方发光，有衰减（越远越暗）。像灯泡、蜡烛。</div>
+    <div class="analogy">类比：灯泡 / 蜡烛 / 火把</div>
+  </div>
+  <div class="light-item">
+    <div class="icon">🔦</div>
+    <div class="name">聚光灯 <span class="en">Spot</span></div>
+    <div class="desc">从一个点发出锥形光束，可以控制角度和衰减。像手电筒、舞台灯。</div>
+    <div class="analogy">类比：手电筒 / 舞台追光灯</div>
+  </div>
+</div>
+
+<h2>你已经用过的光照</h2>
+
+<p>走廊 demo 里的光照方案：</p>
+
+<pre>// 环境光 — 整体亮度，避免完全黑暗的区域
+scene.add(new THREE.AmbientLight(0x334466, 0.8));
+
+// 点光源 — 每段走廊一个，模拟灯条照明
+const light = new THREE.PointLight(0x88ccff, 3, 6, 1.5);
+//                              颜色        强度 距离 衰减
+light.position.set(0, H - 0.2, z);
+scene.add(light);
+
+// 平行光 — 从走廊尽头打来，增加方向感
+const dirLight = new THREE.DirectionalLight(0x88aaff, 1.0);
+dirLight.position.set(0, 3, -10);
+scene.add(dirLight);</pre>
+
+<h2>光照三件套：一个经典配方</h2>
+
+<p>摄影和 3D 渲染中的经典布光方式——<strong>三点照明</strong>：</p>
+
+<table>
+  <tr><th>灯位</th><th>作用</th><th>类比</th></tr>
+  <tr><td><strong>主光</strong> (Key Light)</td><td>最强光源，决定主要明暗和阴影方向</td><td>窗户进来的阳光</td></tr>
+  <tr><td><strong>补光</strong> (Fill Light)</td><td>较弱的反向光，柔化阴影，避免死黑</td><td>白色墙壁的反光</td></tr>
+  <tr><td><strong>轮廓光</strong> (Rim Light)</td><td>从后面打，勾勒物体边缘</td><td>逆光时头发边缘的亮线</td></tr>
+</table>
+
+<pre>// 三点照明（Three.js）
+// 主光：右上方，最强
+const key = new THREE.DirectionalLight(0xffffff, 2.0);
+key.position.set(5, 8, 3);
+
+// 补光：左前方，较弱，色温偏暖
+const fill = new THREE.DirectionalLight(0xffddaa, 0.8);
+fill.position.set(-4, 3, 5);
+
+// 轮廓光：从后方，勾勒边缘
+const rim = new THREE.DirectionalLight(0x88aaff, 1.2);
+rim.position.set(0, 2, -5);</pre>
+
+<div class="tip">
+  <strong>地球 demo 里就用了这个</strong>：主光 DirectionalLight(2.0) + 补光 DirectionalLight(0.8) + 环境光 AmbientLight(1.5)。没有补光，地球背面会死黑一片。
+</div>
+
+<h2>阴影</h2>
+
+<p>阴影让场景有深度感和真实感。Three.js 和 Godot 都支持实时阴影，但需要手动开启：</p>
+
+<pre>// Three.js — 开启阴影
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 柔和阴影
+
+light.castShadow = true;    // 光源投射阴影
+mesh.castShadow = true;     // 物体产生阴影
+mesh.receiveShadow = true;  // 物体接收阴影</pre>
+
+<div class="warn">
+  <strong>性能注意</strong>：阴影是昂贵的。手机上建议只给主光源开阴影，或者干脆用烘焙光照（预计算阴影到贴图里）。Godot 里叫 <strong>LightmapGI</strong>。
+</div>
+
+<h2>光照衰减</h2>
+
+<p>点光源和聚光灯的光线会随距离衰减——越远越暗。这是真实世界的物理规律（平方反比定律）：</p>
+
+<table>
+  <tr><th>距离</th><th>亮度（平方反比）</th><th>视觉效果</th></tr>
+  <tr><td>1 米</td><td>100%</td><td>最亮</td></tr>
+  <tr><td>2 米</td><td>25%</td><td>明显变暗</td></tr>
+  <tr><td>4 米</td><td>6%</td><td>很暗</td></tr>
+  <tr><td>8 米</td><td>1.5%</td><td>几乎看不到</td></tr>
+</table>
+
+<pre>// Three.js — 点光源衰减参数
+new THREE.PointLight(color, intensity, distance, decay);
+//                                   强度        照射范围  衰减率
+// distance: 光照最大距离（0 = 无限）
+// decay: 衰减指数（物理正确值 = 2）</pre>
+
+<h2>色温</h2>
+
+<p>光的颜色影响场景氛围：</p>
+
+<table>
+  <tr><th>色温</th><th>颜色</th><th>氛围</th><th>用途</th></tr>
+  <tr><td>暖色 (2000-3000K)</td><td>橙黄</td><td>温馨、舒适</td><td>室内、壁炉、夕阳</td></tr>
+  <tr><td>中性 (4000-5000K)</td><td>白色</td><td>自然、清晰</td><td>办公室、白天</td></tr>
+  <tr><td>冷色 (6000-10000K)</td><td>蓝白</td><td>科技、冷峻</td><td>太空站、医院、夜景</td></tr>
+</table>
+
+<p>走廊 demo 用蓝白色 (0x88ccff) 就是为了科幻感。换成暖橙色 (0xff8844)，氛围立刻变成温馨的室内走廊。</p>
+
+<h2>Godot 对照</h2>
+
+<table>
+  <tr><th>Three.js</th><th>Godot</th><th>说明</th></tr>
+  <tr><td><code>AmbientLight</code></td><td><code>WorldEnvironment</code> 的 ambient_light</td><td>环境光</td></tr>
+  <tr><td><code>DirectionalLight</code></td><td><code>DirectionalLight3D</code></td><td>平行光/太阳光</td></tr>
+  <tr><td><code>PointLight</code></td><td><code>OmniLight3D</code></td><td>点光源（全方向）</td></tr>
+  <tr><td><code>SpotLight</code></td><td><code>SpotLight3D</code></td><td>聚光灯</td></tr>
+  <tr><td><code>castShadow</code></td><td><code>shadow_enabled</code></td><td>投射阴影</td></tr>
+  <tr><td><code>receiveShadow</code></td><td>自动（在材质里）</td><td>接收阴影</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想在 Godot 里做一个篝火场景，火堆应该用什么光源？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">DirectionalLight3D — 平行光</button>
+    <button class="opt" data-correct="false">WorldEnvironment — 环境光</button>
+    <button class="opt" data-correct="true">OmniLight3D — 点光源</button>
+    <button class="opt" data-correct="false">SpotLight3D — 聚光灯</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！篝火是从一个点向四面八方发光的，OmniLight3D（点光源）最合适。加闪烁动画效果更真实。"
+    data-wrong="篝火是从一个点向所有方向发光的，OmniLight3D（Godot 的点光源）最匹配。平行光是太阳光，聚光灯是锥形光束，都不对。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">"三点照明"中的补光（Fill Light）的作用是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">让场景更亮</button>
+    <button class="opt" data-correct="false">产生更多阴影</button>
+    <button class="opt" data-correct="true">柔化阴影，避免背光面死黑</button>
+    <button class="opt" data-correct="false">勾勒物体边缘轮廓</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！补光从主光的反方向打来，强度较弱，专门用来提亮阴影区域，避免完全死黑。勾勒边缘是轮廓光的工作。"
+    data-wrong="补光（Fill Light）从主光反方向打来，强度较弱，作用是柔化阴影、避免死黑。勾勒边缘是轮廓光（Rim Light）的作用。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">你想对 agent 说"让这个场景看起来是傍晚的感觉"，光照上应该怎么调？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">增加更多点光源</button>
+    <button class="opt" data-correct="false">把所有光改成蓝色</button>
+    <button class="opt" data-correct="true">主光用暖色平行光，角度放低，环境光调暗</button>
+    <button class="opt" data-correct="false">加一个聚光灯从头顶照下来</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！傍晚的关键特征：太阳角度低（平行光接近水平）、色温偏暖（橙黄）、整体亮度降低。这正是夕阳的光照特征。"
+    data-wrong="傍晚的光照特征：主光（太阳）角度低、色温偏暖（橙黄）、整体亮度降低。用暖色 DirectionalLight 低角度 + 调暗环境光就能营造。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 做一个恐怖游戏的地下墓穴场景，光照怎么设计？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"环境光非常暗（AmbientLight 强度 0.1，深蓝色调），让大部分区域处于昏暗中。玩家手持一个点光源（OmniLight3D），暖黄色，衰减范围 5 米——只能照亮周围一小圈。走廊尽头有一个闪烁的红色点光源，亮度随机变化，营造不安感。墙上每隔一段有一个熄灭的火把位置（不发光），偶尔有一个亮的（OmniLight3D 暖橙色，带闪烁）。不开阴影贴图——手机性能不够，用黑暗本身代替阴影营造恐怖感。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用光源类型、颜色、强度、衰减描述了完整的光照方案。"用黑暗代替阴影"说明你已经理解了光照和性能的关系。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://threejs.org/manual/#en/lights">Three.js Fundamentals — Lights</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">官方光照教程，有每种光源的互动示例</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/lights_and_shadows.html">Godot — Lights and Shadows</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 光照与阴影文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："半球光是什么？""烘焙光照和实时光照哪个好？""为什么阴影有锯齿？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 5 课 / 3D 图形概念入门 · <a href="../reference/light.html" style="color: var(--accent);">📖 光照参考卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+          o.style.cursor = 'default';
+        });
+        if (feedback) {
+          feedback.classList.add('show');
+          feedback.innerHTML = isCorrect
+            ? '✅ ' + feedback.dataset.correct
+            : '❌ ' + feedback.dataset.wrong;
+        }
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initQuizzes);
+</script>
+</body>
+</html>

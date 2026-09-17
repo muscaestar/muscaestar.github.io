@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>完整三渲二演示：风格切换</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 10px 12px;
+    font-size: 13px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+    line-height: 1.5;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.95); padding: 12px;
+    border-top: 1px solid #30363d;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 16px; border: 1px solid #30363d; border-radius: 8px;
+    background: #161b27; color: #c9d1d9; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>完整三渲二</strong>：描边 + 色阶 + 材质简化<br>
+  切换风格看不同配方效果
+</div>
+<div id="controls">
+  <button class="btn active" data-style="cel">经典赛璐璐</button>
+  <button class="btn" data-style="watercolor">水彩风</button>
+  <button class="btn" data-style="comic">漫画风</button>
+  <button class="btn" data-style="ghibli">吉卜力风</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// 场景设置
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.BasicShadowMap;  // 硬阴影
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);  // 天蓝色背景
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 3, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.5, 0);
+
+// 灯光
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(5, 8, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+scene.add(dirLight);
+
+// 地面
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshToonMaterial({ color: 0x7cfc00 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ==================== 创建角色（卡通小机器人） ====================
+function createCharacter() {
+  const group = new THREE.Group();
+  
+  // 身体（圆角方块）
+  const bodyGeo = new THREE.BoxGeometry(1.2, 1.5, 0.8);
+  const bodyMat = new THREE.MeshToonMaterial({ color: 0xff6b6b });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 1.0;
+  body.castShadow = true;
+  group.add(body);
+  
+  // 头（球）
+  const headGeo = new THREE.SphereGeometry(0.6, 32, 32);
+  const headMat = new THREE.MeshToonMaterial({ color: 0xffd93d });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = 2.2;
+  head.castShadow = true;
+  group.add(head);
+  
+  // 眼睛（两个小黑球）
+  const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+  leftEye.position.set(-0.25, 2.3, 0.5);
+  group.add(leftEye);
+  const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+  rightEye.position.set(0.25, 2.3, 0.5);
+  group.add(rightEye);
+  
+  // 手臂（圆柱）
+  const armGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.0, 16);
+  const armMat = new THREE.MeshToonMaterial({ color: 0x4ecdc4 });
+  const leftArm = new THREE.Mesh(armGeo, armMat);
+  leftArm.position.set(-0.8, 1.2, 0);
+  leftArm.rotation.z = 0.3;
+  leftArm.castShadow = true;
+  group.add(leftArm);
+  const rightArm = new THREE.Mesh(armGeo, armMat);
+  rightArm.position.set(0.8, 1.2, 0);
+  rightArm.rotation.z = -0.3;
+  rightArm.castShadow = true;
+  group.add(rightArm);
+  
+  // 腿（圆柱）
+  const legGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 16);
+  const legMat = new THREE.MeshToonMaterial({ color: 0x6bcf7f });
+  const leftLeg = new THREE.Mesh(legGeo, legMat);
+  leftLeg.position.set(-0.4, 0.2, 0);
+  leftLeg.castShadow = true;
+  group.add(leftLeg);
+  const rightLeg = new THREE.Mesh(legGeo, legMat);
+  rightLeg.position.set(0.4, 0.2, 0);
+  rightLeg.castShadow = true;
+  group.add(rightLeg);
+  
+  return group;
+}
+
+// ==================== 创建描边 ====================
+function createOutline(characterGroup, outlineColor, outlineWidth) {
+  const outlineGroup = new THREE.Group();
+  
+  characterGroup.children.forEach(child => {
+    if (child.isMesh) {
+      const outlineGeo = child.geometry.clone();
+      const outlineMat = new THREE.MeshBasicMaterial({
+        color: outlineColor,
+        side: THREE.BackSide,
+      });
+      
+      const outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
+      outlineMesh.position.copy(child.position);
+      outlineMesh.rotation.copy(child.rotation);
+      outlineMesh.scale.copy(child.scale).multiplyScalar(1 + outlineWidth);
+      
+      outlineGroup.add(outlineMesh);
+    }
+  });
+  
+  return outlineGroup;
+}
+
+// 创建角色
+const character = createCharacter();
+scene.add(character);
+
+// 创建描边（初始：经典赛璐璐）
+let outline = createOutline(character, 0x000000, 0.02);
+scene.add(outline);
+
+// 添加树（简单卡通树）
+function createTree(x, z) {
+  const group = new THREE.Group();
+  
+  // 树干
+  const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8);
+  const trunkMat = new THREE.MeshToonMaterial({ color: 0x8b4513 });
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = 0.75;
+  trunk.castShadow = true;
+  group.add(trunk);
+  
+  // 树冠（球）
+  const crownGeo = new THREE.SphereGeometry(1.0, 16, 16);
+  const crownMat = new THREE.MeshToonMaterial({ color: 0x228b22 });
+  const crown = new THREE.Mesh(crownGeo, crownMat);
+  crown.position.y = 2.0;
+  crown.castShadow = true;
+  group.add(crown);
+  
+  group.position.set(x, 0, z);
+  return group;
+}
+
+scene.add(createTree(-3, -2));
+scene.add(createTree(3, -3));
+scene.add(createTree(0, -5));
+
+// ==================== 风格配置 ====================
+const styles = {
+  cel: {
+    name: '经典赛璐璐',
+    outlineColor: 0x000000,
+    outlineWidth: 0.02,
+    skyColor: 0x87ceeb,
+    groundColor: 0x7cfc00,
+    shadowHard: true
+  },
+  watercolor: {
+    name: '水彩风',
+    outlineColor: 0x6a8caf,
+    outlineWidth: 0.01,
+    skyColor: 0xe6f3ff,
+    groundColor: 0xc8e6c9,
+    shadowHard: false
+  },
+  comic: {
+    name: '漫画风',
+    outlineColor: 0x000000,
+    outlineWidth: 0.03,
+    skyColor: 0xffffff,
+    groundColor: 0xffff00,
+    shadowHard: true
+  },
+  ghibli: {
+    name: '吉卜力风',
+    outlineColor: 0x4a4a4a,
+    outlineWidth: 0.015,
+    skyColor: 0xb0e0e6,
+    groundColor: 0x90ee90,
+    shadowHard: false
+  }
+};
+
+// ==================== 控制逻辑 ====================
+document.querySelectorAll('[data-style]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-style]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const style = styles[btn.dataset.style];
+    
+    // 更新描边
+    scene.remove(outline);
+    outline = createOutline(character, style.outlineColor, style.outlineWidth);
+    scene.add(outline);
+    
+    // 更新背景
+    scene.background = new THREE.Color(style.skyColor);
+    
+    // 更新地面颜色
+    ground.material.color.setHex(style.groundColor);
+    
+    // 更新阴影硬度
+    renderer.shadowMap.type = style.shadowHard ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    dirLight.shadow.needsUpdate = true;
+  });
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  controls.update();
+  
+  // 角色轻微上下浮动
+  character.position.y = Math.sin(t * 2) * 0.1;
+  outline.position.y = Math.sin(t * 2) * 0.1;
+  
+  // 角色缓慢旋转
+  character.rotation.y = t * 0.3;
+  outline.rotation.y = t * 0.3;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>009 — 描边：三渲二的轮廓</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.outline-method { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin: 0.8rem 0; }
+.outline-method .name { font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.outline-method .principle { font-size: 0.85rem; color: var(--text); margin: 0.3rem 0; }
+.outline-method .code { font-size: 0.78rem; color: var(--accent3); margin-top: 0.4rem; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0008-animation.html">← 上一课</a>
+  <span>第 9 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">009</span>描边：三渲二的轮廓</h1>
+
+<p>你看到三渲二角色最外围那圈黑色轮廓了吗？那不是贴图，不是材质，是<strong>描边（Outline）</strong>——三渲二的标志性技术。这节课讲清楚：描边是什么，怎么实现，怎么控制粗细。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">描边 <span class="en">Outline / Edge Detection</span></div>
+  <p>在物体边缘画一圈线，模拟手绘动画的轮廓线。三渲二的标志性特征——不管角色怎么动，最外围永远有一圈线。</p>
+</div>
+
+<div class="concept">
+  <div class="term">Inverted Hull <span class="en">反向壳</span></div>
+  <p>描边的一种实现：复制 mesh，顶点沿法线外扩，只渲染背面。正面被正常角色挡住，只露出边缘的一圈黑线。</p>
+</div>
+
+<div class="concept">
+  <div class="term">后处理描边 <span class="en">Post-process Outline</span></div>
+  <p>另一种实现：渲染深度图或法线图，用边缘检测算法（Sobel 等）找出轮廓，叠加黑色线条。</p>
+</div>
+
+<h2>描边的直觉</h2>
+
+<pre>想象你有一个苹果：
+
+1. 正常渲染：     [🍎]        ← 红苹果
+2. 复制+放大：    [  🍎  ]    ← 黑苹果（比原来大一圈）
+3. 只渲染背面：   [▓🍎▓]      ← 黑苹果的背面（正面被剔除了）
+4. 叠加：         [▓🍎▓]      ← 红苹果盖在黑苹果上，边缘露出黑线
+
+这就是 Inverted Hull——用几何体本身"撑出"轮廓。</pre>
+
+<h2>两种描边方式对比</h2>
+
+<table>
+  <tr><th>方式</th><th>原理</th><th>优点</th><th>缺点</th><th>适用</th></tr>
+  <tr><td><strong>Inverted Hull</strong></td><td>复制 mesh，顶点外扩，渲染背面</td><td>简单，性能好，风格化明确</td><td>粗细固定，复杂模型可能穿帮</td><td>三渲二角色、卡通风格</td></tr>
+  <tr><td><strong>后处理</strong></td><td>渲染深度/法线图，边缘检测</td><td>粗细可调，风格统一，不受模型影响</td><td>复杂，性能开销大，可能检出多余边缘</td><td>写实+风格化混合、特效场景</td></tr>
+</table>
+
+<div class="tip">
+  <strong>三渲二用 Inverted Hull</strong>——风格化明确，手机也能跑。后处理描边更适合"写实渲染+一点风格化"的混合风格（如《塞尔达传说：旷野之息》的远景描边）。
+</div>
+
+<h2>Inverted Hull 详解</h2>
+
+<h3>步骤拆解</h3>
+
+<pre>1. 复制几何体
+   → 和原模型完全一样的 mesh
+
+2. 顶点外扩（沿法线方向）
+   → 每个顶点向外移动一点（比如 0.02 单位）
+   → 模型"膨胀"了一圈
+
+3. 材质设置
+   → 颜色：纯黑（或你想要的描边颜色）
+   → 不受光照（unshaded）
+   → 只渲染背面（cull front / BackSide）
+
+4. 渲染顺序
+   → 先渲染描边（黑色背面）
+   → 再渲染正常模型（盖住中间，只露边缘）</pre>
+
+<h3>Three.js 实现</h3>
+
+<pre>// 1. 正常角色
+const character = new THREE.Mesh(geometry, toonMaterial);
+scene.add(character);
+
+// 2. 描边 mesh
+const outlineGeometry = geometry.clone();
+const outlineMaterial = new THREE.MeshBasicMaterial({
+  color: 0x000000,           // 黑色
+  side: THREE.BackSide,      // 只渲染背面
+});
+const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+
+// 3. 顶点外扩（简单版：整体放大）
+outline.scale.multiplyScalar(1.02);  // 放大 2%
+
+scene.add(outline);</pre>
+
+<div class="warn">
+  <strong>注意</strong>：<code>scale.multiplyScalar(1.02)</code> 是"近似外扩"——简单但不够精确。精确做法是顶点着色器里沿法线外扩：<code>vertex += normal * width</code>。对于复杂模型，整体放大可能导致描边粗细不均（比如细长部位描边过粗）。
+</div>
+
+<h3>Godot 实现</h3>
+
+<pre># 方法 1：Next Pass 材质（最简单）
+# 在角色的材质上添加下一层 pass
+var mat = StandardMaterial3D.new()
+mat.albedo_color = Color.RED
+mat.next_pass = create_outline_material()
+
+func create_outline_material():
+    var outline = StandardMaterial3D.new()
+    outline.albedo_color = Color.BLACK
+    outline.cull_mode = BaseMaterial3D.CULL_FRONT  # 剔除正面，只渲染背面
+    outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED  # 不受光照
+    return outline</pre>
+
+<pre># 方法 2：Shader（更灵活）
+shader_type spatial;
+render_mode cull_front, unshaded;  # 剔除正面，无光照
+
+uniform float outline_width = 1.0;
+uniform vec4 outline_color : source_color = vec4(0,0,0,1);
+
+void vertex() {
+    // 顶点沿法线外扩
+    VERTEX += NORMAL * outline_width * 0.01;
+}
+
+void fragment() {
+    ALBEDO = outline_color.rgb;
+}</pre>
+
+<h2>描边粗细控制</h2>
+
+<h3>固定粗细（简单）</h3>
+
+<pre>// 整体放大固定比例
+outline.scale.multiplyScalar(1.02);  // 2% 粗细
+
+// 问题：近大远小，远处描边细，近处描边粗
+// 适合：固定视角、风格化明确的游戏</pre>
+
+<h3>屏幕空间等宽（真实）</h3>
+
+<pre>// Godot Shader：根据相机距离调整外扩
+void vertex() {
+    vec4 clip_position = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+    vec3 clip_normal = mat3(PROJECTION_MATRIX) * mat3(MODELVIEW_MATRIX) * NORMAL;
+    
+    // 法线转换到屏幕空间，外扩固定像素
+    vec2 offset = normalize(clip_normal.xy) / VIEWPORT_SIZE 
+                  * outline_width * clip_position.w * 2.0;
+    clip_position.xy += offset;
+    
+    POSITION = clip_position;
+}</pre>
+
+<div class="tip">
+  <strong>等宽描边</strong>：不管相机远近，描边在屏幕上都是固定像素宽（比如 2px）。这是动画渲染的标准做法——角色拉近时描边不会变粗，保持画面统一。
+</div>
+
+<h2>常见问题</h2>
+
+<table>
+  <tr><th>问题</th><th>原因</th><th>解决</th></tr>
+  <tr><td>描边太粗/太细</td><td>外扩比例不对</td><td>调整 scale 或 outline_width</td></tr>
+  <tr><td>细长部位描边过粗</td><td>整体放大导致比例失调</td><td>用顶点着色器沿法线外扩，而不是整体 scale</td></tr>
+  <tr><td>描边有锯齿</td><td>分辨率不足或 MSAA 未开</td><td>开抗锯齿，或提高渲染分辨率</td></tr>
+  <tr><td>透明物体描边错乱</td><td>深度排序问题</td><td>描边 pass 放在透明 pass 之前</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">Inverted Hull 描边的核心步骤是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">渲染深度图，用 Sobel 边缘检测</button>
+    <button class="opt" data-correct="true">复制 mesh，顶点外扩，只渲染背面，正常模型盖住中间</button>
+    <button class="opt" data-correct="false">给材质加黑色边框纹理</button>
+    <button class="opt" data-correct="false">用后处理模糊边缘再锐化</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Inverted Hull 是几何体级别的描边——复制 mesh、外扩、背面渲染、正常模型覆盖。不需要后处理，性能好，风格化明确。"
+    data-wrong="Inverted Hull 的核心是<strong>几何体膨胀</strong>：复制 mesh → 顶点外扩 → 只渲染背面（黑色）→ 正常模型盖住中间，只露边缘。Sobel 边缘检测是后处理描边，不是 Inverted Hull。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么 Inverted Hull 要"只渲染背面"（cull front / BackSide）？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">背面颜色更深，更适合描边</button>
+    <button class="opt" data-correct="false">渲染背面性能更好</button>
+    <button class="opt" data-correct="true">正面被正常模型挡住，只露出边缘的背面，形成轮廓线</button>
+    <button class="opt" data-correct="false">引擎 bug，必须渲染背面</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！正常模型和描边 mesh 几乎重合，但描边稍大。渲染描边的背面时，正面被正常模型挡住，只有边缘露出来——那就是轮廓线。"
+    data-wrong="描边 mesh 比正常模型稍大，两者几乎重合。渲染背面时，正面被正常模型挡住，只有边缘的背面露出来——那就是黑色轮廓。如果渲染正面，会整个盖住正常模型。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 给角色加三渲二描边，怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"用 Inverted Hull 实现描边。复制角色 mesh，顶点沿法线外扩 2%，材质设为纯黑、不受光照、cull front（只渲染背面）。描边 pass 在正常渲染之前，这样正常模型盖住中间，只露出边缘的黑色轮廓。描边粗细用屏幕空间等宽——根据相机距离调整外扩量，保证远近都是 2px 宽。角色动画时描边跟着动，不需要额外处理。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 Inverted Hull、顶点外扩、cull front、屏幕空间等宽。这就是专业级的描边描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html">Godot Spatial Shader — Cull Mode</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 背面剔除的官方文档</span></li>
+    <li><a href="https://threejs.org/manual/#en/materials">Three.js Materials — Side</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Three.js 材质面渲染控制</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："描边能不能只描外轮廓，不描内部线条？""动态粗细怎么实现？""透明物体怎么描边？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 9 课 / 三渲二 · <a href="../reference/outline.html" style="color: var(--accent);">📖 描边速查卡</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

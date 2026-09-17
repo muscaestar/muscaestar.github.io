@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>019 — 粒子系统：火、烟和魔法</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.prop { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; margin: 0.6rem 0; }
+.prop .name { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+.prop .desc { font-size: 0.85rem; margin-top: 0.2rem; }
+.prop .example { font-size: 0.78rem; color: var(--accent3); margin-top: 0.2rem; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0018-morph-target.html">← 上一课</a>
+  <span>第 19 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">019</span>粒子系统：火、烟和魔法</h1>
+
+<p>火不是 mesh，烟不是贴图，魔法爆炸不是动画——它们是<strong>粒子系统</strong>：成百上千个小图元，各自出生、运动、死亡，集体形成流动的效果。这是特效的基本功。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">粒子 <span class="en">Particle</span></div>
+  <p>一个最小的渲染单元——通常是面向相机的四边形（billboard quad），贴一张小图（火花点、烟雾团）。每个粒子有生命周期：出生 → 运动 → 死亡。</p>
+</div>
+
+<div class="concept">
+  <div class="term">发射器 <span class="en">Emitter</span></div>
+  <p>生产粒子的源头。定义：在哪生成（点/球/盒/锥）、多快（每秒几个）、初始状态（速度方向、大小、颜色）。</p>
+</div>
+
+<div class="concept">
+  <div class="term">生命周期属性 <span class="en">Lifetime / Over-Lifetime</span></div>
+  <p>粒子存活期间属性怎么变化。关键设计：属性不是固定值，而是<strong>曲线</strong>——大小随时间先涨后缩、颜色从白变灰、透明度淡出。"曲线调参"就是特效师的主要工作。</p>
+</div>
+
+<h2>粒子的解剖</h2>
+
+<pre>一个火焰粒子的一生：
+
+  出生（emit）
+    位置：发射器范围内随机
+    速度：向上 + 少量随机扩散
+    大小：0.2 ~ 0.4 随机
+    颜色：亮橙
+    寿命：1.5 秒
+
+  存活（update，每帧）
+    位置 += 速度 × dt
+    速度 += 外力 × dt（浮力向上、轻微噪声扰动）
+    大小：曲线 → 先涨到 1.5 倍再缩到 0
+    颜色：曲线 → 橙 → 红 → 暗红
+    透明度：曲线 → 最后 30% 寿命淡出
+
+  死亡（kill）
+    寿命耗尽 → 回收到粒子池（不销毁，复用）</pre>
+
+<h2>核心属性一览</h2>
+
+<div class="prop">
+  <div class="name">发射形状（Emission Shape）</div>
+  <div class="desc">粒子从哪生出来：点（火堆）、球（爆炸）、锥（喷气机）、盒（房间灰尘）、边缘（水花沿环线）</div>
+  <div class="example">→ 火焰用点+小半径，爆炸用球，喷泉用锥</div>
+</div>
+
+<div class="prop">
+  <div class="name">发射速率（Rate）</div>
+  <div class="desc">每秒生多少个。还有爆发模式（Burst）：瞬间生 100 个（爆炸），然后停止</div>
+  <div class="example">→ 火焰持续 30/s，爆炸 burst 200 个</div>
+</div>
+
+<div class="prop">
+  <div class="name">初始速度（Initial Velocity）</div>
+  <div class="desc">方向和大小，通常加随机范围。锥形发射 = 沿锥方向 ± 随机偏角</div>
+  <div class="example">→ 烟花向上 20m/s ± 15° 偏角</div>
+</div>
+
+<div class="prop">
+  <div class="name">力场（Forces）</div>
+  <div class="desc">持续作用在粒子上的力：重力（雨、雪）、浮力（火、烟）、风、涡流（旋涡）、阻力（空气）</div>
+  <div class="example">→ 烟 = 浮力 + 风 + 阻力；瀑布 = 强重力</div>
+</div>
+
+<div class="prop">
+  <div class="name">大小/颜色/透明度曲线（Over Lifetime）</div>
+  <div class="desc">特效的灵魂。烟：小→大 + 浓→淡；火：大→小 + 亮→暗；魔法：闪→稳→散</div>
+  <div class="example">→ 90% 的"像不像"取决于曲线调得好不好</div>
+</div>
+
+<div class="prop">
+  <div class="name">噪声扰动（Noise/Turbulence）</div>
+  <div class="desc">给速度加噪声场扰动——粒子不再走直线，像被气流吹得摇摆。烟和火必开</div>
+  <div class="example">→ 就是第 17 课的 Perlin 噪声，用在速度场上</div>
+</div>
+
+<div class="prop">
+  <div class="name">渲染模式（Render Mode）</div>
+  <div class="desc">billboard（永远面向相机）、stretch（沿速度方向拉伸，做速度线/雨丝）、mesh（粒子是小模型，做碎片）</div>
+  <div class="example">→ 火花 billboard，雨 stretch，爆炸碎石 mesh</div>
+</div>
+
+<h2>经典配方</h2>
+
+<table>
+  <tr><th>效果</th><th>发射</th><th>关键曲线</th><th>秘诀</th></tr>
+  <tr><td><strong>火焰</strong></td><td>点，30/s，向上速度</td><td>大小先涨后缩，橙→红→黑</td><td>噪声扰动 + 多层叠加（内焰亮黄、外焰橙红）</td></tr>
+  <tr><td><strong>烟雾</strong></td><td>小半径，10/s，慢速向上</td><td>大小持续涨，透明度慢淡出</td><td>大噪声扰动 + 半透明贴图 + 长寿命</td></tr>
+  <tr><td><strong>爆炸</strong></td><td>球，burst 200 个</td><td>初速快衰减也快，亮闪→暗</td><td>三层：闪光（瞬间亮球）+ 火花（高速粒子）+ 烟（慢速残留）</td></tr>
+  <tr><td><strong>雨</strong></td><td>大盒（覆盖视野），500/s</td><td>恒定速度向下</td><td>stretch 渲染沿速度拉长 + 相机跟随发射器</td></tr>
+  <tr><td><strong>魔法轨迹</strong></td><td>沿运动路径发射</td><td>颜色循环渐变，拖尾渐隐</td><td>trail 渲染（粒子间连线）+ 发光后处理</td></tr>
+  <tr><td><strong>尘埃/氛围</strong></td><td>房间大小的盒，3/s</td><td>几乎不动，微微飘</td><td>极少极淡，存在感越低越好——只是打破死空气</td></tr>
+</table>
+
+<h2>CPU 粒子 vs GPU 粒子</h2>
+
+<table>
+  <tr><th></th><th>CPU 粒子</th><th>GPU 粒子</th></tr>
+  <tr><td><strong>更新</strong></td><td>每帧 CPU 算每个粒子位置</td><td>GPU shader 算，CPU 只管发射</td></tr>
+  <tr><td><strong>数量级</strong></td><td>几百~几千</td><td>几万~百万</td></tr>
+  <tr><td><strong>交互</strong></td><td>可以（碰撞、拾取、脚本控制）</td><td>难（数据在 GPU，读回很贵）</td></tr>
+  <tr><td><strong>适用</strong></td><td>少量但需要交互（技能特效）</td><td>纯观赏（雨、雪、氛围尘埃）</td></tr>
+</table>
+
+<div class="tip">
+  <strong>Godot 的 GPUParticles3D</strong> 是默认选择，CPU 粒子（CPUParticles3D）只用于需要碰撞的场景。粒子的"更新逻辑"写在 shader 里——位置 = f(初始值, 时间)，不需要存状态，这就是 GPU 粒子能跑到百万级的秘诀。
+</div>
+
+<h2>性能要点</h2>
+
+<table>
+  <tr><th>优化</th><th>做法</th></tr>
+  <tr><td><strong>粒子池</strong></td><td>死亡的粒子不销毁，回池复用——避免频繁分配内存</td></tr>
+  <tr><td><strong>合批</strong></td><td>所有粒子一个 draw call（共享材质，数据打包进一个 buffer）</td></tr>
+  <tr><td><strong>贴图集</strong></td><td>多张粒子小图合在一张大图上（atlas），避免切换纹理</td></tr>
+  <tr><td><strong>LOD</strong></td><td>远处粒子系统降速率或整个关闭（又是 LOD 思想）</td></tr>
+  <tr><td><strong>半透明排序</strong></td><td>粒子半透明要排序渲染，乱序会闪——按深度排序是开销大头</td></tr>
+</table>
+
+<h2>Godot 实现</h2>
+
+<pre># Godot 4：GPUParticles3D 节点
+var particles = GPUParticles3D.new()
+particles.amount = 64
+particles.lifetime = 1.5
+particles.emitting = true
+
+var mat = ParticleProcessMaterial.new()
+mat.direction = Vector3(0, 1, 0)         # 向上
+mat.spread = 15.0                        # 偏角
+mat.initial_velocity_min = 2.0
+mat.initial_velocity_max = 4.0
+mat.gravity = Vector3(0, 2, 0)           # 浮力（负重力）
+mat.scale_min = 0.2
+mat.scale_max = 0.5
+# 曲线：大小随生命变化
+var curve = Curve.new()
+curve.add_point(Vector2(0, 0.5))
+curve.add_point(Vector2(0.3, 1.5))
+curve.add_point(Vector2(1, 0))
+mat.scale_curve = curve
+
+particles.process_material = mat
+add_child(particles)</pre>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么粒子系统里"曲线调参"比"固定数值"重要得多？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">曲线可以省内存</button>
+    <button class="opt" data-correct="false">固定数值会报错</button>
+    <button class="opt" data-correct="true">特效的"像不像"全在属性随时间的变化——烟从小涨大再淡出的过程才是烟，固定大小的烟只是悬空的圆点</button>
+    <button class="opt" data-correct="false">曲线渲染速度更快</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！特效的生命力在时间维度：大小曲线、颜色曲线、透明度曲线。烟之所以是烟，是因为它"长大了、变淡了、散开了"。固定数值的粒子只是空间中的静态图元。"
+    data-wrong="特效的本质是<strong>时间上的变化</strong>。烟 = 小→大 + 浓→淡的过程，火 = 大→小 + 亮→暗的过程。曲线定义了这个过程——这就是为什么特效师 90% 的时间在调曲线。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">爆炸特效为什么要用"三层叠加"（闪光 + 火花 + 烟）而不是一个粒子系统？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">一个粒子系统放不下那么多粒子</button>
+    <button class="opt" data-correct="true">爆炸包含时间尺度完全不同的成分——瞬间的闪光、高速的火花、慢速残留的烟，各自的曲线和寿命完全不同</button>
+    <button class="opt" data-correct="false">三层可以显示更多颜色</button>
+    <button class="opt" data-correct="false">引擎限制，必须分开做</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！复杂特效 = 多个简单系统的叠加。闪光活 0.1 秒（瞬间爆亮），火花活 0.5 秒（高速飞散），烟活 3 秒（慢速残留）。一个系统一套曲线，所以分开做再叠加。"
+    data-wrong="爆炸不是单一现象，是<strong>多时间尺度的组合</strong>。闪光（0.1s）、火花（0.5s）、烟（3s）寿命差 30 倍，曲线完全不同——一个粒子系统只有一套曲线，搞不定。叠加是特效的通用思路。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">GPU 粒子能跑到百万级而 CPU 粒子只能几千，核心原因是什么？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">GPU 内存更大</button>
+    <button class="opt" data-correct="true">GPU 粒子的位置是"初始值 + 时间"的纯函数，不需要存状态，天然并行；CPU 粒子要逐帧逐粒子更新状态</button>
+    <button class="opt" data-correct="false">GPU 粒子不用渲染</button>
+    <button class="opt" data-correct="false">CPU 粒子要处理碰撞所以慢</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！GPU 粒子无状态：位置 = f(出生参数, 当前时间)，每个粒子独立并行算，不需要"上一帧的位置"。CPU 逐粒子逐帧串行更新是瓶颈。代价：GPU 粒子难做交互（碰撞、脚本控制）。"
+    data-wrong="核心是<strong>无状态并行</strong>。GPU 粒子位置 = 纯函数(初始值, 时间)——不需要记忆，万个粒子同时算。CPU 粒子要一帧帧推进状态，串行是瓶颈。这也是为什么 GPU 粒子做不了复杂交互。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 篝火特效的完整配方怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"四层叠加：1) 火焰层——点发射 40/s，初速向上 2~4m/s，浮力 2，大小曲线先涨 1.5 倍再缩到 0，颜色橙黄→橙红→暗红，噪声扰动 0.5，billboard 渲染用火焰序列帧图。2) 火星层——burst 偶发，初速 5~8m/s 带随机偏角，受重力，亮橙小点，寿命 2 秒拖出抛物线。3) 烟层——火焰上方 0.5m 发射，慢速上浮，大小持续涨 3 倍，深灰半透明，大噪声扰动，寿命 4 秒。4) 光晕层——一个静态 billboard 贴径向渐变图，叠加 additive 混合，透明度随火焰强度轻微脉动。GPU 粒子，全部一个 atlas 贴图，远处降发射速率。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了分层叠加、发射参数、浮力、曲线、噪声、序列帧、additive 混合、性能 LOD。这就是专业级的篝火特效描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/particles/index.html">Godot — Particle Systems</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 粒子系统官方教程</span></li>
+    <li><a href="https://www.youtube.com/watch?v=GK0jhvHiyDs">GDC — The Visual Effects of Diablo IV</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">暗黑 4 特效制作思路</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："粒子怎么和场景碰撞？""ribbon/trail 渲染怎么做拖尾？""sub-emitter（粒子生粒子）怎么玩？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 19 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

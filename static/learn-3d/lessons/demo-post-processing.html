@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>后处理演示：夜景霓虹</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(0,0,0,0.7); padding: 8px 12px;
+    font-size: 12px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(10,10,15,0.95); padding: 10px;
+    border-top: 1px solid #30363d;
+    max-height: 42vh; overflow-y: auto;
+  }
+  .control-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #58a6ff; }
+  input[type="range"] {
+    width: 100%; accent-color: #58a6ff; height: 24px;
+  }
+  .btn-row { display: flex; gap: 4px; }
+  .btn {
+    padding: 6px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 11px; cursor: pointer;
+    transition: all 0.2s; flex: 1; text-align: center;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #58a6ff; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>后处理演示</strong>：Bloom 辉光 + 色调映射 + 暗角 + 颜色分级<br>
+  关掉所有效果看"裸渲染"的区别
+</div>
+<div id="controls">
+  <div class="control-grid">
+    <div class="section-title">Bloom 辉光</div>
+    
+    <div class="control-group">
+      <label>开关</label>
+      <div class="btn-row">
+        <button class="btn active" id="bloomOn">开</button>
+        <button class="btn" id="bloomOff">关</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>强度 <span class="value" id="bloomStrengthValue">0.8</span></label>
+      <input type="range" id="bloomStrength" min="0" max="30" value="8">
+    </div>
+    
+    <div class="control-group">
+      <label>阈值 <span class="value" id="bloomThresholdValue">0.5</span></label>
+      <input type="range" id="bloomThreshold" min="0" max="100" value="50">
+    </div>
+    
+    <div class="control-group">
+      <label>半径 <span class="value" id="bloomRadiusValue">0.4</span></label>
+      <input type="range" id="bloomRadius" min="0" max="100" value="40">
+    </div>
+    
+    <div class="section-title">色调映射</div>
+    
+    <div class="control-group">
+      <label>曲线</label>
+      <div class="btn-row">
+        <button class="btn" data-tone="0">无</button>
+        <button class="btn active" data-tone="4">ACES</button>
+        <button class="btn" data-tone="1">Reinhard</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>曝光 <span class="value" id="exposureValue">1.0</span></label>
+      <input type="range" id="exposure" min="10" max="300" value="100">
+    </div>
+    
+    <div class="section-title">画面</div>
+    
+    <div class="control-group">
+      <label>暗角 <span class="value" id="vignetteValue">0.3</span></label>
+      <input type="range" id="vignette" min="0" max="100" value="30">
+    </div>
+    
+    <div class="control-group">
+      <label>饱和度 <span class="value" id="saturationValue">1.2</span></label>
+      <input type="range" id="saturation" min="0" max="200" value="120">
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+import { EffectComposer } from '../assets/postprocessing/EffectComposer.js';
+import { RenderPass } from '../assets/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '../assets/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from '../assets/postprocessing/ShaderPass.js';
+
+// ==================== 场景：夜景霓虹 ====================
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050510);  // 深夜
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2.5, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.5, 0);
+
+// 微弱环境光
+scene.add(new THREE.AmbientLight(0x111122, 0.5));
+
+// 地面（深色反光感）
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 30),
+  new THREE.MeshStandardMaterial({ color: 0x0a0a12, roughness: 0.3, metalness: 0.8 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+// ==================== 霓虹招牌（自发光物体） ====================
+const neonColors = [0xff00ff, 0x00ffff, 0xff6600, 0x00ff88, 0xff0066, 0x6666ff];
+const neonObjects = [];
+
+// 霓虹柱（高亮，触发 Bloom）
+function createNeonPillar(x, z, color, height = 2) {
+  const geo = new THREE.BoxGeometry(0.3, height, 0.3);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    emissive: color,
+    emissiveIntensity: 2.5,  // 高亮度，超过 Bloom 阈值
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, height / 2, z);
+  scene.add(mesh);
+  neonObjects.push({ mesh, baseIntensity: 2.5 });
+  return mesh;
+}
+
+// 建筑剪影（不发光，对比用）
+function createBuilding(x, z, w, h, d) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x0d0d18, roughness: 0.9 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, h / 2, z);
+  scene.add(mesh);
+  
+  // 建筑上的窗户灯（部分亮）
+  const rows = Math.floor(h / 0.8);
+  const cols = Math.floor(w / 0.6);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (Math.random() > 0.7) {  // 30% 窗户亮
+        const winGeo = new THREE.PlaneGeometry(0.3, 0.4);
+        const winColor = Math.random() > 0.5 ? 0xffcc66 : 0x66ccff;
+        const winMat = new THREE.MeshStandardMaterial({
+          color: 0x111111,
+          emissive: winColor,
+          emissiveIntensity: 1.5,
+        });
+        const win = new THREE.Mesh(winGeo, winMat);
+        win.position.set(
+          x - w/2 + 0.4 + c * 0.6,
+          0.6 + r * 0.8,
+          z + d/2 + 0.01
+        );
+        scene.add(win);
+        neonObjects.push({ mesh: win, baseIntensity: 1.5 });
+      }
+    }
+  }
+}
+
+// 布置场景
+createBuilding(-4, -4, 2.5, 5, 2);
+createBuilding(0, -5, 3, 7, 2);
+createBuilding(4, -4, 2, 4, 2);
+createBuilding(-2, -8, 3, 9, 2);
+createBuilding(3, -8, 2.5, 6, 2);
+
+// 霓虹柱（前景）
+neonColors.forEach((color, i) => {
+  const angle = (i / neonColors.length) * Math.PI * 2;
+  const r = 3.5;
+  createNeonPillar(Math.cos(angle) * r, Math.sin(angle) * r - 1, color, 1.5 + Math.random());
+});
+
+// 中央能量球（最亮）
+const coreGeo = new THREE.SphereGeometry(0.5, 32, 32);
+const coreMat = new THREE.MeshStandardMaterial({
+  color: 0x111111,
+  emissive: 0x00ffff,
+  emissiveIntensity: 4.0,
+});
+const core = new THREE.Mesh(coreGeo, coreMat);
+core.position.set(0, 1.8, 0);
+scene.add(core);
+neonObjects.push({ mesh: core, baseIntensity: 4.0 });
+
+// ==================== 后处理链 ====================
+const composer = new EffectComposer(renderer);
+
+// 1. 渲染场景
+composer.addPass(new RenderPass(scene, camera));
+
+// 2. Bloom
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.8,   // strength
+  0.4,   // radius
+  0.5    // threshold
+);
+composer.addPass(bloomPass);
+
+// 3. 自定义画面 pass：暗角 + 饱和度
+const GradeShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    vignetteAmount: { value: 0.3 },
+    saturation: { value: 1.2 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float vignetteAmount;
+    uniform float saturation;
+    varying vec2 vUv;
+    
+    void main() {
+      vec4 color = texture2D(tDiffuse, vUv);
+      
+      // 饱和度：灰度插值
+      float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+      color.rgb = mix(vec3(gray), color.rgb, saturation);
+      
+      // 暗角：离中心越远越暗
+      float dist = distance(vUv, vec2(0.5));
+      float vignette = smoothstep(0.8, 0.3, dist * (1.0 + vignetteAmount * 2.0));
+      color.rgb *= mix(1.0, vignette, vignetteAmount);
+      
+      gl_FragColor = color;
+    }
+  `
+};
+const gradePass = new ShaderPass(GradeShader);
+composer.addPass(gradePass);
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+
+// Bloom 开关
+let bloomEnabled = true;
+$('bloomOn').addEventListener('click', () => {
+  bloomEnabled = true;
+  bloomPass.enabled = true;
+  $('bloomOn').classList.add('active');
+  $('bloomOff').classList.remove('active');
+});
+$('bloomOff').addEventListener('click', () => {
+  bloomEnabled = false;
+  bloomPass.enabled = false;
+  $('bloomOff').classList.add('active');
+  $('bloomOn').classList.remove('active');
+});
+
+// Bloom 参数
+$('bloomStrength').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 10;
+  $('bloomStrengthValue').textContent = v.toFixed(1);
+  bloomPass.strength = v;
+});
+$('bloomThreshold').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 100;
+  $('bloomThresholdValue').textContent = v.toFixed(2);
+  bloomPass.threshold = v;
+});
+$('bloomRadius').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 100;
+  $('bloomRadiusValue').textContent = v.toFixed(2);
+  bloomPass.radius = v;
+});
+
+// 色调映射
+document.querySelectorAll('[data-tone]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-tone]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderer.toneMapping = parseInt(btn.dataset.tone);
+  });
+});
+
+// 曝光
+$('exposure').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 100;
+  $('exposureValue').textContent = v.toFixed(2);
+  renderer.toneMappingExposure = v;
+});
+
+// 暗角
+$('vignette').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 100;
+  $('vignetteValue').textContent = v.toFixed(2);
+  gradePass.uniforms.vignetteAmount.value = v;
+});
+
+// 饱和度
+$('saturation').addEventListener('input', e => {
+  const v = parseInt(e.target.value) / 100;
+  $('saturationValue').textContent = v.toFixed(1);
+  gradePass.uniforms.saturation.value = v;
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.elapsedTime;
+
+  controls.update();
+  
+  // 能量球脉动
+  core.material.emissiveIntensity = 4.0 + Math.sin(t * 3) * 1.5;
+  core.position.y = 1.8 + Math.sin(t * 1.5) * 0.2;
+  
+  // 霓虹闪烁（随机）
+  neonObjects.forEach((obj, i) => {
+    if (i % 3 === 0) {
+      obj.mesh.material.emissiveIntensity = 
+        obj.baseIntensity * (0.9 + Math.sin(t * 5 + i * 2) * 0.1);
+    }
+  });
+
+  composer.render();  // 用后处理链渲染
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

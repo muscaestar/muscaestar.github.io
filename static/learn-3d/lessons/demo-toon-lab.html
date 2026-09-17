@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>三渲二风格实验室</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d1117; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.9); padding: 8px 12px;
+    font-size: 12px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(13,17,23,0.98); padding: 10px;
+    border-top: 1px solid #30363d;
+    max-height: 45vh; overflow-y: auto;
+  }
+  .control-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #58a6ff; }
+  .btn-row {
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 6px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 11px; cursor: pointer;
+    transition: all 0.2s; flex: 1; min-width: 0; text-align: center;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  input[type="range"] {
+    width: 100%; accent-color: #58a6ff; height: 24px;
+  }
+  input[type="color"] {
+    width: 100%; height: 32px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; cursor: pointer;
+  }
+  .full-width { grid-column: span 2; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #58a6ff; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>三渲二风格实验室</strong> — 所有参数实时可调
+</div>
+<div id="controls">
+  <div class="control-grid">
+    <!-- 描边控制 -->
+    <div class="section-title">描边</div>
+    
+    <div class="control-group">
+      <label>颜色 <span class="value" id="outlineColorValue">#000000</span></label>
+      <input type="color" id="outlineColor" value="#000000">
+    </div>
+    
+    <div class="control-group">
+      <label>粗细 <span class="value" id="outlineWidthValue">2%</span></label>
+      <input type="range" id="outlineWidth" min="0" max="10" value="2" step="0.5">
+    </div>
+    
+    <!-- 色阶控制 -->
+    <div class="section-title">色阶</div>
+    
+    <div class="control-group">
+      <label>级数 <span class="value" id="celLevelsValue">3</span></label>
+      <div class="btn-row">
+        <button class="btn" data-levels="2">2级</button>
+        <button class="btn active" data-levels="3">3级</button>
+        <button class="btn" data-levels="4">4级</button>
+        <button class="btn" data-levels="5">5级</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>过渡 <span class="value" id="celSoftnessValue">硬</span></label>
+      <input type="range" id="celSoftness" min="0" max="100" value="0">
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;">
+        <span>硬</span>
+        <span>软</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>阴影色 <span class="value" id="shadowColorValue">#2a2a4a</span></label>
+      <input type="color" id="shadowColor" value="#2a2a4a">
+    </div>
+    
+    <div class="control-group">
+      <label>高光</label>
+      <div class="btn-row">
+        <button class="btn" id="specularOff">关闭</button>
+        <button class="btn active" id="specularOn">开启</button>
+      </div>
+    </div>
+    
+    <!-- 场景控制 -->
+    <div class="section-title">场景</div>
+    
+    <div class="control-group">
+      <label>天空色 <span class="value" id="skyColorValue">#87ceeb</span></label>
+      <input type="color" id="skyColor" value="#87ceeb">
+    </div>
+    
+    <div class="control-group">
+      <label>地面色 <span class="value" id="groundColorValue">#7cfc00</span></label>
+      <input type="color" id="groundColor" value="#7cfc00">
+    </div>
+    
+    <div class="control-group full-width">
+      <label>阴影类型</label>
+      <div class="btn-row">
+        <button class="btn active" id="shadowHard">硬阴影</button>
+        <button class="btn" id="shadowSoft">软阴影</button>
+        <button class="btn" id="shadowNone">无阴影</button>
+      </div>
+    </div>
+    
+    <!-- 预设 -->
+    <div class="section-title">预设</div>
+    
+    <div class="control-group full-width">
+      <div class="btn-row">
+        <button class="btn" data-preset="cel">赛璐璐</button>
+        <button class="btn" data-preset="watercolor">水彩</button>
+        <button class="btn" data-preset="comic">漫画</button>
+        <button class="btn" data-preset="ghibli">吉卜力</button>
+        <button class="btn" data-preset="custom">自定义</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+
+// 场景设置
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 3, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1.5, 0);
+
+// 灯光
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(5, 8, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+scene.add(dirLight);
+
+// ==================== 色阶 Shader ====================
+const celVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vViewDir = normalize(cameraPosition - worldPos.xyz);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const celFragmentShader = `
+  uniform float levels;
+  uniform float softness;
+  uniform vec3 shadowColor;
+  uniform bool specularOn;
+  uniform vec3 lightDir;
+  uniform vec3 baseColor;
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  
+  void main() {
+    vec3 normal = normalize(vNormal);
+    vec3 viewDir = normalize(vViewDir);
+    vec3 light = normalize(lightDir);
+    
+    float NdotL = max(dot(normal, light), 0.0);
+    
+    // 色阶
+    float cel = floor(NdotL * levels) / levels;
+    
+    // 软过渡
+    if (softness > 0.0) {
+      float nextLevel = (floor(NdotL * levels) + 1.0) / levels;
+      float edge = softness * 0.5;
+      cel = mix(cel, nextLevel, smoothstep(nextLevel - edge, nextLevel, NdotL));
+    }
+    
+    // 高光色阶
+    float specular = 0.0;
+    if (specularOn) {
+      vec3 halfDir = normalize(light + viewDir);
+      float NdotH = max(dot(normal, halfDir), 0.0);
+      float spec = pow(NdotH, 32.0);
+      specular = floor(spec + 0.5) * 0.3;
+    }
+    
+    vec3 color = mix(shadowColor, baseColor, cel);
+    color += specular;
+    
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+function createCelMaterial(baseColor) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      levels: { value: 3.0 },
+      softness: { value: 0.0 },
+      shadowColor: { value: new THREE.Color(0x2a2a4a) },
+      specularOn: { value: true },
+      lightDir: { value: new THREE.Vector3(1, 1, 1).normalize() },
+      baseColor: { value: new THREE.Color(baseColor) }
+    },
+    vertexShader: celVertexShader,
+    fragmentShader: celFragmentShader
+  });
+}
+
+// ==================== 创建角色 ====================
+function createCharacter() {
+  const group = new THREE.Group();
+  
+  const bodyMat = createCelMaterial(0xff6b6b);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.8), bodyMat);
+  body.position.y = 1.0;
+  body.castShadow = true;
+  group.add(body);
+  
+  const headMat = createCelMaterial(0xffd93d);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 32), headMat);
+  head.position.y = 2.2;
+  head.castShadow = true;
+  group.add(head);
+  
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+  const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+  leftEye.position.set(-0.25, 2.3, 0.5);
+  group.add(leftEye);
+  const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+  rightEye.position.set(0.25, 2.3, 0.5);
+  group.add(rightEye);
+  
+  const armMat = createCelMaterial(0x4ecdc4);
+  const armGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.0, 16);
+  const leftArm = new THREE.Mesh(armGeo, armMat);
+  leftArm.position.set(-0.8, 1.2, 0);
+  leftArm.rotation.z = 0.3;
+  leftArm.castShadow = true;
+  group.add(leftArm);
+  const rightArm = new THREE.Mesh(armGeo, armMat);
+  rightArm.position.set(0.8, 1.2, 0);
+  rightArm.rotation.z = -0.3;
+  rightArm.castShadow = true;
+  group.add(rightArm);
+  
+  const legMat = createCelMaterial(0x6bcf7f);
+  const legGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 16);
+  const leftLeg = new THREE.Mesh(legGeo, legMat);
+  leftLeg.position.set(-0.4, 0.2, 0);
+  leftLeg.castShadow = true;
+  group.add(leftLeg);
+  const rightLeg = new THREE.Mesh(legGeo, legMat);
+  rightLeg.position.set(0.4, 0.2, 0);
+  rightLeg.castShadow = true;
+  group.add(rightLeg);
+  
+  return { group, materials: [bodyMat, headMat, armMat, legMat] };
+}
+
+// ==================== 创建描边 ====================
+function createOutline(characterGroup, color, width) {
+  const outlineGroup = new THREE.Group();
+  
+  characterGroup.children.forEach(child => {
+    if (child.isMesh) {
+      const outlineGeo = child.geometry.clone();
+      const outlineMat = new THREE.MeshBasicMaterial({
+        color: color,
+        side: THREE.BackSide,
+      });
+      
+      const outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
+      outlineMesh.position.copy(child.position);
+      outlineMesh.rotation.copy(child.rotation);
+      outlineMesh.scale.copy(child.scale).multiplyScalar(1 + width);
+      
+      outlineGroup.add(outlineMesh);
+    }
+  });
+  
+  return outlineGroup;
+}
+
+// 创建场景
+const character = createCharacter();
+scene.add(character.group);
+
+let outline = createOutline(character.group, 0x000000, 0.02);
+scene.add(outline);
+
+// 地面
+const groundMat = new THREE.MeshBasicMaterial({ color: 0x7cfc00 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 树
+function createTree(x, z) {
+  const group = new THREE.Group();
+  const trunkMat = createCelMaterial(0x8b4513);
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.5, 8), trunkMat);
+  trunk.position.y = 0.75;
+  trunk.castShadow = true;
+  group.add(trunk);
+  
+  const crownMat = createCelMaterial(0x228b22);
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), crownMat);
+  crown.position.y = 2.0;
+  crown.castShadow = true;
+  group.add(crown);
+  
+  group.position.set(x, 0, z);
+  return { group, materials: [trunkMat, crownMat] };
+}
+
+const tree1 = createTree(-3, -2);
+const tree2 = createTree(3, -3);
+const tree3 = createTree(0, -5);
+scene.add(tree1.group, tree2.group, tree3.group);
+
+const allCelMaterials = [...character.materials, ...tree1.materials, ...tree2.materials, ...tree3.materials];
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+
+// 描边颜色
+$('outlineColor').addEventListener('input', e => {
+  $('outlineColorValue').textContent = e.target.value;
+  scene.remove(outline);
+  outline = createOutline(character.group, new THREE.Color(e.target.value), parseFloat($('outlineWidth').value) / 100);
+  scene.add(outline);
+});
+
+// 描边粗细
+$('outlineWidth').addEventListener('input', e => {
+  $('outlineWidthValue').textContent = e.target.value + '%';
+  scene.remove(outline);
+  outline = createOutline(character.group, new THREE.Color($('outlineColor').value), parseFloat(e.target.value) / 100);
+  scene.add(outline);
+});
+
+// 色阶级数
+document.querySelectorAll('[data-levels]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-levels]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('celLevelsValue').textContent = btn.dataset.levels;
+    allCelMaterials.forEach(m => m.uniforms.levels.value = parseFloat(btn.dataset.levels));
+  });
+});
+
+// 色阶过渡
+$('celSoftness').addEventListener('input', e => {
+  const val = parseInt(e.target.value);
+  $('celSoftnessValue').textContent = val === 0 ? '硬' : val + '%';
+  allCelMaterials.forEach(m => m.uniforms.softness.value = val / 100);
+});
+
+// 阴影色
+$('shadowColor').addEventListener('input', e => {
+  $('shadowColorValue').textContent = e.target.value;
+  allCelMaterials.forEach(m => m.uniforms.shadowColor.value = new THREE.Color(e.target.value));
+});
+
+// 高光
+$('specularOn').addEventListener('click', () => {
+  $('specularOn').classList.add('active');
+  $('specularOff').classList.remove('active');
+  allCelMaterials.forEach(m => m.uniforms.specularOn.value = true);
+});
+$('specularOff').addEventListener('click', () => {
+  $('specularOff').classList.add('active');
+  $('specularOn').classList.remove('active');
+  allCelMaterials.forEach(m => m.uniforms.specularOn.value = false);
+});
+
+// 天空色
+$('skyColor').addEventListener('input', e => {
+  $('skyColorValue').textContent = e.target.value;
+  scene.background = new THREE.Color(e.target.value);
+});
+
+// 地面色
+$('groundColor').addEventListener('input', e => {
+  $('groundColorValue').textContent = e.target.value;
+  groundMat.color = new THREE.Color(e.target.value);
+});
+
+// 阴影类型
+$('shadowHard').addEventListener('click', () => {
+  setShadowType('hard');
+});
+$('shadowSoft').addEventListener('click', () => {
+  setShadowType('soft');
+});
+$('shadowNone').addEventListener('click', () => {
+  setShadowType('none');
+});
+
+function setShadowType(type) {
+  ['shadowHard', 'shadowSoft', 'shadowNone'].forEach(id => $(id).classList.remove('active'));
+  if (type === 'hard') {
+    $('shadowHard').classList.add('active');
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.BasicShadowMap;
+  } else if (type === 'soft') {
+    $('shadowSoft').classList.add('active');
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  } else {
+    $('shadowNone').classList.add('active');
+    renderer.shadowMap.enabled = false;
+  }
+  dirLight.shadow.needsUpdate = true;
+}
+
+// 预设
+const presets = {
+  cel: { outlineColor: '#000000', outlineWidth: 2, levels: 3, softness: 0, shadowColor: '#2a2a4a', specular: true, sky: '#87ceeb', ground: '#7cfc00', shadow: 'hard' },
+  watercolor: { outlineColor: '#6a8caf', outlineWidth: 1, levels: 4, softness: 60, shadowColor: '#e6f3ff', specular: false, sky: '#e6f3ff', ground: '#c8e6c9', shadow: 'soft' },
+  comic: { outlineColor: '#000000', outlineWidth: 3, levels: 2, softness: 0, shadowColor: '#000000', specular: true, sky: '#ffffff', ground: '#ffff00', shadow: 'hard' },
+  ghibli: { outlineColor: '#4a4a4a', outlineWidth: 1.5, levels: 3, softness: 30, shadowColor: '#8b7355', specular: false, sky: '#b0e0e6', ground: '#90ee90', shadow: 'soft' }
+};
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const p = presets[btn.dataset.preset];
+    if (!p) return;
+    
+    // 应用预设
+    $('outlineColor').value = p.outlineColor;
+    $('outlineColorValue').textContent = p.outlineColor;
+    $('outlineWidth').value = p.outlineWidth;
+    $('outlineWidthValue').textContent = p.outlineWidth + '%';
+    
+    document.querySelectorAll('[data-levels]').forEach(b => {
+      b.classList.toggle('active', b.dataset.levels == p.levels);
+    });
+    $('celLevelsValue').textContent = p.levels;
+    
+    $('celSoftness').value = p.softness;
+    $('celSoftnessValue').textContent = p.softness === 0 ? '硬' : p.softness + '%';
+    
+    $('shadowColor').value = p.shadowColor;
+    $('shadowColorValue').textContent = p.shadowColor;
+    
+    if (p.specular) {
+      $('specularOn').click();
+    } else {
+      $('specularOff').click();
+    }
+    
+    $('skyColor').value = p.sky;
+    $('skyColorValue').textContent = p.sky;
+    scene.background = new THREE.Color(p.sky);
+    
+    $('groundColor').value = p.ground;
+    $('groundColorValue').textContent = p.ground;
+    groundMat.color = new THREE.Color(p.ground);
+    
+    setShadowType(p.shadow);
+    
+    // 更新材质
+    allCelMaterials.forEach(m => {
+      m.uniforms.levels.value = p.levels;
+      m.uniforms.softness.value = p.softness / 100;
+      m.uniforms.shadowColor.value = new THREE.Color(p.shadowColor);
+    });
+    
+    // 更新描边
+    scene.remove(outline);
+    outline = createOutline(character.group, new THREE.Color(p.outlineColor), p.outlineWidth / 100);
+    scene.add(outline);
+  });
+});
+
+// ==================== 动画循环 ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  controls.update();
+  
+  character.group.position.y = Math.sin(t * 2) * 0.1;
+  outline.position.y = Math.sin(t * 2) * 0.1;
+  character.group.rotation.y = t * 0.3;
+  outline.rotation.y = t * 0.3;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

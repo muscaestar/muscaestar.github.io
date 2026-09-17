@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>014 — 阴影进阶：级联、软阴影、常见坑</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.4rem 0 0.4rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept .term .en { font-weight: 400; font-size: 0.85rem; color: var(--text-dim); margin-left: 0.5rem; }
+.concept p { font-size: 0.92rem; }
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 0.8rem 0; font-family: "SF Mono", Menlo, monospace; -webkit-overflow-scrolling: touch; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; background: rgba(88,166,255,.12); padding: 0.15em 0.35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt:active { transform: scale(0.98); }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: 0.82rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "⚠️ "; }
+.warn strong { color: var(--accent3); }
+.resources { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.resources h3 { margin-top: 0; }
+.resources ul { list-style: none; padding: 0; }
+.resources li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.resources li:last-child { border-bottom: none; }
+.resources a { color: var(--accent); text-decoration: none; }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./0013-ibl.html">← 上一课</a>
+  <span>第 14 课</span>
+  <a href="./index.html">目录</a>
+</div>
+
+<h1><span class="num">014</span>阴影进阶：级联、软阴影、常见坑</h1>
+
+<p>入门课里你已经会开阴影了：`castShadow = true` 就完事。但真做项目时问题就来了——远处阴影糊成一片、物体表面出现条纹、阴影边缘闪烁。这节课讲阴影的<strong>实现原理</strong>，以及三大进阶问题怎么解决。</p>
+
+<h2>核心概念</h2>
+
+<div class="concept">
+  <div class="term">阴影贴图 <span class="en">Shadow Map</span></div>
+  <p>阴影的实现方式：从光源视角渲染一张"深度图"（记录每个像素离光多远）。渲染物体时，把像素位置转换到光源视角，比较深度——比深度图远 = 被挡住 = 在阴影里。</p>
+</div>
+
+<div class="concept">
+  <div class="term">阴影相机 <span class="en">Shadow Camera</span></div>
+  <p>光源的"视角范围"。方向光的阴影相机是一个盒子（frustum），只有盒子里的物体才有阴影。盒子外的世界——没有阴影。</p>
+</div>
+
+<div class="concept">
+  <div class="term">级联阴影贴图 <span class="en">Cascaded Shadow Maps (CSM)</span></div>
+  <p>把视锥切成几段，每段用一张独立的高精度阴影贴图。近处用细精度贴图（清晰），远处用粗精度（反正看不清）。解决大场景阴影模糊的标准方案。</p>
+</div>
+
+<h2>阴影贴图原理</h2>
+
+<pre>第一步：从光源渲染深度图
+  光源视角看到的场景 → 记录每个像素的深度
+  （这张图上没有颜色，只有"离光多远"）
+
+第二步：渲染主相机画面
+  对每个像素：
+    1. 算出它在光源视角下的深度 d1
+    2. 查阴影贴图同位置的深度 d2
+    3. d1 > d2 → 被挡住了 → 阴影
+       d1 ≈ d2 → 光直接照到 → 亮</pre>
+
+<div class="tip">
+  <strong>直觉</strong>：阴影贴图就是"光看到了什么"。光看到的地方亮，光看不到的地方（被挡住了）就是阴影。所以阴影质量完全取决于这张深度图的分辨率和覆盖范围。
+</div>
+
+<h2>问题 1：阴影模糊（分辨率不足）</h2>
+
+<p>阴影贴图本质是纹理——一张 1024×1024 的图要覆盖整个阴影相机范围。范围越大，每个像素覆盖的实际面积越大，阴影越糊。</p>
+
+<table>
+  <tr><th>阴影相机范围</th><th>1024 贴图精度</th><th>效果</th></tr>
+  <tr><td>10 米</td><td>~1cm/像素</td><td>清晰锐利</td></tr>
+  <tr><td>100 米</td><td>~10cm/像素</td><td>边缘锯齿明显</td></tr>
+  <tr><td>1000 米</td><td>~1m/像素</td><td>糊成一片</td></tr>
+</table>
+
+<pre>// Three.js：提高分辨率 + 收紧范围
+light.shadow.mapSize.set(2048, 2048);  // 更大贴图（更贵）
+light.shadow.camera.left = -20;        // 收紧相机范围
+light.shadow.camera.right = 20;        // 只覆盖需要的区域
+light.shadow.camera.top = 20;
+light.shadow.camera.bottom = -20;</pre>
+
+<h3>解决：级联阴影（CSM）</h3>
+
+<pre>视锥切 3 段，每段一张 1024 阴影贴图：
+
+  近处（0~30m）   → 贴图 1：10cm/像素，清晰
+  中距（30~100m） → 贴图 2：30cm/像素，够用
+  远处（100~500m）→ 贴图 3：1.5m/像素，反正看不清
+
+总开销：3 张 1024 贴图 ≈ 1 张 2048 的开销
+但近处精度 = 2048 贴图覆盖 30m 的精度</pre>
+
+<div class="tip">
+  <strong>Godot 直接内置</strong>：DirectionalLight3D → Shadow → 开启 PSSM（Parallel Split Shadow Maps），设置 2~4 级 split。Three.js 需要 CSM 插件（three/examples/jsm/csm/CSM.js）。
+</div>
+
+<h2>问题 2：阴影失真（Shadow Acne / Peter-Panning）</h2>
+
+<p>两个经典的阴影 bug，根源都是<strong>深度精度</strong>：</p>
+
+<table>
+  <tr><th>Bug</th><th>现象</th><th>原因</th><th>解决</th></tr>
+  <tr><td><strong>Shadow Acne</strong></td><td>物体表面出现条纹/噪点状阴影</td><td>深度图精度有限，表面自己和自己比较时误判"被挡住"</td><td>加 bias（偏移）：比较时把深度往外推一点</td></tr>
+  <tr><td><strong>Peter-Panning</strong></td><td>阴影和物体分离，像物体悬浮</td><td>bias 加太大，"被推出去"的深度超过了实际缝隙</td><td>调小 bias，或用 normal bias</td></tr>
+</table>
+
+<pre>// Three.js：bias 调参
+light.shadow.bias = -0.0001;         // 消除 acne
+light.shadow.normalBias = 0.02;      // 沿法线偏移，对斜面更好
+
+// 调试方法：bias 从 0 开始，慢慢加直到 acne 消失
+// 加过头了出现 Peter-Panning → 往回调</pre>
+
+<div class="warn">
+  <strong>bias 没有万能值</strong>——和场景尺度、相机范围都相关。大场景（公里级）需要更大的 bias。这就是为什么引擎里都暴露这个参数让你调。
+</div>
+
+<h2>问题 3：硬阴影 vs 软阴影</h2>
+
+<p>真实世界的阴影边缘不是锐利的——光源有面积，半影区（penumbra）是渐变：</p>
+
+<table>
+  <tr><th>类型</th><th>原理</th><th>效果</th><th>成本</th></tr>
+  <tr><td><strong>硬阴影</strong></td><td>深度比较，非黑即白</td><td>边缘锐利，风格化</td><td>最便宜</td></tr>
+  <tr><td><strong>PCF</strong></td><td>采样周围几个像素取平均</td><td>边缘柔和，通用</td><td>便宜</td></tr>
+  <tr><td><strong>PCSS</strong></td><td>半影宽度随遮挡物距离变化</td><td>近实远虚，真实</td><td>中等</td></tr>
+  <tr><td><strong>VSM</strong></td><td>存深度的平方，用统计估计</td><td>软但可能漏光</td><td>中等</td></tr>
+</table>
+
+<pre>// Three.js：切换阴影类型
+renderer.shadowMap.type = THREE.BasicShadowMap;     // 硬阴影
+renderer.shadowMap.type = THREE.PCFShadowMap;       // PCF（默认）
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;   // PCF 软
+renderer.shadowMap.type = THREE.VSMShadowMap;       // VSM
+
+// Godot：DirectionalLight3D → Shadow → Blur 调模糊度</pre>
+
+<div class="tip">
+  <strong>PCSS 的直觉</strong>：用手挡太阳——手贴近地面时影子锐利，手举高时影子模糊。遮挡物离接收面越远，半影越大。这是最真实的软阴影算法，但手机上一般用 PCF 就够了。
+</div>
+
+<h2>手机端阴影策略</h2>
+
+<table>
+  <tr><th>策略</th><th>做法</th><th>适用</th></tr>
+  <tr><td><strong>烘焙阴影</strong></td><td>静物阴影烘到 lightmap，实时阴影只给角色</td><td>大多数手游</td></tr>
+  <tr><td><strong>单级联 + 紧范围</strong></td><td>阴影相机只覆盖玩家周围 30 米，跟着主角走</td><td>第三人称游戏</td></tr>
+  <tr><td><strong>低分辨率 + PCF</strong></td><td>1024 贴图 + PCF 软阴影，锯齿被模糊掩盖</td><td>性能紧张时</td></tr>
+  <tr><td><strong>假阴影</strong></td><td>角色脚下贴一个圆形渐变贴图（blob shadow）</td><td>超休闲游戏</td></tr>
+</table>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么大场景里远处阴影会模糊，而近处阴影清晰？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">远处物体太小人眼看不清</button>
+    <button class="opt" data-correct="false">引擎故意降低远处质量</button>
+    <button class="opt" data-correct="true">阴影贴图分辨率固定，覆盖范围越大每像素代表的实际面积越大</button>
+    <button class="opt" data-correct="false">远处光照强度弱导致阴影淡</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！阴影贴图像素数固定（如 1024×1024），要铺满整个阴影相机范围。范围 1000m 时 1 像素 = 1m，阴影边缘全是锯齿。CSM 就是为解决这个问题——近处用精细贴图。"
+    data-wrong="阴影贴图是纹理，像素数固定。覆盖 10m 时 1 像素 = 1cm（清晰），覆盖 1000m 时 1 像素 = 1m（糊）。和光照强度无关，是<strong>分辨率/范围的比值</strong>问题。CSM 分段解决。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">物体表面出现条纹状阴影（Shadow Acne）应该怎么修？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">提高阴影贴图分辨率</button>
+    <button class="opt" data-correct="true">调整 shadow bias，比较深度时加一个小的偏移量</button>
+    <button class="opt" data-correct="false">换更亮的灯光</button>
+    <button class="opt" data-correct="false">给物体加更多面数</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！Acne 是深度精度不足导致表面误判自己挡住自己。bias 把比较基准往外推一点，消除误判。但加太多会导致 Peter-Panning（阴影脱离物体），需要在两者之间找平衡。"
+    data-wrong="Acne 的根源是<strong>深度比较精度</strong>，不是分辨率或灯光。bias 给比较加偏移量解决。注意两个方向的 bug：bias 太小 → acne；bias 太大 → Peter-Panning（阴影脱离）。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">为什么 PCSS 比 PCF 的阴影更真实？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">PCSS 分辨率更高</button>
+    <button class="opt" data-correct="false">PCSS 颜色更黑</button>
+    <button class="opt" data-correct="true">PCSS 的半影宽度随遮挡物距离变化——近实远虚，符合真实物理</button>
+    <button class="opt" data-correct="false">PCSS 渲染速度更快</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！真实物理：遮挡物离接收面越近阴影越锐利，越远越模糊（手贴地影子实，手举高影子虚）。PCF 用固定模糊半径，PCSS 根据遮挡距离动态算半影宽度。"
+    data-wrong="差别在<strong>半影模型</strong>。PCF 固定半径模糊——所有边缘一样软。PCSS 按遮挡距离算半影——手举高影子更虚。这才是真实物理。性能上 PCSS 反而更贵。">
+  </div>
+</div>
+
+<h2>口头描述练习</h2>
+
+<details style="margin: 0.8rem 0; font-size: 0.92rem;">
+  <summary style="cursor: pointer; color: var(--accent); font-weight: 600;">🗣️ 开放世界手游的阴影方案怎么描述？</summary>
+  <div style="padding: 0.6rem 0; color: var(--text);">
+    <p>"方向光用 3 级 CSM：近处 30m 高精度（角色和近景清晰），中距 100m 中等，远处 500m 粗精度（反正看不清）。每级 1024 贴图，PCF 软阴影。bias 按场景尺度调到 0.0005，normalBias 0.05。建筑和地形阴影烘焙到 lightmap，实时阴影只管角色和动态物体。性能模式下降为 2 级 CSM + 512 贴图。远处的树用 blob shadow 贴片。"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent2);">→ 你用了 CSM 分级策略、贴图预算、bias 调参、烘焙+实时混合、降级方案、blob shadow。这就是完整的阴影方案描述。</p>
+  </div>
+</details>
+
+<div class="resources">
+  <h3>📚 延伸阅读</h3>
+  <ul>
+    <li><a href="https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping">LearnOpenGL — Shadow Mapping</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">阴影贴图原理最佳教程</span></li>
+    <li><a href="https://docs.godotengine.org/en/stable/tutorials/3d/lights_and_shadows.html">Godot — Lights and Shadows</a><br>
+    <span style="color: var(--text-dim); font-size: 0.8rem;">Godot 阴影设置官方文档</span></li>
+  </ul>
+</div>
+
+<div class="tip">
+  <strong>有疑问随时问</strong>："点光源的阴影怎么做（立方体阴影贴图）？""接触阴影（Contact Shadow）是什么？""半透明物体的阴影怎么处理？" 直接问 agent。
+</div>
+
+<div class="lesson-footer">
+  <p>第 14 课 / 系统性 3D 进阶 · <a href="./index.html" style="color: var(--accent);">📚 课程目录</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) {
+            o.classList.add('correct');
+          }
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

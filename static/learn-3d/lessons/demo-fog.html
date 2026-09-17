@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>雾色氛围实验室</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(0,0,0,0.7); padding: 8px 12px;
+    font-size: 12px; color: #8b949e; text-align: center;
+    backdrop-filter: blur(8px); border-bottom: 1px solid #30363d;
+  }
+  #info strong { color: #58a6ff; }
+  #controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(10,10,12,0.95); padding: 10px;
+    border-top: 1px solid #30363d;
+    max-height: 50vh; overflow-y: auto;
+  }
+  .control-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #58a6ff; }
+  input[type="range"] {
+    width: 100%; accent-color: #58a6ff; height: 24px;
+  }
+  .btn-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 12px; cursor: pointer;
+    transition: all 0.2s; flex: 1; text-align: center; min-width: 60px;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #000; border-color: #58a6ff; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #58a6ff; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+  #mood-label {
+    position: fixed; top: 60px; left: 10px; z-index: 20;
+    background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 6px;
+    font-size: 13px; color: #fff; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="info">
+  <strong>雾色氛围实验室</strong> — 同一场景，换个雾色就是另一个世界
+</div>
+<div id="mood-label">🌤️ 晴朗白日</div>
+<div id="controls">
+  <div class="control-grid">
+    <div class="section-title">雾参数</div>
+    
+    <div class="control-group">
+      <label>雾浓度 <span class="value" id="densityValue">0.02</span></label>
+      <input type="range" id="density" min="0" max="80" value="20">
+    </div>
+    
+    <div class="control-group">
+      <label>雾起始距离 <span class="value" id="nearValue">5m</span></label>
+      <input type="range" id="near" min="1" max="30" value="5">
+    </div>
+    
+    <div class="section-title">雾颜色（HSL）</div>
+    
+    <div class="control-group">
+      <label>色相 <span class="value" id="hueValue">210°</span></label>
+      <input type="range" id="hue" min="0" max="360" value="210">
+    </div>
+    
+    <div class="control-group">
+      <label>饱和度 <span class="value" id="satValue">40%</span></label>
+      <input type="range" id="sat" min="0" max="100" value="40">
+    </div>
+    
+    <div class="control-group">
+      <label>亮度 <span class="value" id="ligValue">65%</span></label>
+      <input type="range" id="lig" min="5" max="95" value="65">
+    </div>
+    
+    <div class="control-group">
+      <label>天空亮度 <span class="value" id="skyValue">0.6</span></label>
+      <input type="range" id="sky" min="0" max="100" value="60">
+    </div>
+    
+    <div class="section-title">氛围预设</div>
+    
+    <div class="control-group" style="grid-column: span 2;">
+      <div class="btn-row">
+        <button class="btn active" data-preset="day">🌤️ 晴朗</button>
+        <button class="btn" data-preset="dusk">🌇 黄昏</button>
+        <button class="btn" data-preset="night">🌙 夜晚</button>
+        <button class="btn" data-preset="dust">🌪️ 沙尘</button>
+        <button class="btn" data-preset="toxic">☢️ 毒气</button>
+        <button class="btn" data-preset="alien">👽 异星</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "../assets/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const container = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 3, 18);
+camera.lookAt(0, 3, 0);
+
+// ==================== 场景：山谷村庄 ====================
+// 远山（3 层，体现空气透视）
+const mountainMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.9, flatShading: true });
+function makeMountain(x, z, h, r) {
+  const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 6), mountainMat);
+  m.position.set(x, h / 2 - 1, z);
+  m.rotation.y = Math.random() * Math.PI;
+  scene.add(m);
+}
+makeMountain(-20, -40, 18, 14);
+makeMountain(15, -45, 22, 16);
+makeMountain(-5, -55, 25, 18);
+makeMountain(30, -50, 15, 12);
+
+// 中景：树
+const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x3a2415, roughness: 0.9 });
+const treeTopMat = new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.8, flatShading: true });
+function makeTree(x, z, s) {
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15*s, 0.2*s, 1.5*s, 6), treeTrunkMat);
+  trunk.position.set(x, 0.75*s, z);
+  scene.add(trunk);
+  const top = new THREE.Mesh(new THREE.ConeGeometry(1.2*s, 3*s, 6), treeTopMat);
+  top.position.set(x, 1.5*s + 1.5*s, z);
+  scene.add(top);
+}
+makeTree(-6, -5, 1.2); makeTree(4, -8, 1.5); makeTree(-3, -12, 1.0);
+makeTree(8, -3, 1.3); makeTree(-9, -2, 0.9); makeTree(6, -15, 1.4);
+makeTree(-7, -18, 1.6); makeTree(10, -12, 1.1); makeTree(0, -20, 1.3);
+makeTree(-12, -8, 1.0); makeTree(13, -18, 1.2); makeTree(3, -25, 1.5);
+
+// 近景：小屋
+const houseMat = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 0.85 });
+const roofMat = new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.8 });
+function makeHouse(x, z, ry) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(3, 2.5, 3), houseMat);
+  body.position.y = 1.25;
+  g.add(body);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2, 4), roofMat);
+  roof.position.y = 3.5;
+  roof.rotation.y = Math.PI / 4;
+  g.add(roof);
+  g.position.set(x, 0, z);
+  g.rotation.y = ry;
+  scene.add(g);
+}
+makeHouse(-3, -2, 0.3);
+makeHouse(4, -6, -0.2);
+makeHouse(-6, -10, 0.5);
+
+// 地面
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x3a5f3a, roughness: 0.95 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), groundMat);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+// ==================== 灯光 ====================
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+sunLight.position.set(10, 20, 10);
+scene.add(sunLight);
+const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x3a5f3a, 0.5);
+scene.add(hemiLight);
+
+// ==================== 雾 ====================
+const fogColor = new THREE.Color();
+scene.fog = new THREE.Fog(fogColor, 5, 60);
+
+// ==================== 参数 ====================
+const params = {
+  density: 0.02, near: 5,
+  hue: 210, sat: 40, lig: 65,
+  skyBrightness: 0.6,
+};
+
+// ==================== 控制逻辑 ====================
+const $ = id => document.getElementById(id);
+
+function hslToColor(h, s, l) {
+  return new THREE.Color(`hsl(${h}, ${s}%, ${l}%)`);
+}
+
+function updateFog() {
+  fogColor.copy(hslToColor(params.hue, params.sat, params.lig));
+  scene.fog.color.copy(fogColor);
+  scene.fog.near = params.near;
+  scene.fog.far = params.near + (1 / params.density) * 8;
+  
+  // 天空背景跟随雾色（模拟大气统一性）
+  const skyC = hslToColor(params.hue, params.sat * 0.6, params.lig * params.skyBrightness);
+  scene.background = skyC;
+  
+  // 半球光颜色跟随天空
+  hemiLight.color.copy(skyC);
+  
+  // 阳光色温随亮度变化
+  if (params.lig < 30) {
+    sunLight.color.setHSL(0.05, 0.8, 0.5);  // 暗=暖橙
+    sunLight.intensity = 0.4;
+  } else if (params.lig < 55) {
+    sunLight.color.setHSL(0.08, 0.6, 0.6);  // 黄昏=橙黄
+    sunLight.intensity = 0.8;
+  } else {
+    sunLight.color.setHSL(0.12, 0.3, 0.95); // 白天=白
+    sunLight.intensity = 1.2;
+  }
+  
+  updateMoodLabel();
+}
+
+function updateMoodLabel() {
+  const h = params.hue, s = params.sat, l = params.lig;
+  let mood;
+  if (l < 20) mood = '🌙 深夜';
+  else if (s > 60 && h >= 80 && h < 170) mood = '☢️ 毒气';
+  else if (s > 55 && h >= 15 && h < 55) mood = '🌪️ 沙尘暴';
+  else if (s > 45 && h >= 255 && h < 330) mood = '👽 异星';
+  else if (l < 45) mood = (h >= 0 && h < 50) ? '🌇 黄昏' : '🌫️ 阴天';
+  else if (h > 180 && h < 240) mood = '🌤️ 晴朗白日';
+  else mood = '🌤️ 白日';
+  $('mood-label').textContent = mood;
+}
+
+function bindSlider(id, key, fmt, scale = 1) {
+  $(id).addEventListener('input', e => {
+    params[key] = parseFloat(e.target.value) / scale;
+    $(id + 'Value').textContent = fmt(params[key]);
+    updateFog();
+  });
+}
+
+bindSlider('density', 'density', v => v.toFixed(2), 1000);
+bindSlider('near', 'near', v => v + 'm');
+bindSlider('hue', 'hue', v => v + '°');
+bindSlider('sat', 'sat', v => v + '%');
+bindSlider('lig', 'lig', v => v + '%');
+bindSlider('sky', 'skyBrightness', v => v.toFixed(2), 100);
+
+// 预设
+const presets = {
+  day:   { density: 0.02, near: 5, hue: 210, sat: 40, lig: 65, skyBrightness: 0.6 },
+  dusk:  { density: 0.03, near: 4, hue: 25,  sat: 60, lig: 45, skyBrightness: 0.5 },
+  night: { density: 0.04, near: 3, hue: 230, sat: 50, lig: 12, skyBrightness: 0.3 },
+  dust:  { density: 0.05, near: 3, hue: 35,  sat: 70, lig: 50, skyBrightness: 0.55 },
+  toxic: { density: 0.04, near: 4, hue: 120, sat: 65, lig: 35, skyBrightness: 0.4 },
+  alien: { density: 0.03, near: 5, hue: 280, sat: 55, lig: 40, skyBrightness: 0.45 },
+};
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = presets[btn.dataset.preset];
+    Object.assign(params, p);
+    document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // 同步 UI
+    $('density').value = p.density * 1000; $('densityValue').textContent = p.density.toFixed(2);
+    $('near').value = p.near; $('nearValue').textContent = p.near + 'm';
+    $('hue').value = p.hue; $('hueValue').textContent = p.hue + '°';
+    $('sat').value = p.sat; $('satValue').textContent = p.sat + '%';
+    $('lig').value = p.lig; $('ligValue').textContent = p.lig + '%';
+    $('sky').value = p.skyBrightness * 100; $('skyValue').textContent = p.skyBrightness.toFixed(2);
+    updateFog();
+  });
+});
+
+updateFog();
+
+// ==================== 主循环 ====================
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>
