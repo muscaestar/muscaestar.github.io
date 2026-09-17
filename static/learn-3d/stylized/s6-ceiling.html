@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S6 — 天花板报告：无 shader 能做到什么</title>
+<style>
+:root {
+  --bg: #0d1117; --bg-card: #161b27; --bg-code: #0a0e14;
+  --text: #c9d1d9; --text-dim: #8b949e;
+  --accent: #58a6ff; --accent2: #3fb950; --accent3: #d29922;
+  --border: #30363d; --red: #f85149;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  padding: 1.2rem 1rem 3rem; max-width: 42rem; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font-size: 1.4rem; font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h1 .num { color: var(--accent); font-weight: 400; margin-right: 0.4rem; }
+h2 { font-size: 1.1rem; font-weight: 600; color: #e6edf3; margin: 2rem 0 0.6rem; }
+p { margin: 0.5rem 0; }
+.lesson-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.82rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); }
+.lesson-nav a:active { background: var(--accent); color: #fff; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.83rem; }
+th, td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--accent); font-weight: 600; font-size: 0.8rem; }
+.ok { color: var(--accent2); font-weight: 700; }
+.mid { color: var(--accent3); font-weight: 700; }
+.no { color: var(--red); font-weight: 700; }
+.score { display: inline-block; min-width: 2.5rem; font-weight: 700; }
+.concept { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.concept .term { font-size: 1.02rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.concept p { font-size: 0.9rem; }
+.tip { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.tip::before { content: "💡 "; }
+.tip strong { color: var(--accent); }
+.warn { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.25); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0; font-size: 0.88rem; }
+.warn::before { content: "🚧 "; }
+.warn strong { color: var(--red); }
+.ceiling { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.ceiling .c-tech { font-weight: 700; color: var(--red); font-size: 0.95rem; }
+.ceiling .c-why { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem; }
+.ceiling .c-shader { font-size: 0.85rem; color: var(--accent2); margin-top: 0.3rem; }
+.report-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.report-card .rc-title { font-weight: 700; color: var(--accent); font-size: 1rem; }
+.report-card .rc-score { float: right; font-size: 1.1rem; font-weight: 800; }
+.report-card .rc-detail { font-size: 0.85rem; margin-top: 0.5rem; }
+.report-card .rc-can { color: var(--accent2); }
+.report-card .rc-cant { color: var(--red); }
+.lesson-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-dim); }
+.lesson-footer a { color: var(--accent); text-decoration: none; }
+.quiz { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.quiz .q-label { font-size: 0.78rem; font-weight: 700; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.quiz .q-text { font-size: 0.95rem; font-weight: 600; color: #e6edf3; margin-bottom: 0.7rem; }
+.quiz .options { display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz .opt { padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.88rem; cursor: pointer; transition: all 0.15s; text-align: left; font-family: inherit; }
+.quiz .opt.correct { border-color: var(--accent2); background: rgba(63,185,80,.12); color: var(--accent2); }
+.quiz .opt.wrong { border-color: var(--red); background: rgba(248,81,73,.12); color: var(--red); }
+.quiz .feedback { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); display: none; }
+.quiz .feedback.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="lesson-nav">
+  <a href="./s5-glitch.html">← S5</a>
+  <span>风格化 S6</span>
+  <a href="../lessons/index.html">主课程</a>
+</div>
+
+<h1><span class="num">S6</span>天花板报告：无 shader 能做到什么</h1>
+
+<p>6 课做完了。这门课的命题是"不用 shader，风格化能走多远"——现在你有了一份亲手验证过的答案。这份报告不是背出来的，是你在 S1~S5 里一次次踩坑、一次次确认边界后攒下的。<strong>它是你以后决定"要不要学 shader"的依据。</strong></p>
+
+<h2>总成绩单</h2>
+
+<table>
+  <tr><th>课</th><th>风格</th><th>得分</th><th>评价</th></tr>
+  <tr><td>S1</td><td>三渲二</td><td class="score mid">70</td><td>描边✅ 色阶△（静态预烘焙）动态✗</td></tr>
+  <tr><td>S2</td><td>氛围调色</td><td class="score ok">90</td><td>几乎满分——光照+雾+曝光+暗角足够</td></tr>
+  <tr><td>S3</td><td>漫画/网点</td><td class="score mid">65</td><td>高对比✅ 网点✅ 速度线✅ 随光照网点✗</td></tr>
+  <tr><td>S4</td><td>像素/复古</td><td class="score ok">90</td><td>低分辨率渲染即本质，几乎满分</td></tr>
+  <tr><td>S5</td><td>故障/科幻</td><td class="score mid">55</td><td>故障条✅ 抖动✅ 噪点✅ RGB 错位✗</td></tr>
+</table>
+
+<div class="tip">
+  <strong>规律很清晰</strong>：越是"整体氛围/渲染参数"层面的风格（调色、像素化），无 shader 越能打；越是"逐像素/逐通道精细操作"的效果（RGB 错位、动态网点），越撞天花板。
+</div>
+
+<h2>逐课报告卡</h2>
+
+<div class="report-card">
+  <div class="rc-title">S1 三渲二 <span class="rc-score mid">70 分</span></div>
+  <div class="rc-detail">
+    <p class="rc-can">✅ 做到：Inverted Hull 描边（复制 mesh+背面+外扩）、预烘焙色阶贴图（静态二分）、冷色阴影染色、主角选择性描边。</p>
+    <p class="rc-cant">🚧 卡住：<strong>动态色阶</strong>（光照变化时色阶边界实时移动）——预烘焙贴图是死的，灯光一转色阶不跟。还有<strong>空心/薄片 mesh 描边</strong>（石圈/草/旗）——Inverted Hull 背面翻出变黑。</p>
+  </div>
+</div>
+
+<div class="report-card">
+  <div class="rc-title">S2 氛围调色 <span class="rc-score ok">90 分</span></div>
+  <div class="rc-detail">
+    <p class="rc-can">✅ 做到：5 种调性（正午/黄昏/夜晚/雾林/异变）全靠光照颜色+雾+toneMappingExposure+CSS 暗角。同一个营地 5 个世界。</p>
+    <p class="rc-cant">🚧 卡住：<strong>局部调色</strong>（只调角色不调背景、只调暗部色相）——CSS 和光照都是全局的，局部调色要 LUT shader。</p>
+  </div>
+</div>
+
+<div class="report-card">
+  <div class="rc-title">S3 漫画/网点 <span class="rc-score mid">65 分</span></div>
+  <div class="rc-detail">
+    <p class="rc-can">✅ 做到：高对比光照（拉阳光压环境光）、CSS 半调网点（multiply）、Canvas 放射线速度线（疾跑/爆发触发）、漫画描边。</p>
+    <p class="rc-cant">🚧 卡住：<strong>网点随光照/距离变化</strong>（亮部无点、暗部密点、近大远小）——CSS 网点是静态平铺，不感知场景光照。<strong>真·随视角速度线</strong>也要 shader。</p>
+  </div>
+</div>
+
+<div class="report-card">
+  <div class="rc-title">S4 像素/复古 <span class="rc-score ok">90 分</span></div>
+  <div class="rc-detail">
+    <p class="rc-can">✅ 做到：低分辨率渲染+最近邻放大（像素感本质）、CSS 降色近似调色板、噪点抖动、CRT 扫描线、4 档复古预设（HD/GBA/红白机/GameBoy）。</p>
+    <p class="rc-cant">🚧 卡住：<strong>逐像素调色板量化</strong>（真 16 色调色板、有序抖动 dithering）——CSS filter 只能近似降色，真调色板要逐像素 shader。</p>
+  </div>
+</div>
+
+<div class="report-card">
+  <div class="rc-title">S5 故障/科幻 <span class="rc-score mid">55 分</span></div>
+  <div class="rc-detail">
+    <p class="rc-can">✅ 做到：CSS 扫描故障条（随机跳动+扭曲）、canvas transform 画面抖动、CSS 数字噪点、信号干扰爆发。</p>
+    <p class="rc-cant">🚧 卡住：<strong>RGB 通道错位</strong>——drop-shadow 认 canvas alpha 被背景盖住，SVG filter 在 iSH WebKit 的 WebGL canvas 上不可靠。这是本课唯一彻底失败的技术。</p>
+  </div>
+</div>
+
+<h2>无 shader 天花板清单</h2>
+
+<p>这 4 项是你亲手验证"做不到"的——它们就是 shader 存在的理由：</p>
+
+<div class="ceiling">
+  <div class="c-tech">1. RGB 通道错位 / 色差（Chromatic Aberration）</div>
+  <div class="c-why">需要逐通道采样偏移——CSS drop-shadow 认元素 alpha 被背景盖住，SVG filter 在 WebGL canvas 上不可靠。</div>
+  <div class="c-shader">→ shader 解法：后处理 pass 里对 R/G/B 三通道分别做 UV 偏移采样，几行 GLSL。</div>
+</div>
+
+<div class="ceiling">
+  <div class="c-tech">2. 动态色阶（随光照实时的 Cel Shading）</div>
+  <div class="c-why">预烘焙渐变贴图是静态的——灯光方向一变，色阶边界不跟着动，卡通感穿帮。</div>
+  <div class="c-shader">→ shader 解法：自定义光照模型，fragment 里 floor(NdotL × levels)/levels 实时离散。</div>
+</div>
+
+<div class="ceiling">
+  <div class="c-tech">3. 屏幕空间边缘检测描边（空心/薄片也能描）</div>
+  <div class="c-why">Inverted Hull 只适用实心封闭 mesh——空心环形/薄片背面翻出。石圈/草/旗描边只能换方案。</div>
+  <div class="c-shader">→ shader 解法：Sobel 边缘检测后处理，对深度/法线突变处描边，与几何结构无关。</div>
+</div>
+
+<div class="ceiling">
+  <div class="c-tech">4. 随场景变化的网点/速度线（感知光照和距离）</div>
+  <div class="c-why">CSS 网点/速度线是静态平铺/固定面片——不感知场景光照强弱、不感知物体远近。</div>
+  <div class="c-shader">→ shader 解法：网点 shader 读 NdotL 决定点密度，速度线 shader 读屏幕空间速度矢量。</div>
+</div>
+
+<h2>shader 进阶地图</h2>
+
+<p>如果你决定继续深入，shader 学习的路径已经很清晰——就从这 4 个"卡住点"入手，每一个都是小而具体的入门项目：</p>
+
+<table>
+  <tr><th>入门项目</th><th>shader 概念</th><th>难度</th><th>对应卡住点</th></tr>
+  <tr><td><strong>RGB 错位后处理</strong></td><td>后处理 pass + UV 偏移</td><td>⭐ 最简单</td><td>S5 RGB 错位</td></tr>
+  <tr><td><strong>自定义色阶光照</strong></td><td>fragment shader + NdotL</td><td>⭐⭐</td><td>S1 动态色阶</td></tr>
+  <tr><td><strong>Sobel 边缘检测描边</strong></td><td>深度/法线缓冲 + 卷积</td><td>⭐⭐⭐</td><td>S1 空心描边</td></tr>
+  <tr><td><strong>光照感知网点</strong></td><td>光照数据 + 程序化纹理</td><td>⭐⭐⭐⭐</td><td>S3 动态网点</td></tr>
+</table>
+
+<div class="tip">
+  <strong>推荐从 RGB 错位后处理入手</strong>——它是"hello world"级的 shader：一个全屏 quad、一个 fragment shader、三通道 UV 偏移。你能用它在 S5 的场景上做出真正的色差故障，成就感拉满，而且立刻理解"后处理 pass"这个现代渲染的核心概念。
+</div>
+
+<h2>核心结论</h2>
+
+<div class="concept">
+  <div class="term">无 shader 能走多远？</div>
+  <p>答案：<strong>整体氛围和渲染参数层面能走很远（70~90 分），逐像素精细操作就走不动了（55 分以下）</strong>。调色、像素化、描边、网点、速度线、故障条、抖动——这些"风格化"的主力军引擎都自带。shader 补的是最后 20% 的精细控制：通道操作、动态响应、屏幕空间效果。</p>
+</div>
+
+<div class="concept">
+  <div class="term">你现在的判断力</div>
+  <p>以后再看到任何风格化效果，你能立刻判断："这是引擎能做的（调参数/后处理/贴图），还是必须 shader（通道/动态/屏幕空间）"。这个判断力比会写 shader 更值钱——它让你在项目里正确估算成本、正确选型。</p>
+</div>
+
+<h2>实战检验</h2>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">无 shader 风格化的天花板主要卡在什么层面？</div>
+  <div class="options">
+    <button class="opt" data-correct="false">整体氛围调色</button>
+    <button class="opt" data-correct="false">像素化低分辨率渲染</button>
+    <button class="opt" data-correct="true">逐像素/逐通道的精细操作（RGB 错位、动态色阶、屏幕空间描边）</button>
+    <button class="opt" data-correct="false">粒子特效</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！无 shader 在"整体氛围/渲染参数"层面能走很远（调色 90 分、像素化 90 分），但逐像素/逐通道的精细操作（RGB 错位、动态色阶、屏幕空间描边、光照感知网点）就必须 shader。这就是 4 个天花板条目的共性。"
+    data-wrong="整体调色和像素化是无 shader 的强项（90 分）。天花板卡在<strong>逐像素/逐通道精细操作</strong>——需要 shader 对每个像素做自定义计算（通道偏移、实时光照离散、屏幕空间卷积），这是引擎预设参数给不了的。">
+  </div>
+</div>
+
+<div class="quiz">
+  <div class="q-label">测验</div>
+  <div class="q-text">如果要学 shader，从哪个项目入门性价比最高？</div>
+  <div class="options">
+    <button class="opt" data-correct="true">RGB 错位后处理——全屏 quad + fragment 三通道 UV 偏移，"hello world"级且立刻补上 S5 的失败</button>
+    <button class="opt" data-correct="false">光线追踪全局光照</button>
+    <button class="opt" data-correct="false">体积云 ray marching</button>
+    <button class="opt" data-correct="false">水面焦散模拟</button>
+  </div>
+  <div class="feedback"
+    data-correct="对！RGB 错位后处理是最小可入门的 shader 项目：一个后处理 pass、一个 fragment shader、三通道 UV 偏移采样。它直接补上 S5 的天花板，做完立刻理解"后处理 pass"这个现代渲染核心概念。其他三个（GI/体积云/焦散）都是高级主题，不适合入门。"
+    data-wrong="入门 shader 要选<strong>小而具体</strong>的项目。RGB 错位后处理是"hello world"级——一个全屏 quad、一个 fragment、三通道 UV 偏移，几行代码就能在 S5 场景上做出真色差。光线追踪/体积云/焦散都是大主题，入门就被劝退。">
+  </div>
+</div>
+
+<div class="tip">
+  <strong>风格化专项 S0~S6 全部完成</strong> 🎉。你亲手验证了无 shader 的边界，拿到了 4 个 shader 进阶的具体入口。要不要继续深入 shader，现在你有充分的依据做判断了。
+</div>
+
+<div class="lesson-footer">
+  <p>风格化专项 S6 · <a href="../lessons/index.html">📚 主课程目录</a> · <a href="./s0-baseline.html">S0 课程地图</a></p>
+</div>
+
+<script>
+function initQuizzes() {
+  document.querySelectorAll('.quiz').forEach(quiz => {
+    const optionsContainer = quiz.querySelector('.options');
+    const opts = Array.from(quiz.querySelectorAll('.opt'));
+    const feedback = quiz.querySelector('.feedback');
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    opts.forEach(opt => optionsContainer.appendChild(opt));
+    let answered = false;
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const isCorrect = opt.dataset.correct === 'true';
+        opt.classList.add(isCorrect ? 'correct' : 'wrong');
+        opts.forEach(o => {
+          o.style.pointerEvents = 'none';
+          if (o.dataset.correct === 'true' && !isCorrect) o.classList.add('correct');
+        });
+        feedback.textContent = isCorrect ? feedback.dataset.correct : feedback.dataset.wrong;
+        feedback.classList.add('show');
+      });
+    });
+  });
+}
+initQuizzes();
+</script>
+
+</body>
+</html>

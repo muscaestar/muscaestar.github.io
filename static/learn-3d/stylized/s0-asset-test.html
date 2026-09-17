@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S0 素材验证 — KayKit + Kenney 加载测试</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #1a2030; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #info {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(0,0,0,0.65); padding: 8px 14px;
+    font-size: 12px; color: #8b949e; backdrop-filter: blur(8px);
+  }
+  #info strong { color: #58a6ff; }
+  #status { color: #3fb950; }
+  #err { color: #f85149; font-size: 11px; margin-top: 2px; }
+  #console-panel {
+    position: fixed; top: 60vh; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: #0d1117; border-top: 2px solid #30363d;
+    padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .control-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .control-group {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px; background: #161b27; border-radius: 6px; border: 1px solid #30363d;
+  }
+  .control-group label {
+    font-size: 10px; color: #8b949e; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; justify-content: space-between;
+  }
+  .control-group .value { color: #58a6ff; }
+  input[type="range"] { width: 100%; accent-color: #58a6ff; height: 24px; }
+  .btn-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 10px; border: 1px solid #30363d; border-radius: 4px;
+    background: #0d1117; color: #c9d1d9; font-size: 12px; cursor: pointer;
+    transition: all 0.2s; flex: 1; text-align: center; min-width: 56px;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn.active { background: #58a6ff; color: #000; border-color: #58a6ff; }
+  .section-title {
+    grid-column: span 2; font-size: 11px; color: #58a6ff; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+    padding-top: 8px; border-top: 1px solid #30363d;
+  }
+  .span2 { grid-column: span 2; }
+  /* ===== 虚拟摇杆 ===== */
+  #joystick {
+    position: fixed; left: 24px; top: calc(60vh - 140px); z-index: 30;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.15);
+    touch-action: none; user-select: none;
+  }
+  #joystick .stick {
+    position: absolute; left: 50%; top: 50%;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(88,166,255,0.55); border: 2px solid rgba(88,166,255,0.8);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  #sprint-btn {
+    position: fixed; right: 24px; top: calc(60vh - 120px); z-index: 30;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.2);
+    color: #c9d1d9; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none; user-select: none;
+  }
+  #sprint-btn.active { background: rgba(210,153,34,0.4); border-color: #d29922; }
+</style>
+</head>
+<body>
+<div id="info">
+  <strong>S0 素材验证</strong> · <span id="status">加载中…</span>
+  <div id="err"></div>
+</div>
+<div id="joystick"><div class="stick"></div></div>
+<div id="sprint-btn">疾跑</div>
+<div id="console-panel">
+  <div class="control-grid">
+    <div class="section-title">写实渲染基准参数</div>
+    <div class="control-group">
+      <label>阳光强度 <span class="value" id="sunValue">1.6</span></label>
+      <input type="range" id="sun" min="0" max="40" value="16">
+    </div>
+    <div class="control-group">
+      <label>环境光 <span class="value" id="hemiValue">0.6</span></label>
+      <input type="range" id="hemi" min="0" max="20" value="6">
+    </div>
+    <div class="control-group">
+      <label>阳光色温 <span class="value" id="tempValue">暖白</span></label>
+      <input type="range" id="temp" min="0" max="100" value="20">
+    </div>
+    <div class="control-group">
+      <label>阴影</label>
+      <div class="btn-row">
+        <button class="btn active" id="shadowOn">开</button>
+        <button class="btn" id="shadowOff">关</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "../assets/three.module.js",
+  "three/addons/": "../assets/"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from '../assets/OrbitControls.js';
+import { GLTFLoader } from '../assets/GLTFLoader.js';
+
+const statusEl = document.getElementById('status');
+const errEl = document.getElementById('err');
+window.addEventListener('error', e => { errEl.textContent = 'ERR: ' + e.message; });
+
+// 渲染器只占上半屏（50vh），下半屏留给控制台
+const VIEW_H = () => Math.floor(innerHeight * 0.6);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, VIEW_H());
+renderer.domElement.style.position = 'fixed';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a2030);
+window.__scene = scene;  // 暴露给调试
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/VIEW_H(), 0.1, 200);
+camera.position.set(1.5 + 4, 4.5, 0.5 + 6.5);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(1.5, 1, 0.5);
+controls.enableDamping = true;
+
+// 灯光
+const sun = new THREE.DirectionalLight(0xfff5e6, 1.6);
+sun.position.set(8, 12, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = sun.shadow.camera.bottom = -15;
+sun.shadow.camera.right = sun.shadow.camera.top = 15;
+scene.add(sun);
+const hemi = new THREE.HemisphereLight(0x87ceeb, 0x4a6741, 0.6);
+scene.add(hemi);
+
+// 地面
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(14, 48),
+  new THREE.MeshStandardMaterial({ color: 0x4a6741, roughness: 0.95 })
+);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+  // 加载
+const loader = new GLTFLoader();
+const loaded = [];
+let animMixers = [];
+let loadCount = 0;
+const totalToLoad = 17;
+
+function tick(msg) {
+  loadCount++;
+  statusEl.textContent = `加载中 ${loadCount}/${totalToLoad} · ${msg}`;
+}
+
+function loadGLB(url, pos, scale = 1, rotY = 0) {
+  return new Promise((resolve, reject) => {
+    loader.load(url, g => {
+      const obj = g.scene;
+      obj.position.set(...pos);
+      obj.scale.setScalar(scale);
+      obj.rotation.y = rotY;
+      obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+      scene.add(obj);
+      loaded.push(url.split('/').pop());
+      tick(url.split('/').pop());
+      // 打印包围盒帮助调试尺寸
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      console.log(url.split('/').pop(), 'size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
+      resolve(g);
+    }, undefined, reject);
+  });
+}
+
+// 弓箭手单独加载为主角（可控角色）
+let player = null;
+let playerMixer = null;
+let playerActions = {};
+let currentAction = null;
+
+function loadPlayer() {
+  return new Promise((resolve, reject) => {
+    loader.load('./models/character-archer.glb', g => {
+      player = g.scene;
+      player.position.set(1.5, 0, 0.5);
+      player.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+      scene.add(player);
+      tick('character-archer.glb (主角)');
+      // 动画
+      playerMixer = new THREE.AnimationMixer(player);
+      for (const name of ['idle', 'walk', 'sprint']) {
+        const clip = g.animations.find(a => a.name === name);
+        if (clip) playerActions[name] = playerMixer.clipAction(clip);
+      }
+      playAction('idle');
+      animMixers.push(playerMixer);
+      resolve(g);
+    }, undefined, reject);
+  });
+}
+
+function playAction(name, fade = 0.2) {
+  const next = playerActions[name];
+  if (!next || currentAction === next) return;
+  next.reset().fadeIn(fade).play();
+  if (currentAction) currentAction.fadeOut(fade);
+  currentAction = next;
+}
+
+const jobs = [
+  loadPlayer(),
+  // ===== 中心：帐篷（营地核心）=====
+  loadGLB('./models/tent.glb', [0, 0, -1.5], 1.4, Math.PI),
+  // 帐篷前的篝火位置用石块围一圈
+  loadGLB('./models/stones.glb', [0.3, 0, 0.8], 0.9),
+
+  // ===== 靶场（右侧）=====
+  loadGLB('./models/target.glb', [4.5, 0, -1], 1.1, -Math.PI/2),
+
+  // ===== 树木环绕 =====
+  loadGLB('./models/tree.glb', [-4.5, 0, -3], 1.2),
+  loadGLB('./models/tree-high.glb', [4.5, 0, 3.5], 1.1),
+  loadGLB('./models/tree.glb', [-3.5, 0, 3.5], 0.9, Math.PI/3),
+  loadGLB('./models/tree-high.glb', [-5, 0, 0.5], 1, Math.PI/5),
+
+  // ===== 栅栏围出前院 =====
+  loadGLB('./models/fence.glb', [-1.8, 0, 3.2], 1, 0),
+  loadGLB('./models/fence.glb', [1.8, 0, 3.2], 1, 0),
+
+  // ===== 旗帜（入口标识）=====
+  loadGLB('./models/flag.glb', [0, 0, 3.2], 1.1),
+
+  // ===== 岩石点缀 =====
+  loadGLB('./models/rocks-low.glb', [3.5, 0, 1.5], 1),
+  loadGLB('./models/rocks-high.glb', [-4.8, 0, -1.5], 0.9),
+  loadGLB('./models/patch-grass.glb', [2, 0.01, 2.5], 1.2),
+  loadGLB('./models/patch-grass.glb', [-2.5, 0.01, -3.5], 1, Math.PI/2),
+];
+
+Promise.allSettled(jobs).then(results => {
+  const ok = results.filter(r => r.status === 'fulfilled').length;
+  const fail = results.filter(r => r.status === 'rejected');
+  statusEl.textContent = `已加载 ${ok}/${jobs.length} 个模型`;
+  if (fail.length) errEl.textContent = '失败: ' + fail.map(f => f.reason?.message || f.reason).join('; ');
+});
+
+// ===== 控制台交互 =====
+const $ = id => document.getElementById(id);
+
+// 阳光强度
+$('sun').addEventListener('input', e => {
+  sun.intensity = parseFloat(e.target.value) / 10;
+  $('sunValue').textContent = sun.intensity.toFixed(1);
+});
+// 环境光
+$('hemi').addEventListener('input', e => {
+  hemi.intensity = parseFloat(e.target.value) / 10;
+  $('hemiValue').textContent = hemi.intensity.toFixed(1);
+});
+// 阳光色温（0=冷蓝 50=暖白 100=暖橙）
+function updateTemp(v) {
+  const t = v / 100;  // 0~1
+  // 冷(0.75,0.85,1.0) → 暖白(1,0.96,0.9) → 暖橙(1,0.7,0.45)
+  let r, g, b;
+  if (t < 0.5) {
+    const k = t / 0.5;
+    r = 0.75 + (1 - 0.75) * k;
+    g = 0.85 + (0.96 - 0.85) * k;
+    b = 1.0 + (0.9 - 1.0) * k;
+  } else {
+    const k = (t - 0.5) / 0.5;
+    r = 1.0;
+    g = 0.96 + (0.7 - 0.96) * k;
+    b = 0.9 + (0.45 - 0.9) * k;
+  }
+  sun.color.setRGB(r, g, b);
+  $('tempValue').textContent = t < 0.3 ? '冷蓝' : t < 0.65 ? '暖白' : '暖橙';
+}
+$('temp').addEventListener('input', e => updateTemp(parseFloat(e.target.value)));
+updateTemp(20);
+// 阴影开关
+$('shadowOn').addEventListener('click', () => {
+  renderer.shadowMap.enabled = true;
+  sun.castShadow = true;
+  scene.traverse(o => { if (o.material) o.material.needsUpdate = true; });
+  $('shadowOn').classList.add('active');
+  $('shadowOff').classList.remove('active');
+});
+$('shadowOff').addEventListener('click', () => {
+  renderer.shadowMap.enabled = false;
+  sun.castShadow = false;
+  scene.traverse(o => { if (o.material) o.material.needsUpdate = true; });
+  $('shadowOff').classList.add('active');
+  $('shadowOn').classList.remove('active');
+});
+
+// ===== 虚拟摇杆 =====
+const joystick = $('joystick');
+const stick = joystick.querySelector('.stick');
+const sprintBtn = $('sprint-btn');
+const JOY_RADIUS = 40;  // 摇杆最大偏移 px
+
+const input = { x: 0, y: 0, sprint: false };  // -1~1
+let joyActive = false;
+let joyTouchId = null;
+
+function setStick(dx, dy) {
+  stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+
+function handleJoy(clientX, clientY) {
+  const rect = joystick.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  let dx = clientX - cx;
+  let dy = clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist > JOY_RADIUS) {
+    dx = dx / dist * JOY_RADIUS;
+    dy = dy / dist * JOY_RADIUS;
+  }
+  setStick(dx, dy);
+  input.x = dx / JOY_RADIUS;
+  input.y = dy / JOY_RADIUS;
+}
+
+joystick.addEventListener('touchstart', e => {
+  e.preventDefault();
+  joyActive = true;
+  joyTouchId = e.changedTouches[0].identifier;
+  handleJoy(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+}, { passive: false });
+joystick.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (t.identifier === joyTouchId) handleJoy(t.clientX, t.clientY);
+  }
+}, { passive: false });
+function joyEnd(e) {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joyTouchId) {
+      joyActive = false;
+      joyTouchId = null;
+      input.x = 0; input.y = 0;
+      setStick(0, 0);
+    }
+  }
+}
+joystick.addEventListener('touchend', joyEnd);
+joystick.addEventListener('touchcancel', joyEnd);
+// 鼠标支持（桌面调试）
+joystick.addEventListener('mousedown', e => {
+  joyActive = true;
+  handleJoy(e.clientX, e.clientY);
+  const move = ev => joyActive && handleJoy(ev.clientX, ev.clientY);
+  const up = () => {
+    joyActive = false; input.x = 0; input.y = 0; setStick(0, 0);
+    window.removeEventListener('mousemove', move);
+    window.removeEventListener('mouseup', up);
+  };
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
+});
+
+// 疾跑按钮
+function sprintOn(e) { e && e.preventDefault(); input.sprint = true; sprintBtn.classList.add('active'); }
+function sprintOff(e) { e && e.preventDefault(); input.sprint = false; sprintBtn.classList.remove('active'); }
+sprintBtn.addEventListener('touchstart', sprintOn, { passive: false });
+sprintBtn.addEventListener('touchend', sprintOff);
+sprintBtn.addEventListener('touchcancel', sprintOff);
+sprintBtn.addEventListener('mousedown', () => sprintOn());
+sprintBtn.addEventListener('mouseup', () => sprintOff());
+
+// ===== 角色移动 + 相机跟随 =====
+const WALK_SPEED = 2.2;
+const SPRINT_SPEED = 4.5;
+const WORLD_BOUND = 10.5;  // 场地边界
+let camFollowEnabled = true;
+
+function updatePlayer(dt) {
+  if (!player) return;
+  const mag = Math.hypot(input.x, input.y);
+  if (mag > 0.1) {
+    // 摇杆方向 → 世界方向（相对相机朝向）
+    // camAngle: 从相机指向主角的方向角（相机"看向"的方向）
+    const camAngle = Math.atan2(
+      player.position.x - camera.position.x,
+      player.position.z - camera.position.z
+    );
+    // 摇杆：x 右为正，y 下为正（屏幕坐标）
+    // 推上（input.y<0）应沿相机看向方向前进 → 前进方向角 = camAngle
+    // 摇杆角（以"上"为 0，顺时针读屏）= atan2(input.x, -input.y)
+    // 屏幕 x 向右但世界旋转方向相反，取反使推右=向右
+    const moveAngle = camAngle - Math.atan2(input.x, -input.y);
+    const speed = (input.sprint ? SPRINT_SPEED : WALK_SPEED) * Math.min(mag, 1);
+    player.position.x += Math.sin(moveAngle) * speed * dt;
+    player.position.z += Math.cos(moveAngle) * speed * dt;
+    // 边界限制
+    const d = Math.hypot(player.position.x, player.position.z);
+    if (d > WORLD_BOUND) {
+      player.position.x *= WORLD_BOUND / d;
+      player.position.z *= WORLD_BOUND / d;
+    }
+    // 面向移动方向（平滑转身）
+    const targetRot = moveAngle;
+    let rotDiff = targetRot - player.rotation.y;
+    while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
+    while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
+    player.rotation.y += rotDiff * Math.min(1, dt * 10);
+    // 动画
+    playAction(input.sprint ? 'sprint' : 'walk');
+  } else {
+    playAction('idle');
+  }
+  // 相机跟随
+  if (camFollowEnabled) {
+    controls.target.lerp(
+      new THREE.Vector3(player.position.x, 1, player.position.z),
+      Math.min(1, dt * 5)
+    );
+  }
+}
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  animMixers.forEach(m => m.update(dt));
+  updatePlayer(dt);
+  controls.update();
+  renderer.render(scene, camera);
+}
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/VIEW_H();
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, VIEW_H());
+});
+animate();
+</script>
+</body>
+</html>
